@@ -50,11 +50,25 @@ export interface DashboardMetrics {
 }
 
 export interface AdminUser extends User {
-  user_type: 'OWNER' | 'RIDER';
+  role: 'OWNER' | 'RIDER';
+  phone_number?: string;
+  login_count: number;
+  last_login_at?: string;
+  full_name?: string;
+  is_beta_tester: boolean;
+  currency?: string;
+  language?: string;
+  location?: string;
+  avatar?: string;
+  rent_service_name?: string;
+  address?: string;
+
+  // Computed/derived fields for UI compatibility
+  user_type?: 'OWNER' | 'RIDER';
   phone?: string;
-  booking_count: number;
+  booking_count?: number;
   last_login?: string;
-  registration_date: string;
+  registration_date?: string;
 }
 
 export interface SystemInfo {

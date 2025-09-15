@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 import { UserEditModal } from '../components/modals/UserEditModal';
 import { UserCreateModal } from '../components/modals/UserCreateModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import type { AdminUser } from '../types';
+import type { AdminUser, PaginatedResponse } from '../types';
 import {
   MagnifyingGlassIcon,
   UserIcon,
@@ -31,7 +31,7 @@ export const UsersPage: React.FC = () => {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [userTypeFilter, setUserTypeFilter] = useState<'OWNER' | 'RIDER' | undefined>(
-    (searchParams.get('type') as 'OWNER' | 'RIDER') || undefined
+    (searchParams.get('type')?.toUpperCase() as 'OWNER' | 'RIDER') || undefined
   );
   const [activeFilter, setActiveFilter] = useState<boolean | undefined>(
     searchParams.get('active') === 'true' ? true : searchParams.get('active') === 'false' ? false : undefined
@@ -67,17 +67,63 @@ export const UsersPage: React.FC = () => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-users', page, search, userTypeFilter, activeFilter, dateFromFilter, dateToFilter, inactiveDaysFilter],
-    queryFn: () => adminService.getAdminUsers({
-      page,
-      size: 20,
-      search: search || undefined,
-      user_type: userTypeFilter,
-      is_active: activeFilter,
-      registration_date_from: dateFromFilter || undefined,
-      registration_date_to: dateToFilter || undefined,
-      inactive_days: inactiveDaysFilter,
-    }),
+    queryFn: async () => {
+      const result = await adminService.getAdminUsers({
+        skip: (page - 1) * 20,
+        limit: 20,
+        search: search || undefined,
+        user_type: userTypeFilter,
+        is_active: activeFilter,
+        registration_date_from: dateFromFilter || undefined,
+        registration_date_to: dateToFilter || undefined,
+        inactive_days: inactiveDaysFilter,
+      });
+      console.log('API Response:', result);
+      console.log('Response type:', typeof result);
+      console.log('Response keys:', Object.keys(result || {}));
+      return result;
+    },
   });
+
+  // Normalize data format - handle the actual API response structure
+  const normalizedData = React.useMemo(() => {
+    if (!data) return null;
+
+    // API returns {data: Array, count: number} structure
+    if ('data' in data && Array.isArray(data.data)) {
+      // Map API fields to UI-compatible fields
+      const mappedUsers = data.data.map((user: any) => ({
+        ...user,
+        user_type: user.role, // Map role to user_type for UI compatibility
+        phone: user.phone_number, // Map phone_number to phone
+        booking_count: user.login_count || 0, // Use login_count as booking_count for now
+        last_login: user.last_login_at, // Map last_login_at to last_login
+        registration_date: user.created_at, // Map created_at to registration_date
+      }));
+
+      return {
+        items: mappedUsers as AdminUser[],
+        total: data.count || data.data.length,
+        page: page,
+        size: 20,
+        pages: Math.ceil((data.count || data.data.length) / 20)
+      };
+    }
+
+    // If data is an array, create a mock paginated structure
+    if (Array.isArray(data)) {
+      return {
+        items: data as AdminUser[],
+        total: data.length,
+        page: page,
+        size: 20,
+        pages: Math.ceil(data.length / 20)
+      };
+    }
+
+    // If data has items property, use as-is
+    return data as PaginatedResponse<AdminUser>;
+  }, [data, page]);
 
   // Helper functions
   const formatDate = (dateString: string) => {
@@ -143,6 +189,28 @@ export const UsersPage: React.FC = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-8">
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-red-100/50 to-pink-100/50 rounded-2xl"></div>
+          <div className="relative p-8 text-center">
+            <h1 className="text-4xl font-bold text-red-800">Error Loading Users</h1>
+            <p className="mt-4 text-xl text-red-600">
+              Unable to fetch user data. Please try again later.
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="mt-4"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -294,17 +362,17 @@ export const UsersPage: React.FC = () => {
         <div className="bg-gray-50 rounded-lg px-4 py-3">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div>
-              Showing {data?.items?.length || 0} of {data?.total || 0} users
+              Showing {normalizedData?.items?.length || 0} of {normalizedData?.total || 0} users
               {hasActiveFilters && <span className="ml-1 text-primary-600">(filtered)</span>}
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span>Owners: {data.items.filter(u => u.user_type === 'OWNER').length}</span>
+                <span>Owners: {normalizedData?.items?.filter(u => u.user_type === 'OWNER').length || 0}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span>Riders: {data.items.filter(u => u.user_type === 'RIDER').length}</span>
+                <span>Riders: {normalizedData?.items?.filter(u => u.user_type === 'RIDER').length || 0}</span>
               </div>
             </div>
           </div>
@@ -350,30 +418,27 @@ export const UsersPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.items.map((user: AdminUser) => (
+              {normalizedData?.items?.map((user: AdminUser) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
                           <span className="text-white font-semibold text-sm">
-                            {(user.first_name?.[0] || user.email[0]).toUpperCase()}
+                            {(user.full_name?.[0] || user.email[0]).toUpperCase()}
                           </span>
                         </div>
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {user.first_name && user.last_name
-                            ? `${user.first_name} ${user.last_name}`
-                            : user.username || user.email.split('@')[0]
-                          }
+                          {user.full_name || user.email.split('@')[0]}
                         </div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getUserTypeBadge(user.user_type)}
+                    {user.user_type ? getUserTypeBadge(user.user_type) : <span className="text-gray-400">Unknown</span>}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div>
@@ -384,7 +449,7 @@ export const UsersPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
                       <CalendarIcon className="w-4 h-4 text-gray-400 mr-1" />
-                      {formatDate(user.registration_date)}
+                      {user.registration_date ? formatDate(user.registration_date) : <span className="text-gray-400">N/A</span>}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -439,7 +504,7 @@ export const UsersPage: React.FC = () => {
         </div>
 
         {/* Empty state */}
-        {data?.items.length === 0 && (
+        {(!normalizedData?.items || normalizedData.items.length === 0) && !isLoading && (
           <div className="text-center py-12">
             <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
@@ -461,7 +526,7 @@ export const UsersPage: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {data && data.pages > 1 && (
+        {normalizedData && normalizedData.pages > 1 && (
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
               <Button
@@ -473,7 +538,7 @@ export const UsersPage: React.FC = () => {
               </Button>
               <Button
                 variant="secondary"
-                disabled={page >= data.pages}
+                disabled={page >= normalizedData.pages}
                 onClick={() => setPage(page + 1)}
               >
                 Next
@@ -484,7 +549,7 @@ export const UsersPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-700">
                   Showing page <span className="font-medium">{page}</span> of{' '}
-                  <span className="font-medium">{data.pages}</span> ({data.total} total users)
+                  <span className="font-medium">{normalizedData.pages}</span> ({normalizedData.total} total users)
                 </p>
               </div>
               <div>
@@ -500,7 +565,7 @@ export const UsersPage: React.FC = () => {
                   <Button
                     variant="secondary"
                     size="sm"
-                    disabled={page >= data.pages}
+                    disabled={page >= normalizedData.pages}
                     onClick={() => setPage(page + 1)}
                   >
                     Next

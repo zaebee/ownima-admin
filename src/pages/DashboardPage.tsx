@@ -39,7 +39,7 @@ export const DashboardPage: React.FC = () => {
       icon: UsersIcon,
       description: 'Vehicle owners on the platform',
       color: 'blue' as const,
-      href: '/dashboard/users?type=owner',
+      href: '/dashboard/users?type=OWNER',
     },
     {
       title: 'Total Riders',
@@ -47,7 +47,7 @@ export const DashboardPage: React.FC = () => {
       icon: UserIcon,
       description: 'Riders registered on the platform',
       color: 'green' as const,
-      href: '/dashboard/users?type=rider',
+      href: '/dashboard/users?type=RIDER',
     },
     {
       title: 'Total Bookings',

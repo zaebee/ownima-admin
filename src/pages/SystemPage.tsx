@@ -211,9 +211,9 @@ export const SystemPage: React.FC = () => {
           <div className="flex justify-center py-8">
             <LoadingSpinner />
           </div>
-        ) : systemErrors && systemErrors.length > 0 ? (
+        ) : systemErrors && systemErrors?.length > 0 ? (
           <div className="space-y-4">
-            {systemErrors.slice(0, 10).map((error) => (
+            {systemErrors?.slice(0, 10).map((error) => (
               <div
                 key={error.id}
                 className={`p-4 rounded-lg border-l-4 ${
@@ -283,9 +283,9 @@ export const SystemPage: React.FC = () => {
           <div className="flex justify-center py-8">
             <LoadingSpinner />
           </div>
-        ) : userActivities && userActivities.length > 0 ? (
+        ) : userActivities && userActivities?.length > 0 ? (
           <div className="space-y-4">
-            {userActivities.slice(0, 10).map((activity: UserActivity) => {
+            {userActivities?.slice(0, 10).map((activity: UserActivity) => {
               const ActivityIcon = getActivityIcon(activity.activity_type);
               const activityColor = getActivityColor(activity.activity_type) as 'blue' | 'green' | 'purple' | 'indigo';
 
@@ -323,7 +323,7 @@ export const SystemPage: React.FC = () => {
                           'bg-indigo-100 text-indigo-700'
                         }`}
                       >
-                        {activity.activity_type.replace(/_/g, ' ')}
+                        {activity.activity_type?.replace(/_/g, ' ') || 'Unknown'}
                       </span>
                       {activity.ip_address && (
                         <span>IP: {activity.ip_address}</span>

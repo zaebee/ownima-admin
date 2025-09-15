@@ -9,8 +9,8 @@ import type {
 } from '../types';
 
 interface AdminUserQueryParams extends Record<string, unknown> {
-  page?: number;
-  size?: number;
+  skip?: number;
+  limit?: number;
   search?: string;
   user_type?: 'OWNER' | 'RIDER';
   registration_date_from?: string;
@@ -20,7 +20,7 @@ interface AdminUserQueryParams extends Record<string, unknown> {
 }
 
 interface SystemErrorQueryParams extends Record<string, unknown> {
-  limit?: number;
+  _limit?: number;
   level?: 'ERROR' | 'WARNING' | 'INFO';
   date_from?: string;
   date_to?: string;
@@ -44,8 +44,9 @@ class AdminService {
   /**
    * Get paginated list of users with admin-specific information
    */
-  async getAdminUsers(params?: AdminUserQueryParams): Promise<PaginatedResponse<AdminUser>> {
-    const response = await apiClient.get<PaginatedResponse<AdminUser>>('/admin/users', params);
+  async getAdminUsers(params?: AdminUserQueryParams): Promise<{data: AdminUser[], count: number} | AdminUser[] | PaginatedResponse<AdminUser>> {
+    const response = await apiClient.get<{data: AdminUser[], count: number} | AdminUser[] | PaginatedResponse<AdminUser>>('/admin/users', params);
+    console.log('Admin users API response:', response);
     return response;
   }
 
