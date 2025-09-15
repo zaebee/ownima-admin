@@ -1,6 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
+// Simple debounce function with cancel method
+const debounce = <T extends (...args: any[]) => void>(func: T, delay: number) => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const debouncedFunc = (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+  debouncedFunc.cancel = () => {
+    clearTimeout(timeoutId);
+  };
+  return debouncedFunc;
+};
 import { adminService } from '../services/admin';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
@@ -29,6 +41,7 @@ import clsx from 'clsx';
 export const UsersPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [userTypeFilter, setUserTypeFilter] = useState<'OWNER' | 'RIDER' | undefined>(
     (searchParams.get('type')?.toUpperCase() as 'OWNER' | 'RIDER') || undefined
@@ -51,10 +64,26 @@ export const UsersPage: React.FC = () => {
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
+  // Debounced search to prevent API calls on every keystroke
+  const debouncedSearchUpdate = useMemo(
+    () => debounce((searchValue: string) => {
+      setDebouncedSearch(searchValue);
+      setPage(1); // Reset to first page when search changes
+    }, 500),
+    []
+  );
+
+  useEffect(() => {
+    debouncedSearchUpdate(search);
+    return () => {
+      debouncedSearchUpdate.cancel();
+    };
+  }, [search, debouncedSearchUpdate]);
+
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    if (search) params.set('search', search);
+    if (debouncedSearch) params.set('search', debouncedSearch);
     if (page > 1) params.set('page', page.toString());
     if (userTypeFilter) params.set('type', userTypeFilter);
     if (activeFilter !== undefined) params.set('active', activeFilter.toString());
@@ -63,15 +92,15 @@ export const UsersPage: React.FC = () => {
     if (inactiveDaysFilter) params.set('inactive_days', inactiveDaysFilter.toString());
 
     setSearchParams(params, { replace: true });
-  }, [search, page, userTypeFilter, activeFilter, dateFromFilter, dateToFilter, inactiveDaysFilter, setSearchParams]);
+  }, [debouncedSearch, page, userTypeFilter, activeFilter, dateFromFilter, dateToFilter, inactiveDaysFilter, setSearchParams]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['admin-users', page, search, userTypeFilter, activeFilter, dateFromFilter, dateToFilter, inactiveDaysFilter],
+    queryKey: ['admin-users', page, debouncedSearch, userTypeFilter, activeFilter, dateFromFilter, dateToFilter, inactiveDaysFilter],
     queryFn: async () => {
       const result = await adminService.getAdminUsers({
         skip: (page - 1) * 20,
         limit: 20,
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         user_type: userTypeFilter,
         is_active: activeFilter,
         registration_date_from: dateFromFilter || undefined,
@@ -175,6 +204,7 @@ export const UsersPage: React.FC = () => {
 
   const clearFilters = () => {
     setSearch('');
+    setDebouncedSearch('');
     setUserTypeFilter(undefined);
     setActiveFilter(undefined);
     setDateFromFilter('');
@@ -183,7 +213,7 @@ export const UsersPage: React.FC = () => {
     setPage(1);
   };
 
-  const hasActiveFilters = search || userTypeFilter || activeFilter !== undefined || dateFromFilter || dateToFilter || inactiveDaysFilter;
+  const hasActiveFilters = debouncedSearch || userTypeFilter || activeFilter !== undefined || dateFromFilter || dateToFilter || inactiveDaysFilter;
 
   if (isLoading && page === 1) {
     return (
@@ -423,7 +453,24 @@ export const UsersPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                        {user.avatar ? (
+                          <img
+                            className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm"
+                            src={user.avatar}
+                            alt={user.full_name || user.email}
+                            onError={(e) => {
+                              // Fallback to initials if avatar fails to load
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const fallback = target.nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center ${user.avatar ? 'hidden' : 'flex'}`}
+                          style={{ display: user.avatar ? 'none' : 'flex' }}
+                        >
                           <span className="text-white font-semibold text-sm">
                             {(user.full_name?.[0] || user.email[0]).toUpperCase()}
                           </span>
