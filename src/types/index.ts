@@ -4,8 +4,14 @@ export interface User {
   username?: string;
   first_name?: string;
   last_name?: string;
+  full_name?: string;
   is_active: boolean;
   is_superuser: boolean;
+  is_beta_tester?: boolean;
+  role?: 'OWNER' | 'RIDER';
+  currency?: string | null;
+  language?: string | null;
+  location?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -94,13 +100,15 @@ export interface SystemError {
 }
 
 export interface UserActivity {
-  id: string;
+  id?: string;
   timestamp: string;
   user_id: string;
   user_email: string;
   user_name?: string;
-  activity_type: 'LOGIN' | 'REGISTRATION' | 'BOOKING_CREATED' | 'BOOKING_CONFIRMED' | 'PROFILE_UPDATED';
-  description: string;
+  user_role?: string;
+  activity_type?: 'LOGIN' | 'REGISTRATION' | 'BOOKING_CREATED' | 'BOOKING_CONFIRMED' | 'PROFILE_UPDATED';
+  type?: string; // Backend uses lowercase 'type' field
+  description?: string;
   ip_address?: string;
   user_agent?: string;
   metadata?: Record<string, unknown>;

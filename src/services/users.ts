@@ -1,5 +1,6 @@
 import { apiClient } from './api';
 import type { User, PaginatedResponse } from '../types';
+import type { components } from '../types/api-generated';
 
 interface UserQueryParams extends Record<string, unknown> {
   page?: number;
@@ -9,24 +10,12 @@ interface UserQueryParams extends Record<string, unknown> {
   is_superuser?: boolean;
 }
 
-interface CreateUserData extends Record<string, unknown> {
-  email: string;
-  username?: string;
-  first_name?: string;
-  last_name?: string;
-  password: string;
+type CreateUserData = components['schemas']['UserRegister'] & {
   is_active?: boolean;
   is_superuser?: boolean;
-}
+};
 
-interface UpdateUserData extends Record<string, unknown> {
-  email?: string;
-  username?: string;
-  first_name?: string;
-  last_name?: string;
-  is_active?: boolean;
-  is_superuser?: boolean;
-}
+type UpdateUserData = components['schemas']['UserUpdate'];
 
 class UserService {
   async getUsers(params?: UserQueryParams): Promise<PaginatedResponse<User>> {

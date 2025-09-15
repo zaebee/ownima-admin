@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
+
 // Simple debounce function with cancel method
-const debounce = <T extends (...args: any[]) => void>(func: T, delay: number) => {
+const debounce = <T extends (...args: unknown[]) => void>(func: T, delay: number) => {
   let timeoutId: ReturnType<typeof setTimeout>;
   const debouncedFunc = (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
@@ -66,7 +67,8 @@ export const UsersPage: React.FC = () => {
 
   // Debounced search to prevent API calls on every keystroke
   const debouncedSearchUpdate = useMemo(
-    () => debounce((searchValue: string) => {
+    () => debounce((...args: unknown[]) => {
+      const searchValue = args[0] as string;
       setDebouncedSearch(searchValue);
       setPage(1); // Reset to first page when search changes
     }, 500),
@@ -121,14 +123,17 @@ export const UsersPage: React.FC = () => {
     // API returns {data: Array, count: number} structure
     if ('data' in data && Array.isArray(data.data)) {
       // Map API fields to UI-compatible fields
-      const mappedUsers = data.data.map((user: any) => ({
-        ...user,
-        user_type: user.role, // Map role to user_type for UI compatibility
-        phone: user.phone_number, // Map phone_number to phone
-        booking_count: user.login_count || 0, // Use login_count as booking_count for now
-        last_login: user.last_login_at, // Map last_login_at to last_login
-        registration_date: user.created_at, // Map created_at to registration_date
-      }));
+      const mappedUsers = (data.data as unknown[]).map((user: unknown) => {
+        const apiUser = user as Record<string, unknown>;
+        return {
+          ...apiUser,
+          user_type: apiUser.role, // Map role to user_type for UI compatibility
+          phone: apiUser.phone_number, // Map phone_number to phone
+          booking_count: apiUser.login_count || 0, // Use login_count as booking_count for now
+          last_login: apiUser.last_login_at, // Map last_login_at to last_login
+          registration_date: apiUser.created_at, // Map created_at to registration_date
+        };
+      });
 
       return {
         items: mappedUsers as AdminUser[],

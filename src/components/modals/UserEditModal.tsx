@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { userService, type UpdateUserData } from '../../services/users';
+import { userService } from '../../services/users';
 import type { User } from '../../types';
+import type { components } from '../../types/api-generated';
 import {
   UserIcon,
   EnvelopeIcon,
-  IdentificationIcon,
   ShieldCheckIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
+
+type UpdateUserData = components['schemas']['UserUpdate'];
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -26,11 +28,14 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<UpdateUserData>({
     email: '',
-    username: '',
-    first_name: '',
-    last_name: '',
+    full_name: '',
     is_active: true,
     is_superuser: false,
+    is_beta_tester: false,
+    role: 'OWNER',
+    currency: null,
+    language: null,
+    location: null,
   });
   const [errors, setErrors] = useState<Partial<UpdateUserData>>({});
 
@@ -51,11 +56,14 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     if (user && isOpen) {
       setFormData({
         email: user.email,
-        username: user.username || '',
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
+        full_name: user.full_name || '',
         is_active: user.is_active,
         is_superuser: user.is_superuser,
+        is_beta_tester: user.is_beta_tester || false,
+        role: user.role || 'OWNER',
+        currency: user.currency as components['schemas']['CurrencyEnum'] | null,
+        language: user.language as components['schemas']['LanguageEnum'] | null,
+        location: user.location || null,
       });
       setErrors({});
     }
@@ -92,9 +100,8 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
     const updateData = { ...formData };
     // Remove empty strings for optional fields
-    if (!updateData.username?.trim()) updateData.username = undefined;
-    if (!updateData.first_name?.trim()) updateData.first_name = undefined;
-    if (!updateData.last_name?.trim()) updateData.last_name = undefined;
+    if (!updateData.full_name?.trim()) updateData.full_name = null;
+    if (!updateData.email?.trim()) updateData.email = null;
 
     updateUserMutation.mutate({ id: user.id, data: updateData });
   };
@@ -114,50 +121,18 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* User Info */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-              <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
-              First Name
-            </label>
-            <input
-              type="text"
-              name="first_name"
-              value={formData.first_name || ''}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              placeholder="Enter first name"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-              <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
-              Last Name
-            </label>
-            <input
-              type="text"
-              name="last_name"
-              value={formData.last_name || ''}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              placeholder="Enter last name"
-            />
-          </div>
-        </div>
-
         <div>
           <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-            <IdentificationIcon className="w-4 h-4 mr-2 text-gray-400" />
-            Username
+            <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
+            Full Name
           </label>
           <input
             type="text"
-            name="username"
-            value={formData.username || ''}
+            name="full_name"
+            value={formData.full_name || ''}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            placeholder="Enter username"
+            placeholder="Enter full name"
           />
         </div>
 

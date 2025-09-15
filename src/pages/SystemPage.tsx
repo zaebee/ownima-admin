@@ -16,7 +16,6 @@ import {
   XCircleIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import type { UserActivity } from '../types';
 
 const formatUptime = (seconds: number): string => {
   const days = Math.floor(seconds / (24 * 3600));
@@ -285,12 +284,14 @@ export const SystemPage: React.FC = () => {
           </div>
         ) : userActivities && userActivities?.length > 0 ? (
           <div className="space-y-4">
-            {userActivities?.slice(0, 10).map((activity: UserActivity) => {
-              const ActivityIcon = getActivityIcon(activity.activity_type);
-              const activityColor = getActivityColor(activity.activity_type) as 'blue' | 'green' | 'purple' | 'indigo';
+            {userActivities?.slice(0, 10).map((activity: Record<string, unknown>) => {
+              // Handle both activity_type and type fields from API
+              const activityType = (activity.activity_type as string) || (activity.type as string) || 'unknown';
+              const ActivityIcon = getActivityIcon(activityType);
+              const activityColor = getActivityColor(activityType) as 'blue' | 'green' | 'purple' | 'indigo';
 
               return (
-                <div key={activity.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                <div key={(activity.id as string) || (activity.user_id as string) + (activity.timestamp as string)} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
                   <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                     activityColor === 'blue' ? 'bg-blue-100' :
                     activityColor === 'green' ? 'bg-green-100' :
@@ -307,13 +308,13 @@ export const SystemPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium text-gray-900">
-                        {activity.user_name || activity.user_email}
+                        {(activity.user_name as string) || (activity.user_email as string) || 'Unknown User'}
                       </p>
                       <span className="text-xs text-gray-500">
-                        {formatDateTime(activity.timestamp)}
+                        {formatDateTime(activity.timestamp as string)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                    <p className="text-sm text-gray-600 mt-1">{(activity.description as string) || `User ${activityType.toLowerCase()}`}</p>
                     <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
                       <span
                         className={`px-2 py-1 rounded-full font-medium ${
@@ -323,10 +324,10 @@ export const SystemPage: React.FC = () => {
                           'bg-indigo-100 text-indigo-700'
                         }`}
                       >
-                        {activity.activity_type?.replace(/_/g, ' ') || 'Unknown'}
+                        {activityType?.replace(/_/g, ' ').toUpperCase() || 'UNKNOWN'}
                       </span>
                       {activity.ip_address && (
-                        <span>IP: {activity.ip_address}</span>
+                        <span>IP: {activity.ip_address as string}</span>
                       )}
                     </div>
                   </div>

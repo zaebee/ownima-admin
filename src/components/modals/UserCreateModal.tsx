@@ -2,16 +2,21 @@ import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { userService, type CreateUserData } from '../../services/users';
+import { userService } from '../../services/users';
+import type { components } from '../../types/api-generated';
 import {
   UserIcon,
   EnvelopeIcon,
-  IdentificationIcon,
   ShieldCheckIcon,
   CheckCircleIcon,
   KeyIcon,
   UserPlusIcon,
 } from '@heroicons/react/24/outline';
+
+type CreateUserData = components['schemas']['UserRegister'] & {
+  is_active?: boolean;
+  is_superuser?: boolean;
+};
 
 interface UserCreateModalProps {
   isOpen: boolean;
@@ -25,10 +30,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CreateUserData>({
     email: '',
-    username: '',
-    first_name: '',
-    last_name: '',
     password: '',
+    full_name: '',
     is_active: true,
     is_superuser: false,
   });
@@ -51,10 +54,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
   const resetForm = () => {
     setFormData({
       email: '',
-      username: '',
-      first_name: '',
-      last_name: '',
       password: '',
+      full_name: '',
       is_active: true,
       is_superuser: false,
     });
@@ -99,9 +100,7 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
 
     const createData = { ...formData };
     // Remove empty strings for optional fields
-    if (!createData.username?.trim()) createData.username = undefined;
-    if (!createData.first_name?.trim()) createData.first_name = undefined;
-    if (!createData.last_name?.trim()) createData.last_name = undefined;
+    if (!createData.full_name?.trim()) createData.full_name = undefined;
 
     createUserMutation.mutate(createData);
   };
@@ -133,50 +132,18 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
         </div>
 
         {/* User Info */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-              <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
-              First Name
-            </label>
-            <input
-              type="text"
-              name="first_name"
-              value={formData.first_name || ''}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              placeholder="Enter first name"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-              <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
-              Last Name
-            </label>
-            <input
-              type="text"
-              name="last_name"
-              value={formData.last_name || ''}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              placeholder="Enter last name"
-            />
-          </div>
-        </div>
-
         <div>
           <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-            <IdentificationIcon className="w-4 h-4 mr-2 text-gray-400" />
-            Username
+            <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
+            Full Name
           </label>
           <input
             type="text"
-            name="username"
-            value={formData.username || ''}
+            name="full_name"
+            value={formData.full_name || ''}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            placeholder="Enter username"
+            placeholder="Enter full name"
           />
         </div>
 
