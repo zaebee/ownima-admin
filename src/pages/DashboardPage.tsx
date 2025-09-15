@@ -1,54 +1,27 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { userService } from '../services/users';
+import { adminService } from '../services/admin';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { MetricCard } from '../components/ui/MetricCard';
 import {
   UsersIcon,
-  ArrowRightIcon,
+  UserIcon,
+  ClipboardDocumentListIcon,
+  UserPlusIcon,
+  ArrowRightOnRectangleIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 
-const ManagementCard: React.FC<{
-  title: string;
-  description: string;
-  count: number;
-  icon: React.ElementType;
-  gradient: string;
-  lightBg: string;
-  to: string;
-}> = ({ title, description, count, icon: Icon, gradient, lightBg, to }) => (
-  <Link
-    to={to}
-    className="group relative bg-white overflow-hidden rounded-2xl border border-gray-100/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block"
-  >
-    <div className={`absolute inset-0 ${lightBg} opacity-50`}></div>
-    <div className="relative p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-2xl bg-gradient-to-tr ${gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="h-6 w-6 text-white" aria-hidden="true" />
-        </div>
-        <ArrowRightIcon className="h-5 w-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all duration-200" />
-      </div>
-      <div className="mb-4">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="text-2xl font-bold text-gray-900">
-          {count.toLocaleString()} {count === 1 ? 'user' : 'users'}
-        </div>
-        <div className="h-1 w-12 bg-gradient-to-r from-primary-400 to-indigo-500 rounded-full"></div>
-      </div>
-    </div>
-    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary-500/20 to-transparent"></div>
-  </Link>
-);
 
 export const DashboardPage: React.FC = () => {
-  // Query users data
-  const { data: users, isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => userService.getUsers({ size: 1 }), // Just get count
+  // Query dashboard metrics
+  const { data: metrics, isLoading } = useQuery({
+    queryKey: ['dashboard-metrics'],
+    queryFn: () => adminService.getMetricsOverview(),
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   if (isLoading) {
@@ -59,15 +32,71 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  const managementCards = [
+  const metricsCards = [
     {
-      title: 'User Management',
-      description: 'Manage platform users, view profiles, activate or deactivate accounts',
-      count: users?.total || 0,
+      title: 'Total Owners',
+      value: metrics?.total_owners || 0,
       icon: UsersIcon,
-      gradient: 'from-blue-500 to-blue-700',
-      lightBg: 'bg-gradient-to-br from-blue-50 to-indigo-50',
-      to: '/dashboard/users',
+      description: 'Vehicle owners on the platform',
+      color: 'blue' as const,
+      href: '/dashboard/users?type=owner',
+    },
+    {
+      title: 'Total Riders',
+      value: metrics?.total_riders || 0,
+      icon: UserIcon,
+      description: 'Riders registered on the platform',
+      color: 'green' as const,
+      href: '/dashboard/users?type=rider',
+    },
+    {
+      title: 'Total Bookings',
+      value: metrics?.total_bookings || 0,
+      icon: ClipboardDocumentListIcon,
+      description: 'All-time booking count',
+      color: 'purple' as const,
+    },
+    {
+      title: 'New Registrations Today',
+      value: metrics?.new_registrations_today || 0,
+      icon: UserPlusIcon,
+      description: 'Users who joined today',
+      color: 'indigo' as const,
+    },
+    {
+      title: 'Logins Today',
+      value: metrics?.logins_today || 0,
+      icon: ArrowRightOnRectangleIcon,
+      description: 'User login sessions today',
+      color: 'pink' as const,
+    },
+    {
+      title: 'Bookings Today',
+      value: metrics?.bookings_today || 0,
+      icon: CalendarDaysIcon,
+      description: 'New bookings created today',
+      color: 'yellow' as const,
+    },
+    {
+      title: 'Pending Bookings',
+      value: metrics?.bookings_pending || 0,
+      icon: ClockIcon,
+      description: 'Bookings awaiting confirmation',
+      color: 'red' as const,
+    },
+    {
+      title: 'Confirmed Bookings',
+      value: metrics?.bookings_confirmed || 0,
+      icon: CheckCircleIcon,
+      description: 'Confirmed and active bookings',
+      color: 'green' as const,
+    },
+    {
+      title: 'Bookings for Today',
+      value: metrics?.bookings_for_today || 0,
+      icon: CalendarIcon,
+      description: 'Bookings starting today',
+      color: 'gray' as const,
     },
   ];
 
@@ -78,19 +107,71 @@ export const DashboardPage: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-primary-100/50 to-indigo-100/50 rounded-2xl"></div>
         <div className="relative p-8 text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-            User Management Dashboard
+            Ownima Admin Dashboard
           </h1>
           <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
-            Manage your platform users with confidence and control.
+            Monitor your platform's key metrics and performance in real-time.
           </p>
+          <div className="mt-6 flex justify-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span>Live data - Updates every 30 seconds</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Management cards */}
-      <div className="grid grid-cols-1 gap-8">
-        {managementCards.map((card) => (
-          <ManagementCard key={card.title} {...card} />
+      {/* Metrics grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {metricsCards.map((card) => (
+          <MetricCard
+            key={card.title}
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            description={card.description}
+            color={card.color}
+            clickable={!!card.href}
+            href={card.href}
+            loading={isLoading}
+          />
         ))}
+      </div>
+
+      {/* Quick actions section */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 p-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <MetricCard
+            title="User Management"
+            value="Manage"
+            icon={UsersIcon}
+            description="View and manage all platform users"
+            color="blue"
+            size="small"
+            clickable={true}
+            href="/dashboard/users"
+          />
+          <MetricCard
+            title="System Monitoring"
+            value="Monitor"
+            icon={ClipboardDocumentListIcon}
+            description="View system status and logs"
+            color="gray"
+            size="small"
+            clickable={true}
+            href="/dashboard/system"
+          />
+          <MetricCard
+            title="Generate Reports"
+            value="Export"
+            icon={CalendarDaysIcon}
+            description="Download analytics reports"
+            color="purple"
+            size="small"
+            clickable={true}
+          />
+        </div>
       </div>
     </div>
   );
