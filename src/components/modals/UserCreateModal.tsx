@@ -42,7 +42,7 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
       resetForm();
       onClose();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Failed to create user:', error);
       // Handle validation errors if needed
     },

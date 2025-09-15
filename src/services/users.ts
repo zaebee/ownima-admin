@@ -1,7 +1,7 @@
 import { apiClient } from './api';
 import type { User, PaginatedResponse } from '../types';
 
-interface UserQueryParams {
+interface UserQueryParams extends Record<string, unknown> {
   page?: number;
   size?: number;
   search?: string;
@@ -9,7 +9,7 @@ interface UserQueryParams {
   is_superuser?: boolean;
 }
 
-interface CreateUserData {
+interface CreateUserData extends Record<string, unknown> {
   email: string;
   username?: string;
   first_name?: string;
@@ -19,7 +19,7 @@ interface CreateUserData {
   is_superuser?: boolean;
 }
 
-interface UpdateUserData {
+interface UpdateUserData extends Record<string, unknown> {
   email?: string;
   username?: string;
   first_name?: string;
@@ -30,7 +30,7 @@ interface UpdateUserData {
 
 class UserService {
   async getUsers(params?: UserQueryParams): Promise<PaginatedResponse<User>> {
-    const response = await apiClient.get<any>('/users', params);
+    const response = await apiClient.get<{ data: User[]; count: number }>('/users', params);
     
     // Transform API response to match our expected structure
     return {

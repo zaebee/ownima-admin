@@ -2,7 +2,7 @@ import React from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { BellIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import clsx from 'clsx';
 
 export const Header: React.FC = () => {

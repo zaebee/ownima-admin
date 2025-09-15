@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useState, useEffect, type ReactNode } from 'react';
 import type { LoginRequest, LoginResponse, User } from '../types';
 import { authService } from '../services/auth';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
@@ -11,15 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -38,7 +31,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setToken(savedToken);
           const currentUser = await authService.getCurrentUser();
           setUser(currentUser);
-        } catch (error) {
+        } catch {
           localStorage.removeItem('auth_token');
         }
       }
@@ -49,18 +42,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (credentials: LoginRequest) => {
-    try {
-      const response: LoginResponse = await authService.login(credentials);
-      const newToken = response.access_token;
-      
-      setToken(newToken);
-      localStorage.setItem('auth_token', newToken);
-      
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-    } catch (error) {
-      throw error;
-    }
+    const response: LoginResponse = await authService.login(credentials);
+    const newToken = response.access_token;
+
+    setToken(newToken);
+    localStorage.setItem('auth_token', newToken);
+
+    const currentUser = await authService.getCurrentUser();
+    setUser(currentUser);
   };
 
   const logout = () => {
@@ -84,3 +73,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+

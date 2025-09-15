@@ -41,7 +41,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['users'] });
       onClose();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Failed to update user:', error);
       // Handle validation errors if needed
     },
