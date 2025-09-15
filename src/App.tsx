@@ -7,7 +7,6 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { UsersPage } from './pages/UsersPage';
-import { BetaTestersPage } from './pages/BetaTestersPage';
 import { LandingPage } from './pages/LandingPage';
 
 const queryClient = new QueryClient({
@@ -36,7 +35,6 @@ const AppRoutes: React.FC = () => {
               <Route index element={<Navigate to="users" replace />} />
               <Route path="overview" element={<DashboardPage />} />
               <Route path="users" element={<UsersPage />} />
-              <Route path="beta-testers" element={<BetaTestersPage />} />
             </Routes>
           </Layout>
         </ProtectedRoute>

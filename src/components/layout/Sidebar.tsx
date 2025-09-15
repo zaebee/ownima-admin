@@ -3,14 +3,12 @@ import { NavLink } from 'react-router-dom';
 import {
   HomeIcon,
   UsersIcon,
-  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard/overview', icon: HomeIcon },
   { name: 'Users', href: '/dashboard/users', icon: UsersIcon },
-  { name: 'Beta Testers', href: '/dashboard/beta-testers', icon: UserGroupIcon },
 ];
 
 export const Sidebar: React.FC = () => {
