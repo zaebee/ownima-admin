@@ -2,102 +2,98 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Commands
 
-Ownima Admin Dashboard is a React-based admin interface for managing Ownima platform users. It's built with TypeScript, Vite, and connects to the Ownima backend API at `https://beta.ownima.com/api/v1`.
+### Development
+- `npm run dev` - Start development server on http://localhost:5173
+- `npm run build` - TypeScript check and production build
+- `npm run lint` - Run ESLint (or use `bun run lint` for faster execution)
+- `npm run preview` - Preview production build locally
 
-## Development Commands
+### Type Generation
+- `npm run generate-types` - Generate TypeScript types from live API (https://beta.ownima.com/api/v1/openapi.json)
+- `npm run generate-types:local` - Generate types from local API (http://localhost:8000/api/v1/openapi.json)
 
-### Package Managers
-This project supports both npm and bun:
-- `npm run dev` / `bun run dev` - Start development server (runs on http://localhost:5173)
-- `npm run build` / `bun run build` - Build for production (TypeScript compilation + Vite build)
-- `npm run lint` / `bun run lint` - Run ESLint with auto-fix
-- `npm run preview` / `bun run preview` - Preview production build locally
+## Architecture Overview
 
-### Important Notes
-- **Always run linting before committing**: The project has strict ESLint rules and all errors must be resolved
-- **No test framework configured**: This project does not currently have automated tests
-- **Bun is preferred**: Faster package management and script execution when available
+### API Integration Pattern
+The application follows a layered API integration approach:
 
-## Architecture
+1. **API Client Layer** (`src/services/api.ts`):
+   - Centralized Axios instance with automatic JWT token injection
+   - Automatic 401 handling with redirect to login
+   - Base URL: `https://beta.ownima.com/api/v1`
 
-### Core Structure
-- **Frontend**: React 18 + TypeScript with Vite build system
-- **State Management**: TanStack Query for server state, React Context for auth
-- **Styling**: Tailwind CSS v4 with Headless UI components
-- **Routing**: React Router v7 with nested routes under `/dashboard/*`
-- **HTTP**: Axios with automatic JWT token injection and 401 handling
+2. **Service Layer** (`src/services/`):
+   - `authService` - Authentication operations (login, getCurrentUser)
+   - `adminService` - Admin dashboard metrics, user management, system monitoring
+   - `userService` - User CRUD operations with generated types
+   - Services handle API response transformation and error handling
 
-### Authentication Flow
-- JWT-based auth with tokens stored in localStorage
-- AuthContext in `src/contexts/AuthContext.tsx` provides auth state management
-- `useAuth()` hook in `src/hooks/useAuth.ts` provides auth access across components
-- ProtectedRoute component wraps authenticated pages
-- API client automatically adds Bearer tokens and handles 401 redirects
-- Token expiry triggers automatic logout and redirect to login
+3. **Type Safety**:
+   - Manual types in `src/types/index.ts` for application-level interfaces
+   - Auto-generated types in `src/types/api-generated.ts` from OpenAPI schema
+   - User forms use generated types (`UserRegister`, `UserUpdate`) to ensure schema compliance
 
-### Key Architectural Patterns
-- Service layer pattern: All API calls go through service files (`services/`)
-- Context + hooks pattern for global state (auth, toast notifications)
-- Layout component structure with Header + Sidebar for admin pages
-- Modal system with reusable Modal component and specific modal implementations
-- Form handling with React Hook Form + Zod validation
+### State Management Architecture
+- **Authentication**: React Context (`AuthContext`) with localStorage persistence
+- **Server State**: TanStack Query with 5-minute stale time and automatic retries
+- **UI State**: Component-level useState for form data and local UI state
 
-### Directory Structure
+### Component Architecture
+The application uses a component hierarchy optimized for reusability:
+
 ```
-src/
-├── components/
-│   ├── layout/          # Header, Sidebar, Layout wrapper
-│   ├── modals/          # User create/edit modals
-│   └── ui/              # Reusable components (Button, Modal, Toast, etc.)
-├── contexts/            # AuthContext for global auth state
-├── hooks/               # useAuth, useToast and other custom hooks
-├── pages/               # Route components (Dashboard, Users, etc.)
-├── services/            # API service layer (api.ts, auth.ts, users.ts)
-├── types/               # TypeScript type definitions
-└── utils/               # Utility functions
+Layout (persistent shell)
+├── Sidebar (collapsible, localStorage persistence)
+├── Header (user menu, logout)
+└── Page Content
+    ├── MetricCard (reusable dashboard cards)
+    ├── Modal (UserCreateModal, UserEditModal)
+    └── UI Components (Button, LoadingSpinner, etc.)
 ```
 
-### API Integration
-- Base API client class with interceptors in `src/services/api.ts`
-- Separate service files for different domains (auth, users)
-- All API responses typed with TypeScript interfaces in `src/types/`
-- TanStack Query handles caching, loading states, and error handling
-- **TypeScript Strict Mode**: All `any` types have been replaced with proper interfaces
-- Service interfaces extend `Record<string, unknown>` for API client compatibility
+### Data Flow Patterns
 
-### Routing Structure
-- Public routes: `/` (landing), `/login`
-- Protected routes under `/dashboard/*`:
-  - `/dashboard` redirects to `/dashboard/users`
-  - `/dashboard/overview` - Analytics dashboard
-  - `/dashboard/users` - User management
+#### User Management Flow
+1. **UsersPage** queries `/admin/users` via `adminService.getAdminUsers()`
+2. **API Response Mapping**: Backend uses different field names (`role` vs `user_type`, `created_at` vs `registration_date`)
+3. **Data Normalization**: Transform API response to UI-compatible format in component
+4. **Form Handling**: User modals use auto-generated types to ensure API schema compliance
 
-### UI Patterns
-- Tailwind CSS v4 for styling with custom configuration
-- Headless UI for accessible components (modals, dropdowns, etc.)
-- Heroicons for consistent iconography
-- Toast notifications via useToast hook
-- Loading states with LoadingSpinner component
-- Confirmation dialogs with ConfirmDialog component
+#### Dashboard Metrics Flow
+1. **DashboardPage** queries `/admin/metrics/overview` for 9 key metrics
+2. **Real-time Updates**: Automatic refresh every 30-60 seconds via TanStack Query
+3. **MetricCard Components**: Reusable cards with loading states, colors, and icons
 
-## Development Guidelines
+#### System Monitoring Flow
+1. **SystemPage** fetches system info, errors, and user activities
+2. **Activity Handling**: Backend sends `type` field (lowercase), frontend normalizes to uppercase
+3. **Error Display**: Color-coded system errors with resolution status
 
-### Code Quality
-- **Strict ESLint configuration**: All errors must be resolved before committing
-- **TypeScript strict mode**: No `any` types allowed, all interfaces properly typed
-- **React best practices**: Hooks follow exhaustive-deps rules, proper useCallback usage
-- **Import organization**: Centralized hooks in `/hooks` directory, contexts separated
+### Authentication & Routing
+- **Protected Routes**: `/dashboard/*` requires authentication
+- **Token Management**: JWT stored in localStorage with automatic injection
+- **Route Structure**: Nested routes under `/dashboard` (overview, users, system)
+- **Public Routes**: Landing page (`/`) and login (`/login`)
 
-### Architecture Decisions
-- **Authentication separation**: `useAuth` hook separated from `AuthContext` for react-refresh compatibility
-- **Service layer pattern**: API calls abstracted through service classes with proper typing
-- **Component isolation**: Reusable UI components in `/components/ui`, page-specific components in respective directories
-- **State management**: TanStack Query for server state, React Context for global client state
+### API Response Handling
+The application handles multiple API response formats:
+- Direct arrays: `AdminUser[]`
+- Paginated: `{data: AdminUser[], count: number}`
+- Standard: `PaginatedResponse<AdminUser>`
 
-### API Development
-- Current API endpoint: `https://beta.ownima.com/api/v1`
-- All endpoints require Bearer token authentication
-- API client handles 401 responses with automatic logout
-- Service methods return properly typed responses matching backend API structure
+Components include normalization logic to handle these variations consistently.
+
+### Styling & UI
+- **Tailwind CSS 4** with utility-first approach
+- **Headless UI** for accessible components (Modal, forms)
+- **Heroicons** for consistent iconography
+- **Gradient themes** throughout UI with primary/indigo color scheme
+- **Responsive design** with mobile-first approach
+
+### Key Integration Points
+- **OpenAPI Schema**: Auto-generate types to maintain API compatibility
+- **Field Mapping**: Handle backend/frontend field name differences in data transformation
+- **Error Boundaries**: Automatic error handling with user-friendly fallbacks
+- **Loading States**: Consistent loading patterns across all async operations
