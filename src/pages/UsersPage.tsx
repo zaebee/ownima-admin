@@ -294,7 +294,7 @@ export const UsersPage: React.FC = () => {
         <div className="bg-gray-50 rounded-lg px-4 py-3">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div>
-              Showing {data.items.length} of {data.total} users
+              Showing {data?.items?.length || 0} of {data?.total || 0} users
               {hasActiveFilters && <span className="ml-1 text-primary-600">(filtered)</span>}
             </div>
             <div className="flex items-center space-x-4">
