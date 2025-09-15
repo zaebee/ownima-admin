@@ -284,7 +284,7 @@ export const SystemPage: React.FC = () => {
           </div>
         ) : userActivities && userActivities?.length > 0 ? (
           <div className="space-y-4">
-            {userActivities?.slice(0, 10).map((activity: Record<string, unknown>) => {
+            {userActivities?.slice(0, 10).map((activity) => {
               // Handle both activity_type and type fields from API
               const activityType = (activity.activity_type as string) || (activity.type as string) || 'unknown';
               const ActivityIcon = getActivityIcon(activityType);
@@ -327,7 +327,7 @@ export const SystemPage: React.FC = () => {
                         {activityType?.replace(/_/g, ' ').toUpperCase() || 'UNKNOWN'}
                       </span>
                       {activity.ip_address && (
-                        <span>IP: {activity.ip_address as string}</span>
+                        <span>IP: {activity.ip_address}</span>
                       )}
                     </div>
                   </div>
