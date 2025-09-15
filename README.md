@@ -6,7 +6,6 @@ A modern React-based admin dashboard for managing Ownima platform users and beta
 
 - 🔐 **Authentication** - Secure login with JWT token management
 - 👥 **User Management** - View and manage platform users with search and filtering
-- 🧪 **Beta Tester Management** - Review, approve/reject beta tester applications with bulk actions
 - 📊 **Dashboard Analytics** - Overview of key metrics and statistics
 - 🎨 **Modern UI** - Built with Tailwind CSS and Headless UI components
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
@@ -87,15 +86,9 @@ src/
 - Filter by user status (active/inactive)
 - User profile display with role-based badges
 
-### Beta Tester Management
-- Review pending beta tester applications
-- Individual approve/reject actions
-- Bulk operations for multiple applications
-- Application status tracking and history
 
 ### Dashboard
 - Key metrics overview cards
-- Beta tester statistics and approval rates
 - Real-time data updates
 
 ## API Integration
@@ -104,7 +97,6 @@ The admin dashboard integrates with the Ownima backend API:
 
 - **Authentication**: OAuth2 password flow
 - **Users**: CRUD operations and user management
-- **Beta Testers**: Application review and status management
 - **Analytics**: Statistics and metrics endpoints
 
 ## Contributing

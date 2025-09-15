@@ -65,7 +65,6 @@ After deployment, your site will have:
 - **/login** - Authentication page  
 - **/dashboard** - Admin interface (protected)
 - **/dashboard/users** - User management
-- **/dashboard/beta-testers** - Beta tester management
 
 ## 📋 Deployment Checklist
 
