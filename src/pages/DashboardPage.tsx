@@ -1,28 +1,87 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminService } from '../services/admin';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { MetricCard } from '../components/ui/MetricCard';
+import { MetricBlock } from '../components/ui/MetricBlock';
+import { FilterPanel } from '../components/ui/FilterPanel';
 import {
   UsersIcon,
   UserIcon,
   ClipboardDocumentListIcon,
-  UserPlusIcon,
   ArrowRightOnRectangleIcon,
   CalendarDaysIcon,
   ClockIcon,
   CheckCircleIcon,
-  CalendarIcon,
+  TruckIcon,
+  CogIcon,
+  DocumentCheckIcon,
+  XCircleIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
+import type { FilterParams, MetricRowData } from '../types';
 
 
 export const DashboardPage: React.FC = () => {
-  // Query dashboard metrics
-  const { data: metrics, isLoading } = useQuery({
-    queryKey: ['dashboard-metrics'],
-    queryFn: () => adminService.getMetricsOverview(),
+  // Filter state
+  const [filters, setFilters] = useState<FilterParams>({
+    dateRange: {
+      start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
+      end: new Date().toISOString().split('T')[0] // today
+    },
+    role: 'ALL'
+  });
+
+  // Query block metrics with filters
+  const { data: blockMetrics, isLoading } = useQuery({
+    queryKey: ['block-metrics', filters],
+    queryFn: () => adminService.getBlockMetrics(filters),
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // Mock data for now (will be replaced with real API data)
+  const mockBlockData = {
+    users: {
+      total: 1234,
+      online_last_30_days: 567,
+      internal: 89,
+      external: 1145,
+      owners: 456,
+      riders: 778,
+      logins: 890
+    },
+    vehicles: {
+      total: 456,
+      draft: 67,
+      free: 123,
+      collected: 234,
+      maintenance: 12,
+      archived: 20
+    },
+    reservations: {
+      total: 2345,
+      pending: 45,
+      confirmed: 567,
+      collected: 234,
+      completed: 1234,
+      cancelled: 123,
+      maintenance: 12
+    }
+  };
+
+  const handleFiltersChange = (newFilters: FilterParams) => {
+    setFilters(newFilters);
+  };
+
+  const handleFiltersReset = () => {
+    setFilters({
+      dateRange: {
+        start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0]
+      },
+      role: 'ALL'
+    });
+  };
 
   if (isLoading) {
     return (
@@ -32,76 +91,41 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  const metricsCards = [
-    {
-      title: 'Total Owners',
-      value: metrics?.total_owners || 0,
-      icon: UsersIcon,
-      description: 'Vehicle owners on the platform',
-      color: 'blue' as const,
-      href: '/dashboard/users?type=OWNER',
-    },
-    {
-      title: 'Total Riders',
-      value: metrics?.total_riders || 0,
-      icon: UserIcon,
-      description: 'Riders registered on the platform',
-      color: 'green' as const,
-      href: '/dashboard/users?type=RIDER',
-    },
-    {
-      title: 'Total Bookings',
-      value: metrics?.total_bookings || 0,
-      icon: ClipboardDocumentListIcon,
-      description: 'All-time booking count',
-      color: 'purple' as const,
-    },
-    {
-      title: 'New Registrations Today',
-      value: metrics?.new_registrations_today || 0,
-      icon: UserPlusIcon,
-      description: 'Users who joined today',
-      color: 'indigo' as const,
-    },
-    {
-      title: 'Logins Today',
-      value: metrics?.logins_today || 0,
-      icon: ArrowRightOnRectangleIcon,
-      description: 'User login sessions today',
-      color: 'pink' as const,
-    },
-    {
-      title: 'Bookings Today',
-      value: metrics?.bookings_today || 0,
-      icon: CalendarDaysIcon,
-      description: 'New bookings created today',
-      color: 'yellow' as const,
-    },
-    {
-      title: 'Pending Bookings',
-      value: metrics?.bookings_pending || 0,
-      icon: ClockIcon,
-      description: 'Bookings awaiting confirmation',
-      color: 'red' as const,
-    },
-    {
-      title: 'Confirmed Bookings',
-      value: metrics?.bookings_confirmed || 0,
-      icon: CheckCircleIcon,
-      description: 'Confirmed and active bookings',
-      color: 'green' as const,
-    },
-    {
-      title: 'Bookings for Today',
-      value: metrics?.bookings_for_today || 0,
-      icon: CalendarIcon,
-      description: 'Bookings starting today',
-      color: 'gray' as const,
-    },
+  // Use real data if available, otherwise fall back to mock data
+  const data = blockMetrics || mockBlockData;
+
+  // Prepare metrics for each block
+  const userMetrics: MetricRowData[] = [
+    { label: 'Total Users', value: data.users.total, icon: UsersIcon, href: '/dashboard/users', color: 'blue' },
+    { label: 'Online (30 days)', value: data.users.online_last_30_days, icon: UserIcon, color: 'green', trend: { value: 12, direction: 'up' } },
+    { label: 'Internal Users', value: data.users.internal, icon: CogIcon, color: 'gray' },
+    { label: 'External Users', value: data.users.external, icon: UsersIcon, color: 'blue' },
+    { label: 'Vehicle Owners', value: data.users.owners, icon: TruckIcon, href: '/dashboard/users?type=OWNER', color: 'purple' },
+    { label: 'Riders', value: data.users.riders, icon: UserIcon, href: '/dashboard/users?type=RIDER', color: 'green' },
+    { label: 'Login Sessions', value: data.users.logins, icon: ArrowRightOnRectangleIcon, color: 'blue', trend: { value: 8, direction: 'up' } }
+  ];
+
+  const vehicleMetrics: MetricRowData[] = [
+    { label: 'Total Vehicles', value: data.vehicles.total, icon: TruckIcon, color: 'green' },
+    { label: 'Draft Status', value: data.vehicles.draft, icon: DocumentCheckIcon, color: 'yellow' },
+    { label: 'Available', value: data.vehicles.free, icon: CheckCircleIcon, color: 'green', trend: { value: 5, direction: 'up' } },
+    { label: 'Currently Rented', value: data.vehicles.collected, icon: ClockIcon, color: 'blue' },
+    { label: 'Under Maintenance', value: data.vehicles.maintenance, icon: WrenchScrewdriverIcon, color: 'red' },
+    { label: 'Archived', value: data.vehicles.archived, icon: XCircleIcon, color: 'gray' }
+  ];
+
+  const reservationMetrics: MetricRowData[] = [
+    { label: 'Total Reservations', value: data.reservations.total, icon: CalendarDaysIcon, color: 'purple' },
+    { label: 'Pending Approval', value: data.reservations.pending, icon: ClockIcon, color: 'yellow' },
+    { label: 'Confirmed', value: data.reservations.confirmed, icon: CheckCircleIcon, color: 'green', trend: { value: 15, direction: 'up' } },
+    { label: 'Active Rentals', value: data.reservations.collected, icon: TruckIcon, color: 'blue' },
+    { label: 'Completed', value: data.reservations.completed, icon: DocumentCheckIcon, color: 'green' },
+    { label: 'Cancelled', value: data.reservations.cancelled, icon: XCircleIcon, color: 'red' },
+    { label: 'Maintenance', value: data.reservations.maintenance, icon: WrenchScrewdriverIcon, color: 'red' }
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header section */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary-100/50 to-indigo-100/50 rounded-2xl"></div>
@@ -121,24 +145,47 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Metrics grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {metricsCards.map((card) => (
-          <MetricCard
-            key={card.title}
-            title={card.title}
-            value={card.value}
-            icon={card.icon}
-            description={card.description}
-            color={card.color}
-            clickable={!!card.href}
-            href={card.href}
-            loading={isLoading}
-          />
-        ))}
+      {/* Filter Panel */}
+      <FilterPanel
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onReset={handleFiltersReset}
+      />
+
+      {/* 3-Block Metrics Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Users Block */}
+        <MetricBlock
+          title="Users"
+          icon={UsersIcon}
+          metrics={userMetrics}
+          color="blue"
+          loading={isLoading}
+          liveIndicator={true}
+        />
+
+        {/* Vehicles Block */}
+        <MetricBlock
+          title="Vehicles"
+          icon={TruckIcon}
+          metrics={vehicleMetrics}
+          color="green"
+          loading={isLoading}
+          liveIndicator={true}
+        />
+
+        {/* Reservations Block */}
+        <MetricBlock
+          title="Reservations"
+          icon={CalendarDaysIcon}
+          metrics={reservationMetrics}
+          color="purple"
+          loading={isLoading}
+          liveIndicator={true}
+        />
       </div>
 
-      {/* Quick actions section */}
+      {/* Quick Actions section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -153,6 +200,15 @@ export const DashboardPage: React.FC = () => {
             href="/dashboard/users"
           />
           <MetricCard
+            title="Vehicle Management"
+            value="Manage"
+            icon={TruckIcon}
+            description="Manage vehicle fleet and status"
+            color="green"
+            size="small"
+            clickable={true}
+          />
+          <MetricCard
             title="System Monitoring"
             value="Monitor"
             icon={ClipboardDocumentListIcon}
@@ -161,15 +217,6 @@ export const DashboardPage: React.FC = () => {
             size="small"
             clickable={true}
             href="/dashboard/system"
-          />
-          <MetricCard
-            title="Generate Reports"
-            value="Export"
-            icon={CalendarDaysIcon}
-            description="Download analytics reports"
-            color="purple"
-            size="small"
-            clickable={true}
           />
         </div>
       </div>

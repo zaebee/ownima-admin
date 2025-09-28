@@ -5,7 +5,12 @@ import type {
   SystemInfo,
   SystemError,
   UserActivity,
-  PaginatedResponse
+  PaginatedResponse,
+  BlockMetrics,
+  UserBlockMetrics,
+  VehicleBlockMetrics,
+  ReservationBlockMetrics,
+  FilterParams
 } from '../types';
 
 interface AdminUserQueryParams extends Record<string, unknown> {
@@ -46,7 +51,6 @@ class AdminService {
    */
   async getAdminUsers(params?: AdminUserQueryParams): Promise<{data: AdminUser[], count: number} | AdminUser[] | PaginatedResponse<AdminUser>> {
     const response = await apiClient.get<{data: AdminUser[], count: number} | AdminUser[] | PaginatedResponse<AdminUser>>('/admin/users', params);
-    console.log('Admin users API response:', response);
     return response;
   }
 
@@ -113,6 +117,72 @@ class AdminService {
       bookings_today: number;
     }>('/admin/activity/daily');
     return response;
+  }
+
+  // New 3-Block Metrics Methods (from team dialog requirements)
+
+  /**
+   * Get all block metrics with optional filtering
+   */
+  async getBlockMetrics(filters?: FilterParams): Promise<BlockMetrics> {
+    const params = this.buildFilterParams(filters);
+    return await apiClient.get<BlockMetrics>('/admin/metrics/blocks', params);
+  }
+
+  /**
+   * Get user block metrics
+   */
+  async getUserBlockMetrics(filters?: FilterParams): Promise<UserBlockMetrics> {
+    const params = this.buildFilterParams(filters);
+    return await apiClient.get<UserBlockMetrics>('/admin/metrics/users', params);
+  }
+
+  /**
+   * Get vehicle block metrics
+   */
+  async getVehicleBlockMetrics(filters?: FilterParams): Promise<VehicleBlockMetrics> {
+    const params = this.buildFilterParams(filters);
+    return await apiClient.get<VehicleBlockMetrics>('/admin/metrics/vehicles', params);
+  }
+
+  /**
+   * Get reservation block metrics
+   */
+  async getReservationBlockMetrics(filters?: FilterParams): Promise<ReservationBlockMetrics> {
+    const params = this.buildFilterParams(filters);
+    return await apiClient.get<ReservationBlockMetrics>('/admin/metrics/reservations', params);
+  }
+
+  /**
+   * Build filter parameters for API requests
+   */
+  private buildFilterParams(filters?: FilterParams): Record<string, unknown> {
+    if (!filters) return {};
+
+    const params: Record<string, unknown> = {};
+
+    if (filters.dateRange) {
+      params.date_start = filters.dateRange.start;
+      params.date_end = filters.dateRange.end;
+    }
+
+    if (filters.role && filters.role !== 'ALL') {
+      params.role = filters.role;
+    }
+
+    if (filters.userStatus) {
+      params.user_status = filters.userStatus;
+    }
+
+    if (filters.vehicleStatus) {
+      params.vehicle_status = filters.vehicleStatus;
+    }
+
+    if (filters.reservationStatus) {
+      params.reservation_status = filters.reservationStatus;
+    }
+
+    return params;
   }
 }
 
