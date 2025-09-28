@@ -9,12 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-types": "bunx openapi-typescript https://beta.ownima.com/api/v1/openapi.json -o src/types/api-generated.ts",
-    "generate-types:local": "bunx openapi-typescript http://localhost:8000/api/v1/openapi.json -o src/types/api-generated.ts",
-    "sacred:scan": "python ../../tools/agro_scanner.py $(find src -name '*.tsx' -o -name '*.ts' -o -name '*.vue' -o -name '*.js')",
-    "sacred:self-check": "python ../../tools/agro_scanner.py --self-check",
-    "sacred:validate": "npm run lint && npm run sacred:scan && tsc --noEmit",
-    "sacred:build": "npm run sacred:validate && npm run build",
-    "blessed:build": "npm run sacred:build"
+    "generate-types:local": "bunx openapi-typescript http://localhost:8000/api/v1/openapi.json -o src/types/api-generated.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
