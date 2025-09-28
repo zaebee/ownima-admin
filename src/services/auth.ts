@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { apiClient } from './api';
+import { getApiBaseUrl } from '../config/environment';
 import type { LoginRequest, LoginResponse, User } from '../types';
 
 class AuthService {
@@ -9,7 +10,7 @@ class AuthService {
     formData.append('password', credentials.password);
     
     const response = await axios.post<LoginResponse>(
-      'https://beta.ownima.com/api/v1/auth/access-token',
+      `${getApiBaseUrl()}/auth/access-token`,
       formData,
       {
         headers: {

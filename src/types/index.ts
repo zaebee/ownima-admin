@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface User {
   id: string;
   email: string;
@@ -53,6 +55,71 @@ export interface DashboardMetrics {
   bookings_pending: number;
   bookings_confirmed: number;
   bookings_for_today: number;
+}
+
+// New 3-Block Metrics Structure (from team dialog)
+export interface UserBlockMetrics {
+  total: number;
+  online_last_30_days: number;
+  internal: number;
+  external: number;
+  owners: number;
+  riders: number;
+  logins: number;
+}
+
+export interface VehicleBlockMetrics {
+  total: number;
+  draft: number;
+  free: number;
+  collected: number;
+  maintenance: number;
+  archived: number;
+}
+
+export interface ReservationBlockMetrics {
+  total: number;
+  pending: number;
+  confirmed: number;
+  collected: number;
+  completed: number;
+  cancelled: number;
+  maintenance: number;
+}
+
+export interface BlockMetrics {
+  users: UserBlockMetrics;
+  vehicles: VehicleBlockMetrics;
+  reservations: ReservationBlockMetrics;
+}
+
+// Filter interfaces
+export interface DateRange {
+  start: string;
+  end: string;
+}
+
+export interface FilterParams {
+  dateRange?: DateRange;
+  role?: 'OWNER' | 'RIDER' | 'ALL';
+  userStatus?: string;
+  vehicleStatus?: 'draft' | 'free' | 'collected' | 'maintenance' | 'archived';
+  reservationStatus?: 'pending' | 'confirmed' | 'collected' | 'completed' | 'cancelled' | 'maintenance';
+}
+
+export type DateRangePreset = 'today' | 'yesterday' | 'last_7_days' | 'last_30_days' | 'custom';
+
+// Metric row interface for UI components
+export interface MetricRowData {
+  label: string;
+  value: number;
+  icon?: React.ElementType;
+  trend?: {
+    value: number;
+    direction: 'up' | 'down' | 'neutral';
+  };
+  href?: string;
+  color?: 'blue' | 'green' | 'purple' | 'yellow' | 'red' | 'gray';
 }
 
 export interface AdminUser extends User {

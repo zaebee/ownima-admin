@@ -1,0 +1,58 @@
+# Pre-commit Configuration for Ownima-Admin
+# Code quality and formatting automation for React/TypeScript project
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Remove Trailing Whitespace
+      - id: end-of-file-fixer
+        name: Fix End of File
+      - id: check-yaml
+        name: Validate YAML Files
+      - id: check-json
+        name: Validate JSON Files
+      - id: check-merge-conflict
+        name: Check Merge Conflicts
+
+  # TypeScript/React ESLint
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.0.0
+    hooks:
+      - id: eslint
+        name: ESLint TypeScript/React
+        files: \.(ts|tsx|js|jsx)$
+        types: [file]
+        additional_dependencies:
+          - eslint@^9.33.0
+          - typescript-eslint@^8.39.1
+          - eslint-plugin-react-hooks@^5.2.0
+          - eslint-plugin-react-refresh@^0.4.20
+          - "@types/react@^19.1.10"
+
+  # Code Formatting with Prettier
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        name: Prettier Formatting
+        files: \.(ts|tsx|js|jsx|json|md|yaml|yml)$
+        exclude: ^(node_modules/|\.git/|dist/|openapi\.json)
+
+# Configuration
+default_stages: [commit]
+fail_fast: false
+minimum_pre_commit_version: "3.6.0"
+
+# Exclude patterns
+exclude: |
+  (?x)^(
+    node_modules/.*|
+    \.git/.*|
+    dist/.*|
+    build/.*|
+    openapi\.json|
+    src/types/api-generated\.ts
+  )$
