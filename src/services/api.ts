@@ -1,13 +1,12 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-
-const API_BASE_URL = 'https://beta.ownima.com/api/v1';
+import { getApiBaseUrl } from '../config/environment';
 
 class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_BASE_URL,
+      baseURL: getApiBaseUrl(),
       headers: {
         'Content-Type': 'application/json',
       },
