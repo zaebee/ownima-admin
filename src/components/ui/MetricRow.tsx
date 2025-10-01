@@ -76,15 +76,6 @@ export const MetricRow: React.FC<MetricRowProps> = ({
 
       {/* Right side: Value + Trend */}
       <div className="flex items-center space-x-3">
-        {/* Value */}
-        {loading ? (
-          <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
-        ) : (
-          <span className="text-lg font-bold text-gray-900">
-            {formatValue(value)}
-          </span>
-        )}
-
         {/* Trend indicator */}
         {trend && !loading && (
           <div className={clsx(
@@ -93,6 +84,15 @@ export const MetricRow: React.FC<MetricRowProps> = ({
           )}>
             {getTrendIcon(trend.direction)} {trend.value > 0 ? '+' : ''}{trend.value}%
           </div>
+        )}
+
+        {/* Value */}
+        {loading ? (
+          <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
+        ) : (
+          <span className="text-lg font-bold text-gray-900">
+            {formatValue(value)}
+          </span>
         )}
       </div>
     </div>

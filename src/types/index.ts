@@ -169,16 +169,42 @@ export interface SystemError {
 export interface UserActivity {
   id?: string;
   timestamp: string;
-  user_id: string;
-  user_email: string;
+  user_id?: string;
+  user_email?: string;
   user_name?: string;
   user_role?: string;
-  activity_type?: 'LOGIN' | 'REGISTRATION' | 'BOOKING_CREATED' | 'BOOKING_CONFIRMED' | 'PROFILE_UPDATED';
+  activity_type: string;
   type?: string; // Backend uses lowercase 'type' field
   description?: string;
   ip_address?: string;
   user_agent?: string;
   metadata?: Record<string, unknown>;
+  details: {
+    user_id?: string;
+    user_email?: string;
+    user_name?: string;
+    user_role?: string;
+    login_count?: number;
+    [key: string]: unknown;
+  };
+}
+
+export interface VehicleActivity {
+  timestamp: string;
+  activity_type: string;
+  details: Record<string, unknown>;
+}
+
+export interface ReservationActivity {
+  timestamp: string;
+  activity_type: string;
+  details: Record<string, unknown>;
+}
+
+export interface RecentActivity {
+  users: UserActivity[];
+  vehicles: VehicleActivity[];
+  reservations: ReservationActivity[];
 }
 
 export interface BookingStats {

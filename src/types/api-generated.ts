@@ -393,6 +393,174 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rider/vehicles/{owner_id}/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Vehicles
+         * @description Search for available vehicles based on various criteria including date availability.
+         */
+        get: operations["Rider-search_vehicles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/vehicles/{owner_id}/{vehicle_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Vehicle
+         * @description Get detailed vehicle information (rider view - public info only).
+         */
+        get: operations["Rider-get_vehicle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/vehicles/{owner_id}/{vehicle_id}/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Vehicle Availability
+         * @description Check vehicle availability for specific dates.
+         */
+        post: operations["Rider-check_vehicle_availability"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/vehicles/{owner_id}/{vehicle_id}/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Calculate Pricing
+         * @description Calculate comprehensive pricing for vehicle rental including extra options and taxes.
+         */
+        post: operations["Rider-calculate_pricing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reservations
+         * @description List rider's reservations.
+         */
+        get: operations["Rider-list_reservations"];
+        put?: never;
+        /**
+         * Create Reservation
+         * @description Create a new reservation for a vehicle.
+         */
+        post: operations["Rider-create_reservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/reservations/{reservation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reservation
+         * @description Get a specific reservation.
+         */
+        get: operations["Rider-get_reservation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Rider Profile
+         * @description Get current rider's profile information.
+         */
+        get: operations["Rider-get_rider_profile"];
+        put?: never;
+        /**
+         * Update Rider Profile
+         * @description Update current rider's profile information.
+         */
+        post: operations["Rider-update_rider_profile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/owner/{owner_id}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Owner Public Profile
+         * @description Get public profile information for an owner.
+         */
+        get: operations["Rider-get_owner_public_profile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/price_template": {
         parameters: {
             query?: never;
@@ -966,7 +1134,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Top Up Balance */
+        /**
+         * Top Up Balance
+         * @description Top up user's wallet balance.
+         */
         post: operations["Finance-top_up_balance"];
         delete?: never;
         options?: never;
@@ -1333,7 +1504,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/metrics/overview": {
+    "/api/v1/admin/metrics/blocks": {
         parameters: {
             query?: never;
             header?: never;
@@ -1341,11 +1512,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Dashboard Metrics
-         * @description Get overview metrics for admin dashboard.
-         *     Returns the 9 key metrics cards.
+         * Get Block Metrics
+         * @description Get all block metrics with comprehensive filtering - Main Plan Endpoint.
          */
-        get: operations["Admin-get_dashboard_metrics"];
+        get: operations["Admin-get_block_metrics"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1433,7 +1603,7 @@ export interface paths {
         };
         /**
          * Get Recent Activity
-         * @description Get recent user activities (logins, registrations) for admin monitoring.
+         * @description Get recent activities for users, vehicles, and reservations.
          */
         get: operations["Admin-get_recent_activity"];
         put?: never;
@@ -1568,6 +1738,15 @@ export interface components {
              * @description County
              */
             county?: string | null;
+        };
+        /**
+         * AdminDashboardMetrics
+         * @description Complete 3-block admin dashboard metrics.
+         */
+        AdminDashboardMetrics: {
+            users: components["schemas"]["UserBlockMetrics"];
+            vehicles: components["schemas"]["VehicleBlockMetrics"];
+            reservations: components["schemas"]["ReservationBlockMetrics"];
         };
         /** Any */
         Any: {
@@ -1858,6 +2037,25 @@ export interface components {
             /** Error */
             error?: string;
         };
+        /** CreateReservationRequest */
+        CreateReservationRequest: {
+            /** Vehicle Id */
+            vehicle_id?: string;
+            /** Rider Id */
+            rider_id?: string;
+            /**
+             * Date From
+             * Format: date-time
+             */
+            date_from?: string;
+            /**
+             * Date To
+             * Format: date-time
+             */
+            date_to?: string;
+            pick_up?: components["schemas"]["PickUp"];
+            drop_off?: components["schemas"]["DropOff"];
+        };
         /** CreateTransactionRequest */
         CreateTransactionRequest: {
             /** Operation */
@@ -1914,57 +2112,6 @@ export interface components {
          * @enum {integer}
          */
         CustomerSource: 0 | 1 | 2 | 3;
-        /**
-         * DashboardMetrics
-         * @description Overview metrics for admin dashboard.
-         */
-        DashboardMetrics: {
-            /**
-             * Total Owners
-             * @default 0
-             */
-            total_owners: number;
-            /**
-             * Total Riders
-             * @default 0
-             */
-            total_riders: number;
-            /**
-             * Total Bookings
-             * @default 0
-             */
-            total_bookings: number;
-            /**
-             * New Registrations Today
-             * @default 0
-             */
-            new_registrations_today: number;
-            /**
-             * Logins Today
-             * @default 0
-             */
-            logins_today: number;
-            /**
-             * Bookings Today
-             * @default 0
-             */
-            bookings_today: number;
-            /**
-             * Pending Bookings
-             * @default 0
-             */
-            pending_bookings: number;
-            /**
-             * Confirmed Bookings
-             * @default 0
-             */
-            confirmed_bookings: number;
-            /**
-             * Todays Bookings By Start
-             * @default 0
-             */
-            todays_bookings_by_start: number;
-        };
         /** DeletePriceSeasonResponse */
         DeletePriceSeasonResponse: {
             /** Success */
@@ -2319,6 +2466,53 @@ export interface components {
          * @enum {integer}
          */
         OperationType: 0 | 1 | 2;
+        /**
+         * OwnerPublicProfile
+         * @description Schema for public owner profile information.
+         */
+        OwnerPublicProfile: {
+            /**
+             * Id
+             * @description Owner unique identifier
+             */
+            id: string;
+            /**
+             * Name
+             * @description Display name (business name or full name)
+             */
+            name: string;
+            /**
+             * Avatar
+             * @description Profile photo URL
+             */
+            avatar?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
+            /**
+             * Address
+             * @description Formatted address string
+             */
+            address?: string | null;
+            /**
+             * Location
+             * @description General location
+             */
+            location?: string | null;
+            /**
+             * Rent Service Name
+             * @description Rental service name
+             */
+            rent_service_name?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             * @description Account creation date
+             */
+            created_at: string;
+        };
         /** Pagination */
         Pagination: {
             /** Limit */
@@ -2482,6 +2676,18 @@ export interface components {
             /** Name */
             name?: string;
         };
+        /**
+         * RecentActivity
+         * @description Container model for recent activities across different domains.
+         */
+        RecentActivity: {
+            /** Users */
+            users: components["schemas"]["UserActivity"][];
+            /** Vehicles */
+            vehicles: components["schemas"]["VehicleActivity"][];
+            /** Reservations */
+            reservations: components["schemas"]["ReservationActivity"][];
+        };
         /** RefreshTokenRequest */
         RefreshTokenRequest: {
             /** Refresh Token */
@@ -2556,6 +2762,64 @@ export interface components {
             selected_extra_options?: components["schemas"]["SelectedExtraOptionItem"][];
             /** Allowed To Collect */
             allowed_to_collect?: boolean;
+        };
+        /**
+         * ReservationActivity
+         * @description Model for a single reservation activity event.
+         */
+        ReservationActivity: {
+            /**
+             * Timestamp
+             * Format: date-time
+             */
+            timestamp: string;
+            /** Activity Type */
+            activity_type: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * ReservationBlockMetrics
+         * @description Reservation metrics for admin dashboard - Plan Compliant.
+         */
+        ReservationBlockMetrics: {
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Pending
+             * @default 0
+             */
+            pending: number;
+            /**
+             * Confirmed
+             * @default 0
+             */
+            confirmed: number;
+            /**
+             * Collected
+             * @default 0
+             */
+            collected: number;
+            /**
+             * Completed
+             * @default 0
+             */
+            completed: number;
+            /**
+             * Cancelled
+             * @default 0
+             */
+            cancelled: number;
+            /**
+             * Maintenance
+             * @default 0
+             */
+            maintenance: number;
         };
         /**
          * ReservationCollect
@@ -2746,11 +3010,74 @@ export interface components {
             rating?: number;
         };
         /**
+         * RiderProfileResponse
+         * @description Schema for rider profile information.
+         */
+        RiderProfileResponse: {
+            /**
+             * Id
+             * @description Rider unique identifier
+             */
+            id: string;
+            /**
+             * Email
+             * @description Email address
+             */
+            email: string;
+            /**
+             * Full Name
+             * @description Full name
+             */
+            full_name?: string | null;
+            /**
+             * Phone
+             * @description Phone number
+             */
+            phone?: string | null;
+            /**
+             * Avatar
+             * @description Profile photo URL
+             */
+            avatar?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Location
+             * @description Location
+             */
+            location?: string | null;
+            /**
+             * Currency
+             * @description Preferred currency
+             */
+            currency?: string | null;
+            /**
+             * Language
+             * @description Preferred language
+             */
+            language?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             * @description Account creation date
+             */
+            created_at: string;
+        };
+        /**
          * RoleEnum
          * @description Describes base User roles.
          * @enum {string}
          */
         RoleEnum: "AUTO" | "ADMIN" | "OWNER" | "RIDER";
+        /** SearchVehiclesResponse */
+        SearchVehiclesResponse: {
+            /** Vehicles */
+            vehicles?: components["schemas"]["Vehicle-Output"][];
+            pagination?: components["schemas"]["Pagination"];
+        };
         /** SeasonPrice */
         SeasonPrice: {
             /** Id */
@@ -3117,6 +3444,42 @@ export interface components {
             /** Error */
             error?: string;
         };
+        /**
+         * UpdateRiderProfileRequest
+         * @description Schema for updating rider profile.
+         */
+        UpdateRiderProfileRequest: {
+            /**
+             * Full Name
+             * @description Full name
+             */
+            full_name?: string | null;
+            /**
+             * Phone
+             * @description Phone number
+             */
+            phone?: string | null;
+            /**
+             * Avatar
+             * @description Profile photo URL
+             */
+            avatar?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Location
+             * @description Location
+             */
+            location?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
+        };
         /** UpdateVehicleRequest */
         UpdateVehicleRequest: {
             /** Vehicle Id */
@@ -3130,6 +3493,23 @@ export interface components {
             vehicle?: components["schemas"]["Vehicle-Output"];
             /** Error */
             error?: string;
+        };
+        /**
+         * UserActivity
+         * @description Model for a single user activity event.
+         */
+        UserActivity: {
+            /**
+             * Timestamp
+             * Format: date-time
+             */
+            timestamp: string;
+            /** Activity Type */
+            activity_type: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
         };
         /** UserAdmin */
         UserAdmin: {
@@ -3171,6 +3551,21 @@ export interface components {
             /** Rent Service Name */
             rent_service_name?: string | null;
             /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Business Name
+             * @description Business name for owners
+             */
+            business_name?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -3188,6 +3583,47 @@ export interface components {
              * @default 0
              */
             login_count: number;
+        };
+        /**
+         * UserBlockMetrics
+         * @description User metrics for admin dashboard.
+         */
+        UserBlockMetrics: {
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Online Last 30 Days
+             * @default 0
+             */
+            online_last_30_days: number;
+            /**
+             * Internal
+             * @default 0
+             */
+            internal: number;
+            /**
+             * External
+             * @default 0
+             */
+            external: number;
+            /**
+             * Owners
+             * @default 0
+             */
+            owners: number;
+            /**
+             * Riders
+             * @default 0
+             */
+            riders: number;
+            /**
+             * Logins
+             * @default 0
+             */
+            logins: number;
         };
         /** UserCreate */
         UserCreate: {
@@ -3228,6 +3664,21 @@ export interface components {
             phone_number?: string | null;
             /** Rent Service Name */
             rent_service_name?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Business Name
+             * @description Business name for owners
+             */
+            business_name?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
             /** Password */
             password: string;
         };
@@ -3278,6 +3729,21 @@ export interface components {
             /** Rent Service Name */
             rent_service_name?: string | null;
             /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Business Name
+             * @description Business name for owners
+             */
+            business_name?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -3300,6 +3766,8 @@ export interface components {
             password: string;
             /** Full Name */
             full_name?: string | null;
+            /** @default OWNER */
+            role: components["schemas"]["RoleEnum"];
         };
         /** UserUpdate */
         UserUpdate: {
@@ -3337,6 +3805,21 @@ export interface components {
             phone_number?: string | null;
             /** Rent Service Name */
             rent_service_name?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Business Name
+             * @description Business name for owners
+             */
+            business_name?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
             /** Password */
             password?: string | null;
         };
@@ -3356,6 +3839,21 @@ export interface components {
             phone_number?: string | null;
             /** Rent Service Name */
             rent_service_name?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Business Name
+             * @description Business name for owners
+             */
+            business_name?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
             address?: components["schemas"]["AddressUpdate"] | null;
         };
         /** UserWithToken */
@@ -3397,6 +3895,21 @@ export interface components {
             phone_number?: string | null;
             /** Rent Service Name */
             rent_service_name?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Business Name
+             * @description Business name for owners
+             */
+            business_name?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
             /**
              * Id
              * Format: uuid
@@ -3520,6 +4033,141 @@ export interface components {
             extra_option_ids?: string[];
             /** Extra Options Details */
             extra_options_details?: components["schemas"]["ExtraOption"][];
+        };
+        /**
+         * VehicleActivity
+         * @description Model for a single vehicle activity event.
+         */
+        VehicleActivity: {
+            /**
+             * Timestamp
+             * Format: date-time
+             */
+            timestamp: string;
+            /** Activity Type */
+            activity_type: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * VehicleAvailabilityRequest
+         * @description Schema for checking vehicle availability.
+         */
+        VehicleAvailabilityRequest: {
+            /**
+             * Date From
+             * Format: date-time
+             * @description Rental start date
+             */
+            date_from: string;
+            /**
+             * Date To
+             * Format: date-time
+             * @description Rental end date
+             */
+            date_to: string;
+        };
+        /**
+         * VehicleAvailabilityResponse
+         * @description Schema for vehicle availability response.
+         */
+        VehicleAvailabilityResponse: {
+            /**
+             * Is Available
+             * @description Whether vehicle is available
+             */
+            is_available: boolean;
+            /**
+             * Conflicting Reservations
+             * @description List of conflicting reservation IDs
+             */
+            conflicting_reservations?: string[];
+            /**
+             * Alternative Dates
+             * @description Suggested alternative date ranges
+             */
+            alternative_dates?: {
+                [key: string]: string;
+            }[];
+            /**
+             * Message
+             * @description Additional information
+             */
+            message?: string | null;
+        };
+        /**
+         * VehicleBlockMetrics
+         * @description Vehicle metrics for admin dashboard - Plan Compliant.
+         */
+        VehicleBlockMetrics: {
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Draft
+             * @default 0
+             */
+            draft: number;
+            /**
+             * Free
+             * @default 0
+             */
+            free: number;
+            /**
+             * Collected
+             * @default 0
+             */
+            collected: number;
+            /**
+             * Maintenance
+             * @default 0
+             */
+            maintenance: number;
+            /**
+             * Archived
+             * @default 0
+             */
+            archived: number;
+        };
+        /**
+         * VehicleDetailsResponse
+         * @description Schema for detailed vehicle information.
+         */
+        VehicleDetailsResponse: {
+            /** @description Vehicle details */
+            vehicle: components["schemas"]["Vehicle-Output"];
+            /**
+             * Owner
+             * @description Owner information (filtered)
+             */
+            owner?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Availability Calendar
+             * @description Availability calendar for next 30 days
+             */
+            availability_calendar?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Pricing Info
+             * @description Pricing information
+             */
+            pricing_info?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Pickup Locations
+             * @description Available pickup locations
+             */
+            pickup_locations?: {
+                [key: string]: unknown;
+            }[];
         };
         /**
          * VehicleStatus
@@ -5015,6 +5663,602 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpdateExtraOptionResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-search_vehicles": {
+        parameters: {
+            query?: {
+                size?: number;
+                page_token?: string | null;
+                query?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                location?: string | null;
+            };
+            header?: never;
+            path: {
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchVehiclesResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-get_vehicle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner_id: string;
+                vehicle_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleDetailsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-check_vehicle_availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner_id: string;
+                vehicle_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleAvailabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleAvailabilityResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-calculate_pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner_id: string;
+                vehicle_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidateReservationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidateReservationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-list_reservations": {
+        parameters: {
+            query?: {
+                size?: number;
+                page_token?: string | null;
+                query?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                location?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListReservationsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-create_reservation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReservationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingReservationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-get_reservation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetReservationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-get_rider_profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderProfileResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-update_rider_profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRiderProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderProfileResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-get_owner_public_profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerPublicProfile"];
                 };
             };
             /** @description Unauthorized */
@@ -8601,9 +9845,22 @@ export interface operations {
             };
         };
     };
-    "Admin-get_dashboard_metrics": {
+    "Admin-get_block_metrics": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter from this date (ISO format) */
+                date_start?: string | null;
+                /** @description Filter to this date (ISO format) */
+                date_end?: string | null;
+                /** @description Filter users by role: OWNER, RIDER */
+                role?: components["schemas"]["RoleEnum"] | null;
+                /** @description Filter users by status: active, inactive */
+                user_status?: string | null;
+                /** @description Filter vehicles by status */
+                vehicle_status?: string | null;
+                /** @description Filter reservations by status */
+                reservation_status?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -8616,7 +9873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DashboardMetrics"];
+                    "application/json": components["schemas"]["AdminDashboardMetrics"];
                 };
             };
             /** @description Unauthorized */
@@ -8644,6 +9901,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -8830,7 +10096,7 @@ export interface operations {
     "Admin-get_recent_activity": {
         parameters: {
             query?: {
-                /** @description Number of recent activities to return */
+                /** @description Number of recent activities to return per block */
                 limit?: number;
             };
             header?: never;
@@ -8845,9 +10111,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
+                    "application/json": components["schemas"]["RecentActivity"];
                 };
             };
             /** @description Unauthorized */

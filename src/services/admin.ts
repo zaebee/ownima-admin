@@ -4,13 +4,13 @@ import type {
   AdminUser,
   SystemInfo,
   SystemError,
-  UserActivity,
   PaginatedResponse,
   BlockMetrics,
   UserBlockMetrics,
   VehicleBlockMetrics,
   ReservationBlockMetrics,
-  FilterParams
+  FilterParams,
+  RecentActivity
 } from '../types';
 
 interface AdminUserQueryParams extends Record<string, unknown> {
@@ -41,9 +41,22 @@ interface UserActivityQueryParams extends Record<string, unknown> {
 class AdminService {
   /**
    * Get dashboard metrics overview with all 9 key metrics
+   * @deprecated Use getBlockMetrics() instead. This endpoint was removed from backend.
    */
   async getMetricsOverview(): Promise<DashboardMetrics> {
-    return await apiClient.get<DashboardMetrics>('/admin/metrics/overview');
+    // Fallback to block metrics and transform to legacy format for compatibility
+    const blockMetrics = await this.getBlockMetrics();
+    return {
+      total_owners: blockMetrics.users.owners,
+      total_riders: blockMetrics.users.riders,
+      total_bookings: blockMetrics.reservations.total,
+      new_registrations_today: 0, // Not available in new structure
+      logins_today: blockMetrics.users.logins,
+      bookings_today: 0, // Not available in new structure
+      bookings_pending: blockMetrics.reservations.pending,
+      bookings_confirmed: blockMetrics.reservations.confirmed,
+      bookings_for_today: 0, // Not available in new structure
+    };
   }
 
   /**
@@ -71,20 +84,26 @@ class AdminService {
   /**
    * Get recent user activities (logins, registrations, bookings)
    */
-  async getRecentActivity(params?: UserActivityQueryParams): Promise<UserActivity[]> {
-    return await apiClient.get<UserActivity[]>('/admin/activity/recent', params);
+  async getRecentActivity(params?: UserActivityQueryParams): Promise<RecentActivity> {
+    return await apiClient.get<RecentActivity>('/admin/activity/recent', params);
   }
 
   /**
    * Get user statistics by type
+   * @deprecated Use getBlockMetrics() instead. Individual stats endpoints were removed from backend.
    */
   async getUserStats(): Promise<{ owners: number; riders: number; total: number }> {
-    const response = await apiClient.get<{ owners: number; riders: number; total: number }>('/admin/users/stats');
-    return response;
+    const blockMetrics = await this.getBlockMetrics();
+    return {
+      owners: blockMetrics.users.owners,
+      riders: blockMetrics.users.riders,
+      total: blockMetrics.users.total
+    };
   }
 
   /**
    * Get booking statistics
+   * @deprecated Use getBlockMetrics() instead. Individual stats endpoints were removed from backend.
    */
   async getBookingStats(): Promise<{
     total: number;
@@ -93,30 +112,31 @@ class AdminService {
     today: number;
     today_by_start_date: number;
   }> {
-    const response = await apiClient.get<{
-      total: number;
-      pending: number;
-      confirmed: number;
-      today: number;
-      today_by_start_date: number;
-    }>('/admin/bookings/stats');
-    return response;
+    const blockMetrics = await this.getBlockMetrics();
+    return {
+      total: blockMetrics.reservations.total,
+      pending: blockMetrics.reservations.pending,
+      confirmed: blockMetrics.reservations.confirmed,
+      today: 0, // Not available in new structure
+      today_by_start_date: 0, // Not available in new structure
+    };
   }
 
   /**
    * Get daily activity statistics
+   * @deprecated Use getBlockMetrics() instead. Individual stats endpoints were removed from backend.
    */
   async getDailyStats(): Promise<{
     new_registrations_today: number;
     logins_today: number;
     bookings_today: number;
   }> {
-    const response = await apiClient.get<{
-      new_registrations_today: number;
-      logins_today: number;
-      bookings_today: number;
-    }>('/admin/activity/daily');
-    return response;
+    const blockMetrics = await this.getBlockMetrics();
+    return {
+      new_registrations_today: 0, // Not available in new structure
+      logins_today: blockMetrics.users.logins,
+      bookings_today: 0, // Not available in new structure
+    };
   }
 
   // New 3-Block Metrics Methods (from team dialog requirements)
@@ -131,26 +151,29 @@ class AdminService {
 
   /**
    * Get user block metrics
+   * @deprecated Use getBlockMetrics() instead. Individual block endpoints were removed from backend.
    */
   async getUserBlockMetrics(filters?: FilterParams): Promise<UserBlockMetrics> {
-    const params = this.buildFilterParams(filters);
-    return await apiClient.get<UserBlockMetrics>('/admin/metrics/users', params);
+    const blockMetrics = await this.getBlockMetrics(filters);
+    return blockMetrics.users;
   }
 
   /**
    * Get vehicle block metrics
+   * @deprecated Use getBlockMetrics() instead. Individual block endpoints were removed from backend.
    */
   async getVehicleBlockMetrics(filters?: FilterParams): Promise<VehicleBlockMetrics> {
-    const params = this.buildFilterParams(filters);
-    return await apiClient.get<VehicleBlockMetrics>('/admin/metrics/vehicles', params);
+    const blockMetrics = await this.getBlockMetrics(filters);
+    return blockMetrics.vehicles;
   }
 
   /**
    * Get reservation block metrics
+   * @deprecated Use getBlockMetrics() instead. Individual block endpoints were removed from backend.
    */
   async getReservationBlockMetrics(filters?: FilterParams): Promise<ReservationBlockMetrics> {
-    const params = this.buildFilterParams(filters);
-    return await apiClient.get<ReservationBlockMetrics>('/admin/metrics/reservations', params);
+    const blockMetrics = await this.getBlockMetrics(filters);
+    return blockMetrics.reservations;
   }
 
   /**
