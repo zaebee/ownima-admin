@@ -1,5 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Tab } from '@headlessui/react';
+import clsx from 'clsx';
 import { adminService } from '../services/admin';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { MetricCard } from '../components/ui/MetricCard';
@@ -14,7 +16,9 @@ import {
   CalendarIcon,
   CheckCircleIcon,
   XCircleIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  TruckIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 
 const formatUptime = (seconds: number): string => {
@@ -77,6 +81,50 @@ const getActivityColor = (activityType: string): 'blue' | 'green' | 'purple' | '
       return 'indigo';
     default:
       return 'blue';
+  }
+};
+
+const getVehicleActivityIcon = (activityType: string) => {
+  switch (activityType) {
+    case 'vehicle_created':
+      return TruckIcon;
+    case 'vehicle_updated':
+      return WrenchScrewdriverIcon;
+    default:
+      return InformationCircleIcon;
+  }
+};
+
+const getVehicleActivityColor = (activityType: string): 'green' | 'blue' | 'yellow' => {
+  switch (activityType) {
+    case 'vehicle_created':
+      return 'green';
+    case 'vehicle_updated':
+      return 'blue';
+    default:
+      return 'yellow';
+  }
+};
+
+const getReservationActivityIcon = (activityType: string) => {
+  switch (activityType) {
+    case 'reservation_created':
+      return CalendarIcon;
+    case 'reservation_updated':
+      return CheckCircleIcon;
+    default:
+      return InformationCircleIcon;
+  }
+};
+
+const getReservationActivityColor = (activityType: string): 'purple' | 'blue' | 'green' | 'red' => {
+  switch (activityType) {
+    case 'reservation_created':
+      return 'purple';
+    case 'reservation_updated':
+      return 'blue';
+    default:
+      return 'green';
   }
 };
 
@@ -271,76 +319,242 @@ export const SystemPage: React.FC = () => {
         )}
       </div>
 
-      {/* Recent User Activities */}
+      {/* Recent Activities - Tabbed Interface */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-          <UserIcon className="w-6 h-6 mr-2 text-blue-500" />
-          Recent User Activities
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activities</h2>
 
         {isActivitiesLoading ? (
           <div className="flex justify-center py-8">
             <LoadingSpinner />
           </div>
-        ) : userActivities && userActivities.users?.length > 0 ? (
-          <div className="space-y-4">
-            {userActivities.users?.slice(0, 10).map((activity) => {
-              // Handle both activity_type and type fields from API
-              const activityType = (activity.activity_type as string) || (activity.type as string) || 'unknown';
-              const ActivityIcon = getActivityIcon(activityType);
-              const activityColor = getActivityColor(activityType) as 'blue' | 'green' | 'purple' | 'indigo';
-
-              return (
-                <div key={(activity.id as string) || (activity.user_id as string) + (activity.timestamp as string)} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                    activityColor === 'blue' ? 'bg-blue-100' :
-                    activityColor === 'green' ? 'bg-green-100' :
-                    activityColor === 'purple' ? 'bg-purple-100' :
-                    'bg-indigo-100'
-                  }`}>
-                    <ActivityIcon className={`w-5 h-5 ${
-                      activityColor === 'blue' ? 'text-blue-600' :
-                      activityColor === 'green' ? 'text-green-600' :
-                      activityColor === 'purple' ? 'text-purple-600' :
-                      'text-indigo-600'
-                    }`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-900">
-                        {(activity.details?.user_name as string) || (activity.details?.user_email as string) || (activity.user_name as string) || (activity.user_email as string) || 'Unknown User'} <small>({(activity.details?.user_email as string) || "Unknown" })</small>
-                      </p>
-                      <span className="text-xs text-gray-500">
-                        {formatDateTime(activity.timestamp as string)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{(activity.description as string) || `User ${activityType.toLowerCase()}`}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span
-                        className={`px-2 py-1 rounded-full font-medium ${
-                          activityColor === 'blue' ? 'bg-blue-100 text-blue-700' :
-                          activityColor === 'green' ? 'bg-green-100 text-green-700' :
-                          activityColor === 'purple' ? 'bg-purple-100 text-purple-700' :
-                          'bg-indigo-100 text-indigo-700'
-                        }`}
-                      >
-                        {activityType?.replace(/_/g, ' ').toUpperCase() || 'UNKNOWN'}
-                      </span>
-                      {activity.ip_address && (
-                        <span>IP: {activity.ip_address}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         ) : (
-          <div className="text-center py-8">
-            <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No recent user activities found</p>
-            <p className="text-sm text-gray-500 mt-2">Activity will appear here as users interact with the platform</p>
-          </div>
+          <Tab.Group>
+            <Tab.List className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
+              <Tab className={({ selected }) => clsx(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all',
+                selected
+                  ? 'bg-white text-blue-600 shadow'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-900'
+              )}>
+                <div className="flex items-center justify-center">
+                  <UserIcon className="w-5 h-5 mr-2" />
+                  Users ({userActivities?.users?.length || 0})
+                </div>
+              </Tab>
+              <Tab className={({ selected }) => clsx(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all',
+                selected
+                  ? 'bg-white text-green-600 shadow'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-900'
+              )}>
+                <div className="flex items-center justify-center">
+                  <TruckIcon className="w-5 h-5 mr-2" />
+                  Vehicles ({userActivities?.vehicles?.length || 0})
+                </div>
+              </Tab>
+              <Tab className={({ selected }) => clsx(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all',
+                selected
+                  ? 'bg-white text-purple-600 shadow'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-900'
+              )}>
+                <div className="flex items-center justify-center">
+                  <CalendarIcon className="w-5 h-5 mr-2" />
+                  Reservations ({userActivities?.reservations?.length || 0})
+                </div>
+              </Tab>
+            </Tab.List>
+
+            <Tab.Panels>
+              {/* User Activities Tab */}
+              <Tab.Panel>
+                {userActivities && userActivities.users?.length > 0 ? (
+                  <div className="space-y-4">
+                    {userActivities.users?.slice(0, 10).map((activity) => {
+                      const activityType = (activity.activity_type as string) || (activity.type as string) || 'unknown';
+                      const ActivityIcon = getActivityIcon(activityType);
+                      const activityColor = getActivityColor(activityType) as 'blue' | 'green' | 'purple' | 'indigo';
+
+                      return (
+                        <div key={(activity.id as string) || (activity.user_id as string) + (activity.timestamp as string)} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                            activityColor === 'blue' ? 'bg-blue-100' :
+                            activityColor === 'green' ? 'bg-green-100' :
+                            activityColor === 'purple' ? 'bg-purple-100' :
+                            'bg-indigo-100'
+                          }`}>
+                            <ActivityIcon className={`w-5 h-5 ${
+                              activityColor === 'blue' ? 'text-blue-600' :
+                              activityColor === 'green' ? 'text-green-600' :
+                              activityColor === 'purple' ? 'text-purple-600' :
+                              'text-indigo-600'
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-gray-900">
+                                {(activity.details?.user_name as string) || (activity.details?.user_email as string) || (activity.user_name as string) || (activity.user_email as string) || 'Unknown User'} <small>({(activity.details?.user_email as string) || "Unknown" })</small>
+                              </p>
+                              <span className="text-xs text-gray-500">
+                                {formatDateTime(activity.timestamp as string)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{(activity.description as string) || `User ${activityType.toLowerCase()}`}</p>
+                            <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                              <span
+                                className={`px-2 py-1 rounded-full font-medium ${
+                                  activityColor === 'blue' ? 'bg-blue-100 text-blue-700' :
+                                  activityColor === 'green' ? 'bg-green-100 text-green-700' :
+                                  activityColor === 'purple' ? 'bg-purple-100 text-purple-700' :
+                                  'bg-indigo-100 text-indigo-700'
+                                }`}
+                              >
+                                {activityType?.replace(/_/g, ' ').toUpperCase() || 'UNKNOWN'}
+                              </span>
+                              {activity.ip_address && (
+                                <span>IP: {activity.ip_address}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <UserIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No recent user activities found</p>
+                    <p className="text-sm text-gray-500 mt-2">Activity will appear here as users interact with the platform</p>
+                  </div>
+                )}
+              </Tab.Panel>
+
+              {/* Vehicle Activities Tab */}
+              <Tab.Panel>
+                {userActivities && userActivities.vehicles?.length > 0 ? (
+                  <div className="space-y-4">
+                    {userActivities.vehicles.slice(0, 10).map((activity, idx) => {
+                      const ActivityIcon = getVehicleActivityIcon(activity.activity_type);
+                      const color = getVehicleActivityColor(activity.activity_type);
+
+                      return (
+                        <div key={idx} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                            color === 'green' ? 'bg-green-100' :
+                            color === 'blue' ? 'bg-blue-100' :
+                            'bg-yellow-100'
+                          }`}>
+                            <ActivityIcon className={`w-5 h-5 ${
+                              color === 'green' ? 'text-green-600' :
+                              color === 'blue' ? 'text-blue-600' :
+                              'text-yellow-600'
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-gray-900">
+                                {(activity.details.name as string) || 'Unknown Vehicle'}
+                              </p>
+                              <span className="text-xs text-gray-500">
+                                {formatDateTime(activity.timestamp)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Vehicle {activity.activity_type.replace('vehicle_', '')}
+                            </p>
+                            <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                              <span className={`px-2 py-1 rounded-full font-medium ${
+                                color === 'green' ? 'bg-green-100 text-green-700' :
+                                color === 'blue' ? 'bg-blue-100 text-blue-700' :
+                                'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {activity.activity_type.toUpperCase().replace('_', ' ')}
+                              </span>
+                              <span>Status: {(activity.details.status as string) || 'unknown'}</span>
+                              {(activity.details.vehicle_id as string) && (
+                                <span>ID: {(activity.details.vehicle_id as string).slice(0, 8)}...</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <TruckIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No recent vehicle activities found</p>
+                    <p className="text-sm text-gray-500 mt-2">Vehicle activities will appear here</p>
+                  </div>
+                )}
+              </Tab.Panel>
+
+              {/* Reservation Activities Tab */}
+              <Tab.Panel>
+                {userActivities && userActivities.reservations?.length > 0 ? (
+                  <div className="space-y-4">
+                    {userActivities.reservations.slice(0, 10).map((activity, idx) => {
+                      const ActivityIcon = getReservationActivityIcon(activity.activity_type);
+                      const color = getReservationActivityColor(activity.activity_type);
+
+                      return (
+                        <div key={idx} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                            color === 'purple' ? 'bg-purple-100' :
+                            color === 'blue' ? 'bg-blue-100' :
+                            color === 'green' ? 'bg-green-100' :
+                            'bg-red-100'
+                          }`}>
+                            <ActivityIcon className={`w-5 h-5 ${
+                              color === 'purple' ? 'text-purple-600' :
+                              color === 'blue' ? 'text-blue-600' :
+                              color === 'green' ? 'text-green-600' :
+                              'text-red-600'
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-gray-900">
+                                Reservation {activity.activity_type.replace('reservation_', '')}
+                              </p>
+                              <span className="text-xs text-gray-500">
+                                {formatDateTime(activity.timestamp)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Status: {(activity.details.status as string) || 'unknown'}
+                            </p>
+                            <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                              <span className={`px-2 py-1 rounded-full font-medium ${
+                                color === 'purple' ? 'bg-purple-100 text-purple-700' :
+                                color === 'blue' ? 'bg-blue-100 text-blue-700' :
+                                color === 'green' ? 'bg-green-100 text-green-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {activity.activity_type.toUpperCase().replace('_', ' ')}
+                              </span>
+                              {(activity.details.total_price as number) && (
+                                <span>Price: ${activity.details.total_price as number}</span>
+                              )}
+                              {(activity.details.reservation_id as string) && (
+                                <span>ID: {(activity.details.reservation_id as string).slice(0, 8)}...</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CalendarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No recent reservation activities found</p>
+                    <p className="text-sm text-gray-500 mt-2">Reservation activities will appear here</p>
+                  </div>
+                )}
+              </Tab.Panel>
+            </Tab.Panels>
+          </Tab.Group>
         )}
       </div>
     </div>
