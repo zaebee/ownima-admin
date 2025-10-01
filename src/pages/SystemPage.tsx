@@ -282,9 +282,9 @@ export const SystemPage: React.FC = () => {
           <div className="flex justify-center py-8">
             <LoadingSpinner />
           </div>
-        ) : userActivities && userActivities?.length > 0 ? (
+        ) : userActivities && userActivities.users?.length > 0 ? (
           <div className="space-y-4">
-            {userActivities?.slice(0, 10).map((activity) => {
+            {userActivities.users?.slice(0, 10).map((activity) => {
               // Handle both activity_type and type fields from API
               const activityType = (activity.activity_type as string) || (activity.type as string) || 'unknown';
               const ActivityIcon = getActivityIcon(activityType);
@@ -308,7 +308,7 @@ export const SystemPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium text-gray-900">
-                        {(activity.user_name as string) || (activity.user_email as string) || 'Unknown User'}
+                        {(activity.details?.user_name as string) || (activity.details?.user_email as string) || (activity.user_name as string) || (activity.user_email as string) || 'Unknown User'} <small>({(activity.details?.user_email as string) || "Unknown" })</small>
                       </p>
                       <span className="text-xs text-gray-500">
                         {formatDateTime(activity.timestamp as string)}

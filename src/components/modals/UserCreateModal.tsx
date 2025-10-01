@@ -32,6 +32,7 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
     email: '',
     password: '',
     full_name: '',
+    role: 'RIDER',
     is_active: true,
     is_superuser: false,
   });
@@ -56,6 +57,7 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
       email: '',
       password: '',
       full_name: '',
+      role: 'RIDER',
       is_active: true,
       is_superuser: false,
     });
