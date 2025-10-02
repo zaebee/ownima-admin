@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 // Simple debounce function with cancel method
 const debounce = <T extends (...args: unknown[]) => void>(func: T, delay: number) => {
@@ -15,6 +15,8 @@ const debounce = <T extends (...args: unknown[]) => void>(func: T, delay: number
   return debouncedFunc;
 };
 import { adminService } from '../services/admin';
+import { getAvatarUrl } from '../config/environment';
+import { useToastContext } from '../contexts/ToastContext';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
 import { UserEditModal } from '../components/modals/UserEditModal';
@@ -35,11 +37,15 @@ import {
   CalendarIcon,
   ClipboardDocumentListIcon,
   ArrowRightOnRectangleIcon,
+  PhoneIcon,
 } from '@heroicons/react/24/outline';
 import { format, parseISO, isValid } from 'date-fns';
 import clsx from 'clsx';
 
 export const UsersPage: React.FC = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const toast = useToastContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '');
@@ -113,6 +119,23 @@ export const UsersPage: React.FC = () => {
       console.log('Response type:', typeof result);
       console.log('Response keys:', Object.keys(result || {}));
       return result;
+    },
+  });
+
+  // Delete user mutation
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => adminService.deleteUser(userId),
+    onSuccess: () => {
+      // Invalidate and refetch users list
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setShowDeleteDialog(false);
+      const deletedUserEmail = userToDelete?.email || 'User';
+      setUserToDelete(null);
+      toast.success('User deleted', `${deletedUserEmail} has been successfully deleted.`);
+    },
+    onError: (error: Error) => {
+      toast.error('Delete failed', error.message || 'Failed to delete user. Please try again.');
+      console.error('Failed to delete user:', error);
     },
   });
 
@@ -420,51 +443,42 @@ export const UsersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Users table */}
+      {/* Users table - Redesigned for better space usage */}
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role & Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Activity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Registration
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bookings
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Login
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {normalizedData?.items?.map((user: AdminUser) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+              {normalizedData?.items?.map((user: AdminUser) => {
+                const avatarUrl = getAvatarUrl(user.avatar);
+                return (
+                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                  {/* User Column - Avatar, Name, Email */}
+                  <td className="px-4 py-4">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        {user.avatar ? (
+                        {avatarUrl ? (
                           <img
-                            className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm"
-                            src={user.avatar}
+                            className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+                            src={avatarUrl}
                             alt={user.full_name || user.email}
+                            onClick={() => navigate(`/dashboard/users/${user.id}`)}
                             onError={(e) => {
-                              // Fallback to initials if avatar fails to load
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                               const fallback = target.nextElementSibling as HTMLElement;
@@ -473,68 +487,96 @@ export const UsersPage: React.FC = () => {
                           />
                         ) : null}
                         <div
-                          className={`h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center ${user.avatar ? 'hidden' : 'flex'}`}
-                          style={{ display: user.avatar ? 'none' : 'flex' }}
+                          className={`h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all ${avatarUrl ? 'hidden' : 'flex'}`}
+                          style={{ display: avatarUrl ? 'none' : 'flex' }}
+                          onClick={() => navigate(`/dashboard/users/${user.id}`)}
                         >
                           <span className="text-white font-semibold text-sm">
                             {(user.full_name?.[0] || user.email[0]).toUpperCase()}
                           </span>
                         </div>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
+                      <div className="ml-3 min-w-0 flex-1">
+                        <div
+                          className="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary-600 transition-colors truncate"
+                          onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                        >
                           {user.full_name || user.email.split('@')[0]}
                         </div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
+                        <div
+                          className="text-xs text-gray-500 cursor-pointer hover:text-primary-500 transition-colors truncate"
+                          onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                        >
+                          {user.email}
+                        </div>
+                        {user.phone && (
+                          <div className="text-xs text-gray-400 flex items-center mt-0.5">
+                            <PhoneIcon className="w-3 h-3 mr-1" />
+                            {user.phone}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {user.user_type ? getUserTypeBadge(user.user_type) : <span className="text-gray-400">Unknown</span>}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div>
-                      <div>{user.email}</div>
-                      {user.phone && <div className="text-gray-500">{user.phone}</div>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div className="flex items-center">
-                      <CalendarIcon className="w-4 h-4 text-gray-400 mr-1" />
-                      {user.registration_date ? formatDate(user.registration_date) : <span className="text-gray-400">N/A</span>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div className="flex items-center">
-                      <ClipboardDocumentListIcon className="w-4 h-4 text-gray-400 mr-1" />
-                      <span className="font-semibold">{user.booking_count}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div className="flex items-center">
-                      <ArrowRightOnRectangleIcon className="w-4 h-4 text-gray-400 mr-1" />
-                      {formatDateTime(user.last_login)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
+
+                  {/* Role & Status Column - Type, Active Status, Admin Badge */}
+                  <td className="px-4 py-4">
+                    <div className="flex flex-col space-y-1.5">
+                      {user.user_type && getUserTypeBadge(user.user_type)}
                       {getStatusBadge(user.is_active)}
                       {user.is_superuser && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 w-fit">
                           <ShieldCheckIcon className="w-3 h-3 mr-1" />
                           Admin
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-3">
+
+                  {/* Activity Column - Registration, Last Login, Bookings */}
+                  <td className="px-4 py-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center text-xs text-gray-600">
+                        <CalendarIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                        <span className="text-gray-500">Joined:</span>
+                        <span className="ml-1 font-medium">
+                          {user.registration_date ? formatDate(user.registration_date) : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <ArrowRightOnRectangleIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                        <span className="text-gray-500">Last:</span>
+                        <span className="ml-1 font-medium">
+                          {formatDateTime(user.last_login)}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <ClipboardDocumentListIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                        <span className="text-gray-500">Bookings:</span>
+                        <span className="ml-1 font-semibold text-primary-600">
+                          {user.booking_count || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Actions Column - View, Edit, Delete */}
+                  <td className="px-4 py-4 text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                        className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        title="View details"
+                      >
+                        <UserIcon className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => {
                           setSelectedUser(user);
                           setShowEditModal(true);
                         }}
-                        className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                        className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-lg transition-colors"
+                        title="Edit user"
                       >
                         <PencilIcon className="w-4 h-4" />
                       </button>
@@ -543,14 +585,16 @@ export const UsersPage: React.FC = () => {
                           setUserToDelete(user);
                           setShowDeleteDialog(true);
                         }}
-                        className="text-red-600 hover:text-red-900 flex items-center"
+                        className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete user"
                       >
                         <TrashIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
@@ -656,13 +700,11 @@ export const UsersPage: React.FC = () => {
             setUserToDelete(null);
           }}
           onConfirm={() => {
-            // Delete user logic would go here
-            setShowDeleteDialog(false);
-            setUserToDelete(null);
+            deleteMutation.mutate(userToDelete.id);
           }}
           title="Delete User"
           message={`Are you sure you want to delete ${userToDelete.email}? This action cannot be undone.`}
-          confirmText="Delete"
+          confirmText={deleteMutation.isPending ? 'Deleting...' : 'Delete'}
           cancelText="Cancel"
           variant="danger"
         />

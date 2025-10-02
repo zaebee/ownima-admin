@@ -73,4 +73,43 @@ export function getApiBaseUrl(env?: Environment): string {
   return getEnvironmentConfig(env).apiBaseUrl;
 }
 
+/**
+ * Get the full avatar URL with the correct base URL for the current environment
+ * @param avatarPath - Relative avatar path from the API (e.g., "/media/avatars/user123.jpg")
+ * @returns Full avatar URL with environment-specific base URL
+ */
+export function getAvatarUrl(avatarPath?: string | null): string | undefined {
+  if (!avatarPath) return undefined;
+
+  // If it's already a full URL, return as-is
+  if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+    return avatarPath;
+  }
+
+  const env = getCurrentEnvironment();
+
+  // Get base domain URL (without /api/v1 suffix)
+  let baseUrl: string;
+  switch (env) {
+    case 'staging':
+      baseUrl = 'https://stage.ownima.com';
+      break;
+    case 'beta':
+      baseUrl = 'https://beta.ownima.com';
+      break;
+    case 'production':
+      baseUrl = 'https://ownima.com';
+      break;
+    case 'development':
+    default:
+      baseUrl = 'http://localhost:8000';
+      break;
+  }
+
+  // Remove leading slash if present to avoid double slashes
+  const cleanPath = avatarPath.startsWith('/') ? avatarPath : `/${avatarPath}`;
+
+  return `${baseUrl}${cleanPath}`;
+}
+
 export { environmentConfigs };

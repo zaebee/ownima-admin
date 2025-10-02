@@ -2,12 +2,14 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { useAuth } from './hooks/useAuth';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { UsersPage } from './pages/UsersPage';
+import { UserDetailPage } from './pages/UserDetailPage';
 import { SystemPage } from './pages/SystemPage';
 import { LandingPage } from './pages/LandingPage';
 
@@ -37,6 +39,7 @@ const AppRoutes: React.FC = () => {
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="overview" element={<DashboardPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="users/:userId" element={<UserDetailPage />} />
               <Route path="system" element={<SystemPage />} />
             </Routes>
           </Layout>
@@ -51,9 +54,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
+        <ToastProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

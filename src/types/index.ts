@@ -14,6 +14,10 @@ export interface User {
   currency?: string | null;
   language?: string | null;
   location?: string | null;
+  avatar?: string;
+  phone_number?: string;
+  login_count?: number;
+  last_login_at?: string;
   created_at: string;
   updated_at: string;
 }

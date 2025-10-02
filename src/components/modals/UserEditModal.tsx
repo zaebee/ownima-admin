@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToastContext } from '../../contexts/ToastContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { userService } from '../../services/users';
@@ -26,6 +27,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   user,
 }) => {
   const queryClient = useQueryClient();
+  const toast = useToastContext();
   const [formData, setFormData] = useState<UpdateUserData>({
     email: '',
     full_name: '',
@@ -42,13 +44,18 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateUserData }) =>
       userService.updateUser(id, data),
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
+      // Invalidate both users and admin-users queries
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', updatedUser.id] });
       onClose();
+      toast.success('User updated', `${updatedUser.email} has been successfully updated.`);
     },
     onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update user. Please try again.';
+      toast.error('Update failed', errorMessage);
       console.error('Failed to update user:', error);
-      // Handle validation errors if needed
     },
   });
 
