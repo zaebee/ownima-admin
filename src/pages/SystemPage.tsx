@@ -6,7 +6,6 @@ import { adminService } from '../services/admin';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { MetricCard } from '../components/ui/MetricCard';
 import {
-  ComputerDesktopIcon,
   ExclamationTriangleIcon,
   ClockIcon,
   ServerIcon,
@@ -18,7 +17,12 @@ import {
   XCircleIcon,
   InformationCircleIcon,
   TruckIcon,
-  WrenchScrewdriverIcon
+  WrenchScrewdriverIcon,
+  CodeBracketIcon,
+  CommandLineIcon,
+  ArchiveBoxIcon,
+  TrashIcon,
+  DocumentMinusIcon,
 } from '@heroicons/react/24/outline';
 
 const formatUptime = (seconds: number): string => {
@@ -90,17 +94,31 @@ const getVehicleActivityIcon = (activityType: string) => {
       return TruckIcon;
     case 'vehicle_updated':
       return WrenchScrewdriverIcon;
+    case 'vehicle_published':
+      return CheckCircleIcon;
+    case 'vehicle_archived':
+      return ArchiveBoxIcon;
+    case 'vehicle_deleted':
+      return TrashIcon;
+    case 'vehicle_drafts_deleted':
+      return DocumentMinusIcon;
     default:
       return InformationCircleIcon;
   }
 };
 
-const getVehicleActivityColor = (activityType: string): 'green' | 'blue' | 'yellow' => {
+const getVehicleActivityColor = (activityType: string): 'green' | 'blue' | 'yellow' | 'red' => {
   switch (activityType) {
     case 'vehicle_created':
+    case 'vehicle_published':
       return 'green';
     case 'vehicle_updated':
       return 'blue';
+    case 'vehicle_archived':
+      return 'yellow';
+    case 'vehicle_deleted':
+    case 'vehicle_drafts_deleted':
+      return 'red';
     default:
       return 'yellow';
   }
@@ -160,40 +178,40 @@ export const SystemPage: React.FC = () => {
       title: 'Backend Version',
       value: systemInfo.backend_version,
       icon: ServerIcon,
-      description: 'Current backend version',
+      description: `API ${systemInfo.api_version}`,
       color: 'blue' as const,
     },
     {
-      title: 'Frontend Version',
-      value: systemInfo.frontend_version,
-      icon: ComputerDesktopIcon,
-      description: 'Current frontend version',
+      title: 'Git Version',
+      value: systemInfo.git_version || 'N/A',
+      icon: CodeBracketIcon,
+      description: `Commit: ${systemInfo.git_commit?.slice(0, 7) || 'unknown'}`,
       color: 'indigo' as const,
+    },
+    {
+      title: 'Python Runtime',
+      value: `Python ${systemInfo.python_version}`,
+      icon: CommandLineIcon,
+      description: 'Runtime environment',
+      color: 'green' as const,
     },
     {
       title: 'Environment',
       value: systemInfo.environment?.charAt(0).toUpperCase() + systemInfo.environment?.slice(1) || 'Unknown',
       icon: GlobeAltIcon,
-      description: 'Current deployment environment',
+      description: systemInfo.project_name,
       color: systemInfo.environment === 'production' ? 'red' as const : systemInfo.environment === 'staging' ? 'yellow' as const : 'green' as const,
     },
     {
-      title: 'Database Status',
-      value: systemInfo.database_status?.charAt(0).toUpperCase() + systemInfo.database_status?.slice(1) || 'Unknown',
+      title: 'Database',
+      value: systemInfo.database.database_type.toUpperCase(),
       icon: CircleStackIcon,
-      description: 'Database connection status',
-      color: getStatusColor(systemInfo.database_status || 'error'),
-    },
-    {
-      title: 'API Status',
-      value: systemInfo.api_status?.charAt(0).toUpperCase() + systemInfo.api_status?.slice(1) || 'Unknown',
-      icon: ServerIcon,
-      description: 'API service status',
-      color: getStatusColor(systemInfo.api_status || 'error'),
+      description: systemInfo.database.status.charAt(0).toUpperCase() + systemInfo.database.status.slice(1),
+      color: getStatusColor(systemInfo.database.status),
     },
     {
       title: 'System Uptime',
-      value: formatUptime(systemInfo.uptime || 0),
+      value: formatUptime(systemInfo.uptime_seconds),
       icon: ClockIcon,
       description: 'Time since last restart',
       color: 'purple' as const,
@@ -239,10 +257,29 @@ export const SystemPage: React.FC = () => {
           ))}
         </div>
         {systemInfo && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
-              <strong>Deployment Date:</strong> {formatDateTime(systemInfo.deployment_date)}
-            </p>
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Build Date:</strong> {systemInfo.build_date ? formatDateTime(systemInfo.build_date) : 'Unknown'}
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Domain:</strong> {systemInfo.domain}
+              </p>
+            </div>
+            {systemInfo.last_deployment && (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  <strong>Last Deployment:</strong> {formatDateTime(systemInfo.last_deployment)}
+                </p>
+              </div>
+            )}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Database:</strong> {systemInfo.database.uri}
+              </p>
+            </div>
           </div>
         )}
       </div>
