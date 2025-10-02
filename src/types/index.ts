@@ -145,13 +145,29 @@ export interface AdminUser extends User {
 }
 
 export interface SystemInfo {
+  // Version information
   backend_version: string;
-  frontend_version: string;
-  deployment_date: string;
-  environment: 'development' | 'staging' | 'production';
-  database_status: 'healthy' | 'warning' | 'error';
-  api_status: 'healthy' | 'warning' | 'error';
-  uptime: number;
+  api_version: string;
+  frontend_version: string | null;
+  git_version: string | null;
+  git_commit: string | null;
+  python_version: string;
+
+  // Environment & deployment
+  environment: 'local' | 'staging' | 'production';
+  project_name: string;
+  domain: string;
+  build_date: string | null;
+  last_deployment: string | null;
+
+  // System health
+  database: {
+    status: 'healthy' | 'warning' | 'error';
+    database_type: string;
+    uri: string;
+    test_query_result: number;
+  };
+  uptime_seconds: number;
 }
 
 export interface SystemError {
