@@ -34,6 +34,7 @@ interface SystemErrorQueryParams extends Record<string, unknown> {
 
 interface UserActivityQueryParams extends Record<string, unknown> {
   limit?: number;
+  user_id?: string;
   activity_type?: 'LOGIN' | 'REGISTRATION' | 'BOOKING' | 'ALL';
   date_from?: string;
   date_to?: string;

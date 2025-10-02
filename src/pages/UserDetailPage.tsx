@@ -10,6 +10,7 @@ import { useToastContext } from '../contexts/ToastContext';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
 import { MetricCard } from '../components/ui/MetricCard';
+import { ActivityTimeline } from '../components/ActivityTimeline';
 import { UserEditModal } from '../components/modals/UserEditModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import {
@@ -52,6 +53,13 @@ export const UserDetailPage: React.FC = () => {
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['user-metrics', userId],
     queryFn: () => adminService.getUserMetrics(userId!),
+    enabled: !!userId,
+  });
+
+  // Fetch user activities
+  const { data: userActivities, isLoading: activitiesLoading } = useQuery({
+    queryKey: ['user-activities', userId],
+    queryFn: () => adminService.getRecentActivity({ user_id: userId, limit: 20 }),
     enabled: !!userId,
   });
 
@@ -482,9 +490,12 @@ export const UserDetailPage: React.FC = () => {
                 )}
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                  <div className="bg-gray-50 p-6 rounded-lg text-center text-gray-500">
-                    No recent activity to display
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Activity</h3>
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <ActivityTimeline
+                      activities={userActivities?.users || []}
+                      loading={activitiesLoading}
+                    />
                   </div>
                 </div>
               </div>
