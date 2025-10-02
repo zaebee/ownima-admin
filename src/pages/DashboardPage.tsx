@@ -33,41 +33,11 @@ export const DashboardPage: React.FC = () => {
   });
 
   // Query block metrics with filters
-  const { data: blockMetrics, isLoading } = useQuery({
+  const { data: blockMetrics, isLoading, error } = useQuery({
     queryKey: ['block-metrics', filters],
     queryFn: () => adminService.getBlockMetrics(filters),
     refetchInterval: 30000, // Refresh every 30 seconds
   });
-
-  // Mock data for now (will be replaced with real API data)
-  const mockBlockData = {
-    users: {
-      total: 1234,
-      online_last_30_days: 567,
-      internal: 89,
-      external: 1145,
-      owners: 456,
-      riders: 778,
-      logins: 890
-    },
-    vehicles: {
-      total: 456,
-      draft: 67,
-      free: 123,
-      collected: 234,
-      maintenance: 12,
-      archived: 20
-    },
-    reservations: {
-      total: 2345,
-      pending: 45,
-      confirmed: 567,
-      collected: 234,
-      completed: 1234,
-      cancelled: 123,
-      maintenance: 12
-    }
-  };
 
   const handleFiltersChange = (newFilters: FilterParams) => {
     setFilters(newFilters);
@@ -91,8 +61,18 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  // Use real data if available, otherwise fall back to mock data
-  const data = blockMetrics || mockBlockData;
+  if (error || !blockMetrics) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 text-lg font-semibold">Failed to load metrics</p>
+          <p className="text-gray-600 mt-2">Please try refreshing the page</p>
+        </div>
+      </div>
+    );
+  }
+
+  const data = blockMetrics;
 
   // Prepare metrics for each block
   const userMetrics: MetricRowData[] = [

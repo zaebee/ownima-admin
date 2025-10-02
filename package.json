@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-types": "bunx openapi-typescript https://beta.ownima.com/api/v1/openapi.json -o src/types/api-generated.ts",
-    "generate-types:development": "bunx openapi-typescript http://localhost:8000/api/v1/openapi.json -o src/types/api-generated.ts",
+    "generate-types:development": "bunx openapi-typescript http://localhost:8080/api/v1/openapi.json -o src/types/api-generated.ts",
     "generate-types:staging": "bunx openapi-typescript https://stage.ownima.com/api/v1/openapi.json -o src/types/api-generated.ts",
     "generate-types:production": "bunx openapi-typescript https://api.ownima.com/api/v1/openapi.json -o src/types/api-generated.ts"
   },

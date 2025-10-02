@@ -48,6 +48,13 @@ export const UserDetailPage: React.FC = () => {
     enabled: !!userId,
   });
 
+  // Fetch user metrics
+  const { data: metrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['user-metrics', userId],
+    queryFn: () => adminService.getUserMetrics(userId!),
+    enabled: !!userId,
+  });
+
   // Delete user mutation
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminService.deleteUser(id),
@@ -282,7 +289,7 @@ export const UserDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard
           title="Vehicles"
-          value="0"
+          value={metricsLoading ? '-' : metrics?.total_vehicles.toString() || '0'}
           icon={TruckIcon}
           description="Total vehicles owned"
           color="blue"
@@ -290,7 +297,7 @@ export const UserDetailPage: React.FC = () => {
         />
         <MetricCard
           title="Reservations"
-          value="0"
+          value={metricsLoading ? '-' : metrics?.total_reservations.toString() || '0'}
           icon={ClipboardDocumentListIcon}
           description="Total bookings"
           color="green"
@@ -298,7 +305,7 @@ export const UserDetailPage: React.FC = () => {
         />
         <MetricCard
           title="Login Count"
-          value={user.login_count?.toString() || '0'}
+          value={metricsLoading ? '-' : metrics?.login_count.toString() || user.login_count?.toString() || '0'}
           icon={ArrowRightOnRectangleIcon}
           description="Total logins"
           color="purple"
@@ -370,6 +377,109 @@ export const UserDetailPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Financial & Activity Metrics */}
+                {metrics && (
+                  <>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Information</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-blue-700">Wallet Balance</div>
+                          <div className="mt-1 text-2xl font-bold text-blue-900">
+                            {metrics.wallet_balance.toFixed(2)} {metrics.wallet_currency}
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-green-700">Total Spent</div>
+                          <div className="mt-1 text-2xl font-bold text-green-900">
+                            {metrics.total_spent.toFixed(2)} {metrics.wallet_currency}
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-purple-700">Total Earned</div>
+                          <div className="mt-1 text-2xl font-bold text-purple-900">
+                            {metrics.total_earned.toFixed(2)} {metrics.wallet_currency}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity Metrics</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-gray-500">Account Age</div>
+                          <div className="mt-1 text-sm text-gray-900">{metrics.account_age_days} days</div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-gray-500">Last Login</div>
+                          <div className="mt-1 text-sm text-gray-900">
+                            {metrics.days_since_last_login !== null
+                              ? `${metrics.days_since_last_login} days ago`
+                              : 'Never'}
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-gray-500">Total Logins</div>
+                          <div className="mt-1 text-sm text-gray-900">{metrics.login_count}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {user.role === 'OWNER' && metrics.total_vehicles > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Vehicle Status Breakdown</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-gray-500">Draft</div>
+                            <div className="mt-1 text-2xl font-bold text-gray-900">{metrics.draft_vehicles}</div>
+                          </div>
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-green-700">Published</div>
+                            <div className="mt-1 text-2xl font-bold text-green-900">{metrics.published_vehicles}</div>
+                          </div>
+                          <div className="bg-yellow-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-yellow-700">Archived</div>
+                            <div className="mt-1 text-2xl font-bold text-yellow-900">{metrics.archived_vehicles}</div>
+                          </div>
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-blue-700">Total</div>
+                            <div className="mt-1 text-2xl font-bold text-blue-900">{metrics.total_vehicles}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {metrics.total_reservations > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Reservation Status Breakdown</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                          <div className="bg-yellow-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-yellow-700">Pending</div>
+                            <div className="mt-1 text-2xl font-bold text-yellow-900">{metrics.pending_reservations}</div>
+                          </div>
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-blue-700">Confirmed</div>
+                            <div className="mt-1 text-2xl font-bold text-blue-900">{metrics.confirmed_reservations}</div>
+                          </div>
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-green-700">Completed</div>
+                            <div className="mt-1 text-2xl font-bold text-green-900">{metrics.completed_reservations}</div>
+                          </div>
+                          <div className="bg-red-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-red-700">Cancelled</div>
+                            <div className="mt-1 text-2xl font-bold text-red-900">{metrics.cancelled_reservations}</div>
+                          </div>
+                          <div className="bg-purple-50 p-4 rounded-lg">
+                            <div className="text-sm font-medium text-purple-700">Total</div>
+                            <div className="mt-1 text-2xl font-bold text-purple-900">{metrics.total_reservations}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
 
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>

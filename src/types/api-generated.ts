@@ -1504,6 +1504,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/utils/currencies/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Currencies
+         * @description Get list of supported currencies.
+         */
+        get: operations["Utils-get_currencies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/utils/languages/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Languages
+         * @description Get list of supported languages.
+         */
+        get: operations["Utils-get_languages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/metrics/blocks": {
         parameters: {
             query?: never;
@@ -1558,11 +1598,17 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get System Info
-         * @description Get system information for admin dashboard.
-         *     Returns version info and deployment details.
+         * Get System Info Endpoint
+         * @description Get comprehensive system information for admin dashboard.
+         *
+         *     Returns real-time data about:
+         *     - Application versions (backend, API, git)
+         *     - Environment and configuration
+         *     - Database health and type
+         *     - Python runtime info
+         *     - System uptime
          */
-        get: operations["Admin-get_system_info"];
+        get: operations["Admin-get_system_info_endpoint"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1606,6 +1652,29 @@ export interface paths {
          * @description Get recent activities for users, vehicles, and reservations.
          */
         get: operations["Admin-get_recent_activity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Metrics
+         * @description Get comprehensive metrics for a specific user.
+         *
+         *     Returns vehicle counts, reservation statistics, financial data,
+         *     and activity metrics for the specified user.
+         */
+        get: operations["Admin-get_user_metrics"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3160,29 +3229,6 @@ export interface components {
             /** Fuel Level */
             fuel_level?: number;
         };
-        /**
-         * SystemInfo
-         * @description System information for admin.
-         */
-        SystemInfo: {
-            /**
-             * Backend Version
-             * @default 1.0.0
-             */
-            backend_version: string;
-            /**
-             * Frontend Version
-             * @default 1.0.0
-             */
-            frontend_version: string;
-            /** Last Deployment */
-            last_deployment?: string | null;
-            /**
-             * Environment
-             * @default development
-             */
-            environment: string;
-        };
         /** TimeRange */
         TimeRange: {
             /** Start */
@@ -3302,6 +3348,16 @@ export interface components {
             commission_amount?: number;
             /** Net Amount */
             net_amount?: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
         };
         /** TransactionInternal */
         TransactionInternal: {
@@ -3325,6 +3381,8 @@ export interface components {
             description: string | null;
             /** Created At */
             created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
             /** Reference Id */
             reference_id: string | null;
             /**
@@ -3689,6 +3747,89 @@ export interface components {
             /** Code */
             code?: string;
         };
+        /**
+         * UserMetrics
+         * @description Detailed metrics for a specific user.
+         */
+        UserMetrics: {
+            /**
+             * Total Vehicles
+             * @default 0
+             */
+            total_vehicles: number;
+            /**
+             * Draft Vehicles
+             * @default 0
+             */
+            draft_vehicles: number;
+            /**
+             * Published Vehicles
+             * @default 0
+             */
+            published_vehicles: number;
+            /**
+             * Archived Vehicles
+             * @default 0
+             */
+            archived_vehicles: number;
+            /**
+             * Total Reservations
+             * @default 0
+             */
+            total_reservations: number;
+            /**
+             * Pending Reservations
+             * @default 0
+             */
+            pending_reservations: number;
+            /**
+             * Confirmed Reservations
+             * @default 0
+             */
+            confirmed_reservations: number;
+            /**
+             * Completed Reservations
+             * @default 0
+             */
+            completed_reservations: number;
+            /**
+             * Cancelled Reservations
+             * @default 0
+             */
+            cancelled_reservations: number;
+            /**
+             * Wallet Balance
+             * @default 0
+             */
+            wallet_balance: number;
+            /**
+             * Wallet Currency
+             * @default EUR
+             */
+            wallet_currency: string;
+            /**
+             * Total Spent
+             * @default 0
+             */
+            total_spent: number;
+            /**
+             * Total Earned
+             * @default 0
+             */
+            total_earned: number;
+            /**
+             * Account Age Days
+             * @default 0
+             */
+            account_age_days: number;
+            /** Days Since Last Login */
+            days_since_last_login?: number | null;
+            /**
+             * Login Count
+             * @default 0
+             */
+            login_count: number;
+        };
         /** UserPublic */
         UserPublic: {
             /**
@@ -4006,6 +4147,16 @@ export interface components {
             extra_option_ids?: string[];
             /** Extra Options Details */
             extra_options_details?: components["schemas"]["ExtraOption"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
         };
         /** Vehicle */
         "Vehicle-Output": {
@@ -4033,6 +4184,16 @@ export interface components {
             extra_option_ids?: string[];
             /** Extra Options Details */
             extra_options_details?: components["schemas"]["ExtraOption"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
         };
         /**
          * VehicleActivity
@@ -9845,6 +10006,104 @@ export interface operations {
             };
         };
     };
+    "Utils-get_currencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
+    "Utils-get_languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
     "Admin-get_block_metrics": {
         parameters: {
             query?: {
@@ -9985,7 +10244,7 @@ export interface operations {
             };
         };
     };
-    "Admin-get_system_info": {
+    "Admin-get_system_info_endpoint": {
         parameters: {
             query?: never;
             header?: never;
@@ -10000,7 +10259,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SystemInfo"];
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Unauthorized */
@@ -10112,6 +10373,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecentActivity"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_user_metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserMetrics"];
                 };
             };
             /** @description Unauthorized */

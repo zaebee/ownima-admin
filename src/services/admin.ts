@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import type { components } from '../types/api-generated';
 import type {
   DashboardMetrics,
   AdminUser,
@@ -188,6 +189,13 @@ class AdminService {
    */
   async deleteUser(userId: string): Promise<{ message: string }> {
     return await apiClient.delete<{ message: string }>(`/users/${userId}`);
+  }
+
+  /**
+   * Get comprehensive metrics for a specific user
+   */
+  async getUserMetrics(userId: string): Promise<components['schemas']['UserMetrics']> {
+    return await apiClient.get<components['schemas']['UserMetrics']>(`/admin/users/${userId}/metrics`);
   }
 
   /**
