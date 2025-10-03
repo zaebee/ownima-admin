@@ -152,7 +152,7 @@ export const UsersPage: React.FC = () => {
           ...apiUser,
           user_type: apiUser.role, // Map role to user_type for UI compatibility
           phone: apiUser.phone_number, // Map phone_number to phone
-          booking_count: apiUser.login_count || 0, // Use login_count as booking_count for now
+          login_count: apiUser.login_count || 0, // Use login_count as booking_count for now
           last_login: apiUser.last_login_at, // Map last_login_at to last_login
           registration_date: apiUser.created_at, // Map created_at to registration_date
         };
@@ -552,9 +552,9 @@ export const UsersPage: React.FC = () => {
                       </div>
                       <div className="flex items-center text-xs text-gray-600">
                         <ClipboardDocumentListIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
-                        <span className="text-gray-500">Bookings:</span>
+                        <span className="text-gray-500">Logins:</span>
                         <span className="ml-1 font-semibold text-primary-600">
-                          {user.booking_count || 0}
+                          {user.login_count || 0}
                         </span>
                       </div>
                     </div>
