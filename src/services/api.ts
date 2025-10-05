@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { getApiBaseUrl } from '../config/environment';
 
 // Use fetch adapter in test environment to avoid XHR issues with MSW
-let axiosAdapter: any = undefined;
+let axiosAdapter: string | undefined = undefined;
 if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
   // In test environment, use fetch adapter
   axiosAdapter = 'fetch';
