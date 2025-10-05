@@ -7,14 +7,25 @@ import { useAuth } from './hooks/useAuth';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorFallback } from './components/ErrorFallback';
+import { reportError } from './utils/errorReporting';
 
 // Lazy load pages for code splitting
-const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
-const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
-const UsersPage = lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })));
-const UserDetailPage = lazy(() => import('./pages/UserDetailPage').then(m => ({ default: m.UserDetailPage })));
-const SystemPage = lazy(() => import('./pages/SystemPage').then(m => ({ default: m.SystemPage })));
-const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
+const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const DashboardPage = lazy(() =>
+  import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const UsersPage = lazy(() => import('./pages/UsersPage').then((m) => ({ default: m.UsersPage })));
+const UserDetailPage = lazy(() =>
+  import('./pages/UserDetailPage').then((m) => ({ default: m.UserDetailPage }))
+);
+const SystemPage = lazy(() =>
+  import('./pages/SystemPage').then((m) => ({ default: m.SystemPage }))
+);
+const LandingPage = lazy(() =>
+  import('./pages/LandingPage').then((m) => ({ default: m.LandingPage }))
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,45 +46,68 @@ export const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route 
-          path="/login" 
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
-        />
-        <Route path="/dashboard/*" element={
-          <ProtectedRoute>
-            <Layout>
-              <Suspense fallback={<LoadingSpinner size="lg" />}>
-                <Routes>
-                  <Route index element={<Navigate to="overview" replace />} />
-                  <Route path="overview" element={<DashboardPage />} />
-                  <Route path="users" element={<UsersPage />} />
-                  <Route path="users/:userId" element={<UserDetailPage />} />
-                  <Route path="system" element={<SystemPage />} />
-                </Routes>
-              </Suspense>
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+    <ErrorBoundary
+      fallback={(error, errorInfo, reset) => (
+        <ErrorFallback error={error} errorInfo={errorInfo} resetError={reset} />
+      )}
+      onError={(error, errorInfo) => reportError(error, errorInfo, { location: 'AppRoutes' })}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+          />
+          <Route
+            path="/dashboard/*"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ErrorBoundary
+                    fallback={(error, errorInfo, reset) => (
+                      <ErrorFallback error={error} errorInfo={errorInfo} resetError={reset} />
+                    )}
+                    onError={(error, errorInfo) =>
+                      reportError(error, errorInfo, { location: 'Dashboard' })
+                    }
+                  >
+                    <Suspense fallback={<LoadingSpinner size="lg" />}>
+                      <Routes>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<DashboardPage />} />
+                        <Route path="users" element={<UsersPage />} />
+                        <Route path="users/:userId" element={<UserDetailPage />} />
+                        <Route path="system" element={<SystemPage />} />
+                      </Routes>
+                    </Suspense>
+                  </ErrorBoundary>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 };
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ToastProvider>
-          <Router>
-            <AppRoutes />
-          </Router>
-        </ToastProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary
+      onError={(error, errorInfo) => reportError(error, errorInfo, { location: 'App' })}
+    >
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ToastProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </ToastProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
