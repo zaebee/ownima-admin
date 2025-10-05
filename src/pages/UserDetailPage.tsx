@@ -43,7 +43,11 @@ export const UserDetailPage: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Fetch user details
-  const { data: user, isLoading, error } = useQuery({
+  const {
+    data: user,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['user', userId],
     queryFn: () => userService.getUser(userId!),
     enabled: !!userId,
@@ -72,7 +76,6 @@ export const UserDetailPage: React.FC = () => {
     },
     onError: (error: Error) => {
       toast.error('Delete failed', error.message || 'Failed to delete user. Please try again.');
-      console.error('Failed to delete user:', error);
       setShowDeleteDialog(false);
     },
   });
@@ -135,10 +138,7 @@ export const UserDetailPage: React.FC = () => {
             <p className="mt-4 text-xl text-red-600">
               Unable to load user details. The user may not exist.
             </p>
-            <Button
-              onClick={() => navigate('/dashboard/users')}
-              className="mt-4"
-            >
+            <Button onClick={() => navigate('/dashboard/users')} className="mt-4">
               <ArrowLeftIcon className="w-5 h-5 mr-2" />
               Back to Users
             </Button>
@@ -201,12 +201,14 @@ export const UserDetailPage: React.FC = () => {
                       {user.email}
                     </span>
                     {user.role && (
-                      <span className={clsx(
-                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                        user.role === 'OWNER'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-green-100 text-green-800'
-                      )}>
+                      <span
+                        className={clsx(
+                          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                          user.role === 'OWNER'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
+                        )}
+                      >
                         <UserIcon className="w-3 h-3 mr-1" />
                         {user.role}
                       </span>
@@ -313,7 +315,11 @@ export const UserDetailPage: React.FC = () => {
         />
         <MetricCard
           title="Login Count"
-          value={metricsLoading ? '-' : metrics?.login_count.toString() || user.login_count?.toString() || '0'}
+          value={
+            metricsLoading
+              ? '-'
+              : metrics?.login_count.toString() || user.login_count?.toString() || '0'
+          }
           icon={ArrowRightOnRectangleIcon}
           description="Total logins"
           color="purple"
@@ -359,15 +365,21 @@ export const UserDetailPage: React.FC = () => {
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm font-medium text-gray-500">Full Name</div>
-                      <div className="mt-1 text-sm text-gray-900">{user.full_name || 'Not set'}</div>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {user.full_name || 'Not set'}
+                      </div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm font-medium text-gray-500">Registration Date</div>
-                      <div className="mt-1 text-sm text-gray-900">{formatDate(user.created_at)}</div>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {formatDate(user.created_at)}
+                      </div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm font-medium text-gray-500">Last Updated</div>
-                      <div className="mt-1 text-sm text-gray-900">{formatDateTime(user.updated_at)}</div>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {formatDateTime(user.updated_at)}
+                      </div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm font-medium text-gray-500">Account Status</div>
@@ -390,7 +402,9 @@ export const UserDetailPage: React.FC = () => {
                 {metrics && (
                   <>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Information</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Financial Information
+                      </h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-blue-700">Wallet Balance</div>
@@ -418,7 +432,9 @@ export const UserDetailPage: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm font-medium text-gray-500">Account Age</div>
-                          <div className="mt-1 text-sm text-gray-900">{metrics.account_age_days} days</div>
+                          <div className="mt-1 text-sm text-gray-900">
+                            {metrics.account_age_days} days
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="text-sm font-medium text-gray-500">Last Login</div>
@@ -437,23 +453,33 @@ export const UserDetailPage: React.FC = () => {
 
                     {user.role === 'OWNER' && metrics.total_vehicles > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Vehicle Status Breakdown</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Vehicle Status Breakdown
+                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-gray-500">Draft</div>
-                            <div className="mt-1 text-2xl font-bold text-gray-900">{metrics.draft_vehicles}</div>
+                            <div className="mt-1 text-2xl font-bold text-gray-900">
+                              {metrics.draft_vehicles}
+                            </div>
                           </div>
                           <div className="bg-green-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-green-700">Published</div>
-                            <div className="mt-1 text-2xl font-bold text-green-900">{metrics.published_vehicles}</div>
+                            <div className="mt-1 text-2xl font-bold text-green-900">
+                              {metrics.published_vehicles}
+                            </div>
                           </div>
                           <div className="bg-yellow-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-yellow-700">Archived</div>
-                            <div className="mt-1 text-2xl font-bold text-yellow-900">{metrics.archived_vehicles}</div>
+                            <div className="mt-1 text-2xl font-bold text-yellow-900">
+                              {metrics.archived_vehicles}
+                            </div>
                           </div>
                           <div className="bg-blue-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-blue-700">Total</div>
-                            <div className="mt-1 text-2xl font-bold text-blue-900">{metrics.total_vehicles}</div>
+                            <div className="mt-1 text-2xl font-bold text-blue-900">
+                              {metrics.total_vehicles}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -461,27 +487,39 @@ export const UserDetailPage: React.FC = () => {
 
                     {metrics.total_reservations > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Reservation Status Breakdown</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Reservation Status Breakdown
+                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                           <div className="bg-yellow-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-yellow-700">Pending</div>
-                            <div className="mt-1 text-2xl font-bold text-yellow-900">{metrics.pending_reservations}</div>
+                            <div className="mt-1 text-2xl font-bold text-yellow-900">
+                              {metrics.pending_reservations}
+                            </div>
                           </div>
                           <div className="bg-blue-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-blue-700">Confirmed</div>
-                            <div className="mt-1 text-2xl font-bold text-blue-900">{metrics.confirmed_reservations}</div>
+                            <div className="mt-1 text-2xl font-bold text-blue-900">
+                              {metrics.confirmed_reservations}
+                            </div>
                           </div>
                           <div className="bg-green-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-green-700">Completed</div>
-                            <div className="mt-1 text-2xl font-bold text-green-900">{metrics.completed_reservations}</div>
+                            <div className="mt-1 text-2xl font-bold text-green-900">
+                              {metrics.completed_reservations}
+                            </div>
                           </div>
                           <div className="bg-red-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-red-700">Cancelled</div>
-                            <div className="mt-1 text-2xl font-bold text-red-900">{metrics.cancelled_reservations}</div>
+                            <div className="mt-1 text-2xl font-bold text-red-900">
+                              {metrics.cancelled_reservations}
+                            </div>
                           </div>
                           <div className="bg-purple-50 p-4 rounded-lg">
                             <div className="text-sm font-medium text-purple-700">Total</div>
-                            <div className="mt-1 text-2xl font-bold text-purple-900">{metrics.total_reservations}</div>
+                            <div className="mt-1 text-2xl font-bold text-purple-900">
+                              {metrics.total_reservations}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -509,8 +547,7 @@ export const UserDetailPage: React.FC = () => {
                 <p className="mt-1 text-sm text-gray-500">
                   {user.role === 'OWNER'
                     ? 'This owner has not created any vehicles yet.'
-                    : 'Only owners can have vehicles.'
-                  }
+                    : 'Only owners can have vehicles.'}
                 </p>
               </div>
             </Tab.Panel>
@@ -530,11 +567,7 @@ export const UserDetailPage: React.FC = () => {
       </div>
 
       {/* Edit Modal */}
-      <UserEditModal
-        isOpen={showEditModal}
-        onClose={handleEditModalClose}
-        user={user || null}
-      />
+      <UserEditModal isOpen={showEditModal} onClose={handleEditModalClose} user={user || null} />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

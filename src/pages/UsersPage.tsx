@@ -55,14 +55,17 @@ export const UsersPage: React.FC = () => {
     (searchParams.get('type')?.toUpperCase() as 'OWNER' | 'RIDER') || undefined
   );
   const [activeFilter, setActiveFilter] = useState<boolean | undefined>(
-    searchParams.get('active') === 'true' ? true : searchParams.get('active') === 'false' ? false : undefined
+    searchParams.get('active') === 'true'
+      ? true
+      : searchParams.get('active') === 'false'
+        ? false
+        : undefined
   );
   const [dateFromFilter, setDateFromFilter] = useState(searchParams.get('date_from') || '');
   const [dateToFilter, setDateToFilter] = useState(searchParams.get('date_to') || '');
   const [inactiveDaysFilter, setInactiveDaysFilter] = useState<number | undefined>(
     searchParams.get('inactive_days') ? parseInt(searchParams.get('inactive_days')!) : undefined
   );
-
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -74,11 +77,12 @@ export const UsersPage: React.FC = () => {
 
   // Debounced search to prevent API calls on every keystroke
   const debouncedSearchUpdate = useMemo(
-    () => debounce((...args: unknown[]) => {
-      const searchValue = args[0] as string;
-      setDebouncedSearch(searchValue);
-      setPage(1); // Reset to first page when search changes
-    }, 500),
+    () =>
+      debounce((...args: unknown[]) => {
+        const searchValue = args[0] as string;
+        setDebouncedSearch(searchValue);
+        setPage(1); // Reset to first page when search changes
+      }, 500),
     []
   );
 
@@ -101,10 +105,28 @@ export const UsersPage: React.FC = () => {
     if (inactiveDaysFilter) params.set('inactive_days', inactiveDaysFilter.toString());
 
     setSearchParams(params, { replace: true });
-  }, [debouncedSearch, page, userTypeFilter, activeFilter, dateFromFilter, dateToFilter, inactiveDaysFilter, setSearchParams]);
+  }, [
+    debouncedSearch,
+    page,
+    userTypeFilter,
+    activeFilter,
+    dateFromFilter,
+    dateToFilter,
+    inactiveDaysFilter,
+    setSearchParams,
+  ]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['admin-users', page, debouncedSearch, userTypeFilter, activeFilter, dateFromFilter, dateToFilter, inactiveDaysFilter],
+    queryKey: [
+      'admin-users',
+      page,
+      debouncedSearch,
+      userTypeFilter,
+      activeFilter,
+      dateFromFilter,
+      dateToFilter,
+      inactiveDaysFilter,
+    ],
     queryFn: async () => {
       const result = await adminService.getAdminUsers({
         skip: (page - 1) * 20,
@@ -116,9 +138,6 @@ export const UsersPage: React.FC = () => {
         registration_date_to: dateToFilter || undefined,
         inactive_days: inactiveDaysFilter,
       });
-      console.log('API Response:', result);
-      console.log('Response type:', typeof result);
-      console.log('Response keys:', Object.keys(result || {}));
       return result;
     },
   });
@@ -136,7 +155,6 @@ export const UsersPage: React.FC = () => {
     },
     onError: (error: Error) => {
       toast.error('Delete failed', error.message || 'Failed to delete user. Please try again.');
-      console.error('Failed to delete user:', error);
     },
   });
 
@@ -164,7 +182,7 @@ export const UsersPage: React.FC = () => {
         total: data.count || data.data.length,
         page: page,
         size: 20,
-        pages: Math.ceil((data.count || data.data.length) / 20)
+        pages: Math.ceil((data.count || data.data.length) / 20),
       };
     }
 
@@ -175,7 +193,7 @@ export const UsersPage: React.FC = () => {
         total: data.length,
         page: page,
         size: 20,
-        pages: Math.ceil(data.length / 20)
+        pages: Math.ceil(data.length / 20),
       };
     }
 
@@ -242,7 +260,13 @@ export const UsersPage: React.FC = () => {
     setPage(1);
   };
 
-  const hasActiveFilters = debouncedSearch || userTypeFilter || activeFilter !== undefined || dateFromFilter || dateToFilter || inactiveDaysFilter;
+  const hasActiveFilters =
+    debouncedSearch ||
+    userTypeFilter ||
+    activeFilter !== undefined ||
+    dateFromFilter ||
+    dateToFilter ||
+    inactiveDaysFilter;
 
   if (isLoading && page === 1) {
     return (
@@ -314,7 +338,9 @@ export const UsersPage: React.FC = () => {
             >
               <FunnelIcon className="w-4 h-4" />
               <span>Filters</span>
-              <ChevronDownIcon className={clsx('w-4 h-4 transition-transform', showFilters && 'rotate-180')} />
+              <ChevronDownIcon
+                className={clsx('w-4 h-4 transition-transform', showFilters && 'rotate-180')}
+              />
             </Button>
           </div>
         </div>
@@ -344,7 +370,9 @@ export const UsersPage: React.FC = () => {
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                 value={userTypeFilter || ''}
-                onChange={(e) => setUserTypeFilter(e.target.value as 'OWNER' | 'RIDER' || undefined)}
+                onChange={(e) =>
+                  setUserTypeFilter((e.target.value as 'OWNER' | 'RIDER') || undefined)
+                }
               >
                 <option value="">All Types</option>
                 <option value="OWNER">Owners</option>
@@ -358,7 +386,9 @@ export const UsersPage: React.FC = () => {
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                 value={activeFilter === undefined ? '' : activeFilter.toString()}
-                onChange={(e) => setActiveFilter(e.target.value === '' ? undefined : e.target.value === 'true')}
+                onChange={(e) =>
+                  setActiveFilter(e.target.value === '' ? undefined : e.target.value === 'true')
+                }
               >
                 <option value="">All Statuses</option>
                 <option value="true">Active</option>
@@ -368,7 +398,9 @@ export const UsersPage: React.FC = () => {
 
             {/* Registration Date From */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Registration From</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Registration From
+              </label>
               <input
                 type="date"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
@@ -379,7 +411,9 @@ export const UsersPage: React.FC = () => {
 
             {/* Registration Date To */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Registration To</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Registration To
+              </label>
               <input
                 type="date"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
@@ -390,11 +424,15 @@ export const UsersPage: React.FC = () => {
 
             {/* Inactive Days Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Inactive For (days)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Inactive For (days)
+              </label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                 value={inactiveDaysFilter || ''}
-                onChange={(e) => setInactiveDaysFilter(e.target.value ? parseInt(e.target.value) : undefined)}
+                onChange={(e) =>
+                  setInactiveDaysFilter(e.target.value ? parseInt(e.target.value) : undefined)
+                }
               >
                 <option value="">Any Activity</option>
                 <option value="7">Inactive &gt; 7 days</option>
@@ -418,11 +456,17 @@ export const UsersPage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span>Owners: {normalizedData?.items?.filter(u => u.user_type === 'OWNER').length || 0}</span>
+                <span>
+                  Owners:{' '}
+                  {normalizedData?.items?.filter((u) => u.user_type === 'OWNER').length || 0}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span>Riders: {normalizedData?.items?.filter(u => u.user_type === 'RIDER').length || 0}</span>
+                <span>
+                  Riders:{' '}
+                  {normalizedData?.items?.filter((u) => u.user_type === 'RIDER').length || 0}
+                </span>
               </div>
             </div>
           </div>
@@ -459,141 +503,142 @@ export const UsersPage: React.FC = () => {
               {normalizedData?.items?.map((user: AdminUser) => {
                 const avatarUrl = getAvatarUrl(user.avatar);
                 return (
-                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                  {/* User Column - Avatar, Name, Email */}
-                  <td className="px-4 py-4">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        {avatarUrl ? (
-                          <img
-                            className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
-                            src={avatarUrl}
-                            alt={user.full_name || user.email}
+                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    {/* User Column - Avatar, Name, Email */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          {avatarUrl ? (
+                            <img
+                              className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+                              src={avatarUrl}
+                              alt={user.full_name || user.email}
+                              onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const fallback = target.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className={`h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all ${avatarUrl ? 'hidden' : 'flex'}`}
+                            style={{ display: avatarUrl ? 'none' : 'flex' }}
                             onClick={() => navigate(`/dashboard/users/${user.id}`)}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const fallback = target.nextElementSibling as HTMLElement;
-                              if (fallback) fallback.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <div
-                          className={`h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all ${avatarUrl ? 'hidden' : 'flex'}`}
-                          style={{ display: avatarUrl ? 'none' : 'flex' }}
-                          onClick={() => navigate(`/dashboard/users/${user.id}`)}
-                        >
-                          <span className="text-white font-semibold text-sm">
-                            {(user.full_name?.[0] || user.email[0]).toUpperCase()}
+                          >
+                            <span className="text-white font-semibold text-sm">
+                              {(user.full_name?.[0] || user.email[0]).toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="ml-3 min-w-0 flex-1">
+                          <div
+                            className="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary-600 transition-colors truncate"
+                            onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                          >
+                            {user.full_name || user.email.split('@')[0]}
+                          </div>
+                          <div
+                            className="text-xs text-gray-500 cursor-pointer hover:text-primary-500 transition-colors truncate"
+                            onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                          >
+                            {user.email}
+                          </div>
+                          {user.phone && (
+                            <div className="text-xs text-gray-400 flex items-center mt-0.5">
+                              <PhoneIcon className="w-3 h-3 mr-1" />
+                              {user.phone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Role & Status Column - Type, Active Status, Admin Badge */}
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col space-y-1.5">
+                        {user.user_type && getUserTypeBadge(user.user_type)}
+                        {getStatusBadge(user.is_active)}
+                        {user.is_superuser && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 w-fit">
+                            <ShieldCheckIcon className="w-3 h-3 mr-1" />
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Activity Column - Registration, Last Login, Bookings */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center text-xs text-gray-600">
+                          <CalendarIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                          <span className="text-gray-500">Joined:</span>
+                          <span className="ml-1 font-medium">
+                            {user.registration_date ? formatDate(user.registration_date) : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-xs text-gray-600">
+                          <ArrowRightOnRectangleIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                          <span className="text-gray-500">Last:</span>
+                          <span className="ml-1 font-medium">
+                            {formatDateTime(user.last_login)}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-xs text-gray-600">
+                          <ClipboardDocumentListIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                          <span className="text-gray-500">Logins:</span>
+                          <span className="ml-1 font-semibold text-primary-600">
+                            {user.login_count || 0}
                           </span>
                         </div>
                       </div>
-                      <div className="ml-3 min-w-0 flex-1">
-                        <div
-                          className="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary-600 transition-colors truncate"
+                    </td>
+
+                    {/* Actions Column - View, Edit, Delete */}
+                    <td className="px-4 py-4 text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
                           onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                          className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          title="View details"
                         >
-                          {user.full_name || user.email.split('@')[0]}
-                        </div>
-                        <div
-                          className="text-xs text-gray-500 cursor-pointer hover:text-primary-500 transition-colors truncate"
-                          onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                          <UserIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowEditModal(true);
+                          }}
+                          className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="Edit user"
                         >
-                          {user.email}
-                        </div>
-                        {user.phone && (
-                          <div className="text-xs text-gray-400 flex items-center mt-0.5">
-                            <PhoneIcon className="w-3 h-3 mr-1" />
-                            {user.phone}
-                          </div>
-                        )}
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setUserToDelete(user);
+                            setShowDeleteDialog(true);
+                          }}
+                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete user"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
                       </div>
-                    </div>
-                  </td>
-
-                  {/* Role & Status Column - Type, Active Status, Admin Badge */}
-                  <td className="px-4 py-4">
-                    <div className="flex flex-col space-y-1.5">
-                      {user.user_type && getUserTypeBadge(user.user_type)}
-                      {getStatusBadge(user.is_active)}
-                      {user.is_superuser && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 w-fit">
-                          <ShieldCheckIcon className="w-3 h-3 mr-1" />
-                          Admin
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Activity Column - Registration, Last Login, Bookings */}
-                  <td className="px-4 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center text-xs text-gray-600">
-                        <CalendarIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
-                        <span className="text-gray-500">Joined:</span>
-                        <span className="ml-1 font-medium">
-                          {user.registration_date ? formatDate(user.registration_date) : 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-xs text-gray-600">
-                        <ArrowRightOnRectangleIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
-                        <span className="text-gray-500">Last:</span>
-                        <span className="ml-1 font-medium">
-                          {formatDateTime(user.last_login)}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-xs text-gray-600">
-                        <ClipboardDocumentListIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
-                        <span className="text-gray-500">Logins:</span>
-                        <span className="ml-1 font-semibold text-primary-600">
-                          {user.login_count || 0}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Actions Column - View, Edit, Delete */}
-                  <td className="px-4 py-4 text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button
-                        onClick={() => navigate(`/dashboard/users/${user.id}`)}
-                        className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                        title="View details"
-                      >
-                        <UserIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowEditModal(true);
-                        }}
-                        className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-lg transition-colors"
-                        title="Edit user"
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setUserToDelete(user);
-                          setShowDeleteDialog(true);
-                        }}
-                        className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete user"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
+                    </td>
+                  </tr>
+                );
               })}
             </tbody>
           </table>
         </div>
 
         {/* Empty state */}
-        {(!normalizedData?.items || normalizedData.items.length === 0) && !isLoading && (
-          hasActiveFilters ? (
+        {(!normalizedData?.items || normalizedData.items.length === 0) &&
+          !isLoading &&
+          (hasActiveFilters ? (
             <EmptySearchResults
               onReset={() => {
                 setSearch('');
@@ -617,18 +662,13 @@ export const UsersPage: React.FC = () => {
                 </Button>
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {/* Pagination */}
         {normalizedData && normalizedData.pages > 1 && (
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
-              <Button
-                variant="secondary"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
+              <Button variant="secondary" disabled={page === 1} onClick={() => setPage(page - 1)}>
                 Previous
               </Button>
               <Button
@@ -644,11 +684,15 @@ export const UsersPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-700">
                   Showing page <span className="font-medium">{page}</span> of{' '}
-                  <span className="font-medium">{normalizedData.pages}</span> ({normalizedData.total} total users)
+                  <span className="font-medium">{normalizedData.pages}</span> (
+                  {normalizedData.total} total users)
                 </p>
               </div>
               <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <nav
+                  className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  aria-label="Pagination"
+                >
                   <Button
                     variant="secondary"
                     size="sm"
@@ -674,10 +718,7 @@ export const UsersPage: React.FC = () => {
 
       {/* Modals */}
       {showCreateModal && (
-        <UserCreateModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-        />
+        <UserCreateModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
       )}
 
       {showEditModal && selectedUser && (

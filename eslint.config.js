@@ -19,5 +19,16 @@ export default tseslint.config([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Prevent console statements in production code
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+    },
+  },
+  // Allow console in test files
+  {
+    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', '**/test-utils.tsx'],
+    rules: {
+      'no-console': 'off',
+    },
   },
 ])
