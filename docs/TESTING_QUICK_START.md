@@ -380,6 +380,6 @@ await waitFor(() => {
 ---
 
 **Quick Links:**
-- [Full Testing Plan](../TESTING_PLAN.md)
+- [Full Testing Plan](./TESTING_PLAN.md)
 - [CI/CD Setup](./CI_CD_SETUP.md)
-- [Testing Decision Tree](../TESTING_DECISION_TREE.md)
+- [Testing Decision Tree](./TESTING_DECISION_TREE.md)
