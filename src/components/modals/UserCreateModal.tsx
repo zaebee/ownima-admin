@@ -23,10 +23,7 @@ interface UserCreateModalProps {
   onClose: () => void;
 }
 
-export const UserCreateModal: React.FC<UserCreateModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const UserCreateModal: React.FC<UserCreateModalProps> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CreateUserData>({
     email: '',
@@ -46,9 +43,9 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
       resetForm();
       onClose();
     },
-    onError: (error: unknown) => {
-      console.error('Failed to create user:', error);
-      // Handle validation errors if needed
+    onError: () => {
+      // Error is handled by the form validation
+      // Additional error handling can be added here if needed
     },
   });
 
@@ -67,19 +64,19 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
     // Clear error when user starts typing
     if (errors[name as keyof CreateUserData]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<CreateUserData> = {};
-    
+
     if (!formData.email?.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -115,12 +112,7 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Create New User"
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} title="Create New User" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Header */}
         <div className="flex items-center space-x-3 pb-4 border-b border-gray-100">
@@ -160,16 +152,14 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
             value={formData.email || ''}
             onChange={handleInputChange}
             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${
-              errors.email 
-                ? 'border-red-300 focus:border-red-500' 
+              errors.email
+                ? 'border-red-300 focus:border-red-500'
                 : 'border-gray-300 focus:border-primary-500'
             }`}
             placeholder="Enter email address"
             required
           />
-          {errors.email && (
-            <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-          )}
+          {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
         </div>
 
         <div>
@@ -184,8 +174,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
               value={formData.password || ''}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors pr-10 ${
-                errors.password 
-                  ? 'border-red-300 focus:border-red-500' 
+                errors.password
+                  ? 'border-red-300 focus:border-red-500'
                   : 'border-gray-300 focus:border-primary-500'
               }`}
               placeholder="Enter password"
@@ -199,12 +189,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
-          {errors.password && (
-            <p className="text-red-600 text-sm mt-1">{errors.password}</p>
-          )}
-          <p className="text-xs text-gray-500 mt-1">
-            Password must be at least 6 characters long
-          </p>
+          {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
+          <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
         </div>
 
         {/* Status toggles */}
@@ -213,12 +199,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
             <div className="flex items-center">
               <CheckCircleIcon className="w-5 h-5 mr-3 text-gray-400" />
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Active Status
-                </label>
-                <p className="text-xs text-gray-500">
-                  User can log in and access the platform
-                </p>
+                <label className="text-sm font-medium text-gray-700">Active Status</label>
+                <p className="text-xs text-gray-500">User can log in and access the platform</p>
               </div>
             </div>
             <div className="relative">
@@ -233,7 +215,7 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
                 className={`block w-12 h-6 rounded-full cursor-pointer transition-colors ${
                   formData.is_active ? 'bg-primary-600' : 'bg-gray-300'
                 }`}
-                onClick={() => setFormData(prev => ({ ...prev, is_active: !prev.is_active }))}
+                onClick={() => setFormData((prev) => ({ ...prev, is_active: !prev.is_active }))}
               >
                 <span
                   className={`block w-4 h-4 bg-white rounded-full shadow transform transition-transform mt-1 ${
@@ -248,12 +230,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
             <div className="flex items-center">
               <ShieldCheckIcon className="w-5 h-5 mr-3 text-gray-400" />
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Administrator
-                </label>
-                <p className="text-xs text-gray-500">
-                  User has full access to admin functions
-                </p>
+                <label className="text-sm font-medium text-gray-700">Administrator</label>
+                <p className="text-xs text-gray-500">User has full access to admin functions</p>
               </div>
             </div>
             <div className="relative">
@@ -268,7 +246,9 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({
                 className={`block w-12 h-6 rounded-full cursor-pointer transition-colors ${
                   formData.is_superuser ? 'bg-purple-600' : 'bg-gray-300'
                 }`}
-                onClick={() => setFormData(prev => ({ ...prev, is_superuser: !prev.is_superuser }))}
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, is_superuser: !prev.is_superuser }))
+                }
               >
                 <span
                   className={`block w-4 h-4 bg-white rounded-full shadow transform transition-transform mt-1 ${

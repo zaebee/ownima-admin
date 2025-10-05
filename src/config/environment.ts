@@ -10,23 +10,23 @@ const environmentConfigs: Record<Environment, EnvironmentConfig> = {
   development: {
     name: 'development',
     apiBaseUrl: 'http://localhost:8000/api/v1',
-    displayName: 'Local Development'
+    displayName: 'Local Development',
   },
   staging: {
     name: 'staging',
     apiBaseUrl: 'https://stage.ownima.com/api/v1',
-    displayName: 'Staging'
+    displayName: 'Staging',
   },
   beta: {
     name: 'beta',
     apiBaseUrl: 'https://beta.ownima.com/api/v1',
-    displayName: 'Beta'
+    displayName: 'Beta',
   },
   production: {
     name: 'production',
     apiBaseUrl: 'https://api.ownima.com/api/v1',
-    displayName: 'Production'
-  }
+    displayName: 'Production',
+  },
 };
 
 function detectEnvironment(): Environment {
@@ -58,13 +58,11 @@ function detectEnvironment(): Environment {
 
 export function getCurrentEnvironment(): Environment {
   const override = import.meta.env.VITE_ENVIRONMENT as Environment;
-  console.log('[getCurrentEnvironment] override:', override, 'has window:', typeof window !== 'undefined', 'hostname:', typeof window !== 'undefined' ? window.location?.hostname : 'N/A');
   if (override && environmentConfigs[override]) {
     return override;
   }
 
   const detected = detectEnvironment();
-  console.log('[getCurrentEnvironment] detected:', detected);
   return detected;
 }
 
@@ -79,10 +77,6 @@ export function getApiBaseUrl(env?: Environment): string {
     return 'http://localhost:8000/api/v1';
   }
   const config = getEnvironmentConfig(env);
-  // Debug: log what we're returning
-  if (process.env.NODE_ENV === 'test' || import.meta.env.MODE === 'test') {
-    console.log('[getApiBaseUrl] Returning:', config.apiBaseUrl, 'for env:', env || getCurrentEnvironment());
-  }
   return config.apiBaseUrl;
 }
 
