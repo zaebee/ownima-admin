@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/zaebee/ownima-admin/workflows/CI/badge.svg)](https://github.com/zaebee/ownima-admin/actions)
 [![Coverage Status](https://coveralls.io/repos/github/zaebee/ownima-admin/badge.svg?branch=main)](https://coveralls.io/github/zaebee/ownima-admin?branch=main)
-[![Tests](https://img.shields.io/badge/tests-564%20passing-brightgreen)](https://github.com/zaebee/ownima-admin/actions)
+[![Tests](https://img.shields.io/badge/tests-646%20passing-brightgreen)](https://github.com/zaebee/ownima-admin/actions)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev/)
 

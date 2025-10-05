@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { useAuth } from './hooks/useAuth';
+import { useAuthErrorHandler } from './hooks/useAuthErrorHandler';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
@@ -44,6 +45,9 @@ export const PageLoader: React.FC = () => (
 
 export const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
+
+  // Handle authentication errors from API interceptor
+  useAuthErrorHandler();
 
   return (
     <ErrorBoundary

@@ -1,285 +1,289 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock environment before importing apiClient
 vi.mock('../config/environment', () => ({
   getApiBaseUrl: () => 'http://localhost:8000/api/v1',
   getCurrentEnvironment: () => 'development',
-}))
+}));
 
-import { apiClient } from './api'
-import { server } from '../mocks/server'
-import { http, HttpResponse } from 'msw'
+import { apiClient } from './api';
+import { server } from '../mocks/server';
+import { http, HttpResponse } from 'msw';
 
-const API_BASE = 'http://localhost:8000/api/v1'
+const API_BASE = 'http://localhost:8000/api/v1';
 
 describe('ApiClient', () => {
   beforeEach(() => {
-    localStorage.clear()
+    localStorage.clear();
     // Set test base URL for API client
-    apiClient.setTestBaseUrl(API_BASE)
+    apiClient.setTestBaseUrl(API_BASE);
     // Mock window.location
     Object.defineProperty(window, 'location', {
       value: { href: '' },
       writable: true,
       configurable: true,
-    })
-  })
+    });
+  });
 
   describe('Token Injection', () => {
     it('includes auth token in request headers when token exists', async () => {
-      let authHeader: string | null = null
+      let authHeader: string | null = null;
 
-      localStorage.setItem('auth_token', 'test-token-123')
+      localStorage.setItem('auth_token', 'test-token-123');
 
       server.use(
         http.get(`${API_BASE}/test`, ({ request }) => {
-          authHeader = request.headers.get('authorization')
-          return HttpResponse.json({ success: true })
+          authHeader = request.headers.get('authorization');
+          return HttpResponse.json({ success: true });
         })
-      )
+      );
 
-      await apiClient.get('/test')
+      await apiClient.get('/test');
 
-      expect(authHeader).toBe('Bearer test-token-123')
-    })
+      expect(authHeader).toBe('Bearer test-token-123');
+    });
 
     it('does not include auth header when no token exists', async () => {
-      let authHeader: string | null = null
+      let authHeader: string | null = null;
 
       server.use(
         http.get(`${API_BASE}/test`, ({ request }) => {
-          authHeader = request.headers.get('authorization')
-          return HttpResponse.json({ success: true })
+          authHeader = request.headers.get('authorization');
+          return HttpResponse.json({ success: true });
         })
-      )
+      );
 
-      await apiClient.get('/test')
+      await apiClient.get('/test');
 
-      expect(authHeader).toBeNull()
-    })
+      expect(authHeader).toBeNull();
+    });
 
     it('updates auth header when token changes', async () => {
-      const authHeaders: (string | null)[] = []
+      const authHeaders: (string | null)[] = [];
 
       server.use(
         http.get(`${API_BASE}/test`, ({ request }) => {
-          authHeaders.push(request.headers.get('authorization'))
-          return HttpResponse.json({ success: true })
+          authHeaders.push(request.headers.get('authorization'));
+          return HttpResponse.json({ success: true });
         })
-      )
+      );
 
       // First request with token
-      localStorage.setItem('auth_token', 'token-1')
-      await apiClient.get('/test')
+      localStorage.setItem('auth_token', 'token-1');
+      await apiClient.get('/test');
 
       // Second request with different token
-      localStorage.setItem('auth_token', 'token-2')
-      await apiClient.get('/test')
+      localStorage.setItem('auth_token', 'token-2');
+      await apiClient.get('/test');
 
-      expect(authHeaders[0]).toBe('Bearer token-1')
-      expect(authHeaders[1]).toBe('Bearer token-2')
-    })
-  })
+      expect(authHeaders[0]).toBe('Bearer token-1');
+      expect(authHeaders[1]).toBe('Bearer token-2');
+    });
+  });
 
   describe('401 Handling', () => {
     it('removes token and redirects to login on 401 response', async () => {
-      localStorage.setItem('auth_token', 'invalid-token')
+      vi.useFakeTimers();
+      localStorage.setItem('auth_token', 'invalid-token');
+
+      const eventSpy = vi.fn();
+      window.addEventListener('auth:unauthorized', eventSpy);
 
       server.use(
         http.get(`${API_BASE}/test`, () => {
-          return HttpResponse.json(
-            { detail: 'Unauthorized' },
-            { status: 401 }
-          )
+          return HttpResponse.json({ detail: 'Unauthorized' }, { status: 401 });
         })
-      )
+      );
 
-      await expect(apiClient.get('/test')).rejects.toThrow()
+      await expect(apiClient.get('/test')).rejects.toThrow();
 
-      expect(localStorage.getItem('auth_token')).toBeNull()
-      expect(window.location.href).toBe('/login')
-    })
+      expect(localStorage.getItem('auth_token')).toBeNull();
+      expect(eventSpy).toHaveBeenCalledTimes(1);
+
+      // Fast-forward time to trigger redirect
+      vi.advanceTimersByTime(1500);
+
+      expect(window.location.href).toBe('/login');
+
+      window.removeEventListener('auth:unauthorized', eventSpy);
+      vi.useRealTimers();
+    });
 
     it('does not redirect on other error codes', async () => {
-      localStorage.setItem('auth_token', 'valid-token')
+      localStorage.setItem('auth_token', 'valid-token');
 
       server.use(
         http.get(`${API_BASE}/test`, () => {
-          return HttpResponse.json(
-            { detail: 'Server error' },
-            { status: 500 }
-          )
+          return HttpResponse.json({ detail: 'Server error' }, { status: 500 });
         })
-      )
+      );
 
-      await expect(apiClient.get('/test')).rejects.toThrow()
+      await expect(apiClient.get('/test')).rejects.toThrow();
 
-      expect(localStorage.getItem('auth_token')).toBe('valid-token')
-      expect(window.location.href).toBe('')
-    })
-  })
+      expect(localStorage.getItem('auth_token')).toBe('valid-token');
+      expect(window.location.href).toBe('');
+    });
+  });
 
   describe('HTTP Methods', () => {
     it('performs GET requests', async () => {
       server.use(
         http.get(`${API_BASE}/test`, () => {
-          return HttpResponse.json({ data: 'test' })
+          return HttpResponse.json({ data: 'test' });
         })
-      )
+      );
 
-      const result = await apiClient.get<{ data: string }>('/test')
+      const result = await apiClient.get<{ data: string }>('/test');
 
-      expect(result).toEqual({ data: 'test' })
-    })
+      expect(result).toEqual({ data: 'test' });
+    });
 
     it('performs POST requests', async () => {
-      let requestBody: { name?: string } = {}
+      let requestBody: { name?: string } = {};
 
       server.use(
         http.post(`${API_BASE}/test`, async ({ request }) => {
-          requestBody = await request.json() as { name?: string }
-          return HttpResponse.json({ id: '1', ...requestBody })
+          requestBody = (await request.json()) as { name?: string };
+          return HttpResponse.json({ id: '1', ...requestBody });
         })
-      )
+      );
 
-      const result = await apiClient.post<{ id: string; name: string }>('/test', { name: 'Test' })
+      const result = await apiClient.post<{ id: string; name: string }>('/test', { name: 'Test' });
 
-      expect(result).toEqual({ id: '1', name: 'Test' })
-      expect(requestBody.name).toBe('Test')
-    })
+      expect(result).toEqual({ id: '1', name: 'Test' });
+      expect(requestBody.name).toBe('Test');
+    });
 
     it('performs PUT requests', async () => {
-      let requestBody: { name?: string } = {}
+      let requestBody: { name?: string } = {};
 
       server.use(
         http.put(`${API_BASE}/test/1`, async ({ request }) => {
-          requestBody = await request.json() as { name?: string }
-          return HttpResponse.json({ id: '1', ...requestBody })
+          requestBody = (await request.json()) as { name?: string };
+          return HttpResponse.json({ id: '1', ...requestBody });
         })
-      )
+      );
 
-      const result = await apiClient.put<{ id: string; name: string }>('/test/1', { name: 'Updated' })
+      const result = await apiClient.put<{ id: string; name: string }>('/test/1', {
+        name: 'Updated',
+      });
 
-      expect(result).toEqual({ id: '1', name: 'Updated' })
-      expect(requestBody.name).toBe('Updated')
-    })
+      expect(result).toEqual({ id: '1', name: 'Updated' });
+      expect(requestBody.name).toBe('Updated');
+    });
 
     it('performs PATCH requests', async () => {
-      let requestBody: { name?: string } = {}
+      let requestBody: { name?: string } = {};
 
       server.use(
         http.patch(`${API_BASE}/test/1`, async ({ request }) => {
-          requestBody = await request.json() as { name?: string }
-          return HttpResponse.json({ id: '1', ...requestBody })
+          requestBody = (await request.json()) as { name?: string };
+          return HttpResponse.json({ id: '1', ...requestBody });
         })
-      )
+      );
 
-      const result = await apiClient.patch<{ id: string; name: string }>('/test/1', { name: 'Patched' })
+      const result = await apiClient.patch<{ id: string; name: string }>('/test/1', {
+        name: 'Patched',
+      });
 
-      expect(result).toEqual({ id: '1', name: 'Patched' })
-      expect(requestBody.name).toBe('Patched')
-    })
+      expect(result).toEqual({ id: '1', name: 'Patched' });
+      expect(requestBody.name).toBe('Patched');
+    });
 
     it('performs DELETE requests', async () => {
       server.use(
         http.delete(`${API_BASE}/test/1`, () => {
-          return HttpResponse.json({ message: 'Deleted' })
+          return HttpResponse.json({ message: 'Deleted' });
         })
-      )
+      );
 
-      const result = await apiClient.delete<{ message: string }>('/test/1')
+      const result = await apiClient.delete<{ message: string }>('/test/1');
 
-      expect(result).toEqual({ message: 'Deleted' })
-    })
-  })
+      expect(result).toEqual({ message: 'Deleted' });
+    });
+  });
 
   describe('Query Parameters', () => {
     it('includes query parameters in GET requests', async () => {
-      let searchParams: URLSearchParams | null = null
+      let searchParams: URLSearchParams | null = null;
 
       server.use(
         http.get(`${API_BASE}/test`, ({ request }) => {
-          searchParams = new URL(request.url).searchParams
-          return HttpResponse.json({ success: true })
+          searchParams = new URL(request.url).searchParams;
+          return HttpResponse.json({ success: true });
         })
-      )
+      );
 
-      await apiClient.get('/test', { page: 1, limit: 10, search: 'test' })
+      await apiClient.get('/test', { page: 1, limit: 10, search: 'test' });
 
-      expect(searchParams?.get('page')).toBe('1')
-      expect(searchParams?.get('limit')).toBe('10')
-      expect(searchParams?.get('search')).toBe('test')
-    })
+      expect(searchParams?.get('page')).toBe('1');
+      expect(searchParams?.get('limit')).toBe('10');
+      expect(searchParams?.get('search')).toBe('test');
+    });
 
     it('handles undefined query parameters', async () => {
-      let searchParams: URLSearchParams | null = null
+      let searchParams: URLSearchParams | null = null;
 
       server.use(
         http.get(`${API_BASE}/test`, ({ request }) => {
-          searchParams = new URL(request.url).searchParams
-          return HttpResponse.json({ success: true })
+          searchParams = new URL(request.url).searchParams;
+          return HttpResponse.json({ success: true });
         })
-      )
+      );
 
-      await apiClient.get('/test', { page: 1, search: undefined })
+      await apiClient.get('/test', { page: 1, search: undefined });
 
-      expect(searchParams?.get('page')).toBe('1')
-      expect(searchParams?.has('search')).toBe(false)
-    })
-  })
+      expect(searchParams?.get('page')).toBe('1');
+      expect(searchParams?.has('search')).toBe(false);
+    });
+  });
 
   describe('Content-Type Header', () => {
     it('sets JSON content-type by default', async () => {
-      let contentType: string | null = null
+      let contentType: string | null = null;
 
       server.use(
         http.post(`${API_BASE}/test`, ({ request }) => {
-          contentType = request.headers.get('content-type')
-          return HttpResponse.json({ success: true })
+          contentType = request.headers.get('content-type');
+          return HttpResponse.json({ success: true });
         })
-      )
+      );
 
-      await apiClient.post('/test', { data: 'test' })
+      await apiClient.post('/test', { data: 'test' });
 
-      expect(contentType).toBe('application/json')
-    })
-  })
+      expect(contentType).toBe('application/json');
+    });
+  });
 
   describe('Error Handling', () => {
     it('throws error on network failure', async () => {
       server.use(
         http.get(`${API_BASE}/test`, () => {
-          return HttpResponse.error()
+          return HttpResponse.error();
         })
-      )
+      );
 
-      await expect(apiClient.get('/test')).rejects.toThrow()
-    })
+      await expect(apiClient.get('/test')).rejects.toThrow();
+    });
 
     it('throws error on 4xx responses', async () => {
       server.use(
         http.get(`${API_BASE}/test`, () => {
-          return HttpResponse.json(
-            { detail: 'Bad request' },
-            { status: 400 }
-          )
+          return HttpResponse.json({ detail: 'Bad request' }, { status: 400 });
         })
-      )
+      );
 
-      await expect(apiClient.get('/test')).rejects.toThrow()
-    })
+      await expect(apiClient.get('/test')).rejects.toThrow();
+    });
 
     it('throws error on 5xx responses', async () => {
       server.use(
         http.get(`${API_BASE}/test`, () => {
-          return HttpResponse.json(
-            { detail: 'Internal server error' },
-            { status: 500 }
-          )
+          return HttpResponse.json({ detail: 'Internal server error' }, { status: 500 });
         })
-      )
+      );
 
-      await expect(apiClient.get('/test')).rejects.toThrow()
-    })
-  })
-})
+      await expect(apiClient.get('/test')).rejects.toThrow();
+    });
+  });
+});
