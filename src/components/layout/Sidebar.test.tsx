@@ -315,7 +315,7 @@ describe('Sidebar', () => {
       // The component will throw during initialization, but should recover
       try {
         renderSidebar()
-      } catch (e) {
+      } catch {
         // Expected to throw due to invalid JSON
       }
       
