@@ -271,7 +271,7 @@ describe('Layout', () => {
       // Should handle gracefully
       try {
         renderLayout()
-      } catch (e) {
+      } catch {
         // Expected to throw due to invalid JSON
       }
       
