@@ -4,6 +4,9 @@ import viteConfig from './vite.config'
 export default mergeConfig(
   viteConfig,
   defineConfig({
+    define: {
+      'import.meta.env.VITE_ENVIRONMENT': JSON.stringify('development'),
+    },
     test: {
       globals: true,
       environment: 'jsdom',

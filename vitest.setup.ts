@@ -3,6 +3,16 @@ import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { server } from './src/mocks/server'
 
+// Mock environment config to always return development
+vi.mock('./src/config/environment', async () => {
+  const actual = await vi.importActual('./src/config/environment')
+  return {
+    ...actual,
+    getApiBaseUrl: () => 'http://localhost:8000/api/v1',
+    getCurrentEnvironment: () => 'development',
+  }
+})
+
 // Start MSW server
 beforeAll(() => {
   server.listen({ 
