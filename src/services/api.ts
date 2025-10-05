@@ -1,38 +1,64 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { getApiBaseUrl } from '../config/environment';
 
+// Use fetch adapter in test environment to avoid XHR issues with MSW
+let axiosAdapter: any = undefined;
+if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+  // In test environment, use fetch adapter
+  axiosAdapter = 'fetch';
+}
+
 class ApiClient {
-  private client: AxiosInstance;
+  private _client: AxiosInstance | null = null;
+  private _testBaseUrl: string | null = null;
 
-  constructor() {
-    this.client = axios.create({
-      baseURL: getApiBaseUrl(),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  // Method to set base URL for tests
+  setTestBaseUrl(url: string): void {
+    this._testBaseUrl = url;
+    this._client = null; // Reset client to use new URL
+  }
 
-    this.client.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+  // Method to reset client (useful for tests)
+  resetClient(): void {
+    this._client = null;
+    this._testBaseUrl = null;
+  }
+
+  private get client(): AxiosInstance {
+    if (!this._client) {
+      // Lazy initialization - only create client when first accessed
+      const baseURL = this._testBaseUrl || getApiBaseUrl();
+      this._client = axios.create({
+        baseURL,
+        adapter: axiosAdapter,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      this._client.interceptors.request.use(
+        (config) => {
+          const token = localStorage.getItem('auth_token');
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+          return config;
+        },
+        (error) => Promise.reject(error)
+      );
+
+      this._client.interceptors.response.use(
+        (response: AxiosResponse) => response,
+        (error) => {
+          if (error.response?.status === 401) {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login';
+          }
+          return Promise.reject(error);
         }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    this.client.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('auth_token');
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
-      }
-    );
+      );
+    }
+    return this._client;
   }
 
   async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {

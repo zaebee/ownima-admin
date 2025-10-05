@@ -4,15 +4,15 @@ import viteConfig from './vite.config'
 export default mergeConfig(
   viteConfig,
   defineConfig({
-    define: {
-      'import.meta.env.VITE_ENVIRONMENT': JSON.stringify('development'),
-    },
     test: {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./vitest.setup.ts'],
       css: true,
       pool: 'forks',
+      env: {
+        VITE_ENVIRONMENT: 'development',
+      },
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html', 'lcov'],

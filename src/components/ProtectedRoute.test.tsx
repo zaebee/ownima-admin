@@ -3,7 +3,7 @@ import { render as rtlRender, screen, waitFor } from '@testing-library/react'
 import { ProtectedRoute } from './ProtectedRoute'
 import { AuthContext } from '../contexts/AuthContext'
 import type { AuthContextType } from '../contexts/AuthContext'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 
 const mockAuthContext = (overrides: Partial<AuthContextType> = {}): AuthContextType => ({
   user: null,
@@ -28,11 +28,11 @@ describe('ProtectedRoute', () => {
 
       rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter>
             <ProtectedRoute>
               <TestComponent />
             </ProtectedRoute>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -44,11 +44,11 @@ describe('ProtectedRoute', () => {
 
       rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter>
             <ProtectedRoute>
               <TestComponent />
             </ProtectedRoute>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -74,11 +74,11 @@ describe('ProtectedRoute', () => {
 
       rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter>
             <ProtectedRoute>
               <TestComponent />
             </ProtectedRoute>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -104,7 +104,7 @@ describe('ProtectedRoute', () => {
 
       rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter>
             <Routes>
               <Route
                 path="/"
@@ -116,7 +116,7 @@ describe('ProtectedRoute', () => {
               />
               <Route path="/login" element={<div>Login Page</div>} />
             </Routes>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -126,7 +126,7 @@ describe('ProtectedRoute', () => {
   })
 
   describe('Unauthenticated Access', () => {
-    it('redirects to login when not authenticated', () => {
+    it('redirects to login when not authenticated', async () => {
       const authValue = mockAuthContext({
         isLoading: false,
         isAuthenticated: false,
@@ -134,7 +134,7 @@ describe('ProtectedRoute', () => {
 
       rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter initialEntries={['/']}>
             <Routes>
               <Route
                 path="/"
@@ -146,12 +146,16 @@ describe('ProtectedRoute', () => {
               />
               <Route path="/login" element={<div>Login Page</div>} />
             </Routes>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
+      // Wait for the redirect to complete
+      await waitFor(() => {
+        expect(screen.getByText('Login Page')).toBeInTheDocument()
+      })
+      
       expect(screen.queryByText('Protected Content')).not.toBeInTheDocument()
-      expect(screen.getByText('Login Page')).toBeInTheDocument()
     })
 
     it('does not render children when not authenticated', () => {
@@ -162,7 +166,7 @@ describe('ProtectedRoute', () => {
 
       rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter>
             <Routes>
               <Route
                 path="/"
@@ -174,7 +178,7 @@ describe('ProtectedRoute', () => {
               />
               <Route path="/login" element={<div>Login Page</div>} />
             </Routes>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -188,11 +192,11 @@ describe('ProtectedRoute', () => {
 
       const { rerender } = rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter>
             <ProtectedRoute>
               <TestComponent />
             </ProtectedRoute>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -212,13 +216,13 @@ describe('ProtectedRoute', () => {
         token: 'valid-token',
       })
 
-      rertlRender(
+      rerender(
         <AuthContext.Provider value={updatedAuthValue}>
-          <BrowserRouter>
+          <MemoryRouter>
             <ProtectedRoute>
               <TestComponent />
             </ProtectedRoute>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -232,7 +236,7 @@ describe('ProtectedRoute', () => {
 
       const { rerender } = rtlRender(
         <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
+          <MemoryRouter initialEntries={['/']}>
             <Routes>
               <Route
                 path="/"
@@ -244,7 +248,7 @@ describe('ProtectedRoute', () => {
               />
               <Route path="/login" element={<div>Login Page</div>} />
             </Routes>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 
@@ -255,9 +259,9 @@ describe('ProtectedRoute', () => {
         isAuthenticated: false,
       })
 
-      rertlRender(
+      rerender(
         <AuthContext.Provider value={updatedAuthValue}>
-          <BrowserRouter>
+          <MemoryRouter initialEntries={['/']}>
             <Routes>
               <Route
                 path="/"
@@ -269,7 +273,7 @@ describe('ProtectedRoute', () => {
               />
               <Route path="/login" element={<div>Login Page</div>} />
             </Routes>
-          </BrowserRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       )
 

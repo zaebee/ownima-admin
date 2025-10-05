@@ -3,14 +3,20 @@ import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { server } from './src/mocks/server'
 
-// Mock environment config to always return development
-vi.mock('./src/config/environment', async () => {
-  const actual = await vi.importActual('./src/config/environment')
-  return {
-    ...actual,
-    getApiBaseUrl: () => 'http://localhost:8000/api/v1',
-    getCurrentEnvironment: () => 'development',
-  }
+// Set up window.location for tests
+Object.defineProperty(window, 'location', {
+  writable: true,
+  value: {
+    hostname: 'localhost',
+    href: 'http://localhost:5173',
+    origin: 'http://localhost:5173',
+    protocol: 'http:',
+    host: 'localhost:5173',
+    port: '5173',
+    pathname: '/',
+    search: '',
+    hash: '',
+  },
 })
 
 // Start MSW server

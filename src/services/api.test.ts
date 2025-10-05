@@ -1,4 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+// Mock environment before importing apiClient
+vi.mock('../config/environment', () => ({
+  getApiBaseUrl: () => 'http://localhost:8000/api/v1',
+  getCurrentEnvironment: () => 'development',
+}))
+
 import { apiClient } from './api'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
@@ -8,6 +15,8 @@ const API_BASE = 'http://localhost:8000/api/v1'
 describe('ApiClient', () => {
   beforeEach(() => {
     localStorage.clear()
+    // Set test base URL for API client
+    apiClient.setTestBaseUrl(API_BASE)
     // Mock window.location
     Object.defineProperty(window, 'location', {
       value: { href: '' },
