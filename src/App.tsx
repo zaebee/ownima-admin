@@ -25,13 +25,13 @@ const queryClient = new QueryClient({
   },
 });
 
-const PageLoader: React.FC = () => (
+export const PageLoader: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
     <LoadingSpinner size="lg" />
   </div>
 );
 
-const AppRoutes: React.FC = () => {
+export const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
