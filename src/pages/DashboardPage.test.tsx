@@ -67,14 +67,16 @@ describe('DashboardPage', () => {
   })
 
   describe('Loading State', () => {
-    it('shows loading spinner while fetching data', () => {
+    it('shows skeleton loaders while fetching data', () => {
       vi.mocked(adminService.getBlockMetrics).mockImplementation(
         () => new Promise(() => {}) // Never resolves
       )
 
-      renderDashboardPage()
+      const { container } = renderDashboardPage()
 
-      expect(screen.getByRole('status')).toBeInTheDocument()
+      // Check for skeleton loaders (animated pulse elements)
+      const skeletons = container.querySelectorAll('.animate-pulse')
+      expect(skeletons.length).toBeGreaterThan(0)
     })
 
     it('does not show content while loading', () => {
@@ -97,11 +99,11 @@ describe('DashboardPage', () => {
       renderDashboardPage()
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load metrics')).toBeInTheDocument()
+        expect(screen.getByText(/something went wrong/i)).toBeInTheDocument()
       })
     })
 
-    it('shows retry instruction on error', async () => {
+    it('shows retry button on error', async () => {
       vi.mocked(adminService.getBlockMetrics).mockRejectedValue(
         new Error('Network error')
       )
@@ -109,7 +111,7 @@ describe('DashboardPage', () => {
       renderDashboardPage()
 
       await waitFor(() => {
-        expect(screen.getByText('Please try refreshing the page')).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
       })
     })
 
@@ -121,7 +123,7 @@ describe('DashboardPage', () => {
       renderDashboardPage()
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load metrics')).toBeInTheDocument()
+        expect(screen.getByText(/something went wrong/i)).toBeInTheDocument()
       })
 
       expect(screen.queryByText('Ownima Admin Dashboard')).not.toBeInTheDocument()

@@ -17,11 +17,12 @@ const debounce = <T extends (...args: unknown[]) => void>(func: T, delay: number
 import { adminService } from '../services/admin';
 import { getAvatarUrl } from '../config/environment';
 import { useToastContext } from '../contexts/ToastContext';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
 import { UserEditModal } from '../components/modals/UserEditModal';
 import { UserCreateModal } from '../components/modals/UserCreateModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { SkeletonTable, SkeletonHeader } from '../components/ui/SkeletonLoader';
+import { ErrorState, EmptySearchResults } from '../components/ui/EmptyState';
 import type { AdminUser, PaginatedResponse } from '../types';
 import {
   MagnifyingGlassIcon,
@@ -245,8 +246,9 @@ export const UsersPage: React.FC = () => {
 
   if (isLoading && page === 1) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner size="lg" />
+      <div className="space-y-8">
+        <SkeletonHeader />
+        <SkeletonTable rows={10} />
       </div>
     );
   }
@@ -254,21 +256,11 @@ export const UsersPage: React.FC = () => {
   if (error) {
     return (
       <div className="space-y-8">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-100/50 to-pink-100/50 rounded-2xl"></div>
-          <div className="relative p-8 text-center">
-            <h1 className="text-4xl font-bold text-red-800">Error Loading Users</h1>
-            <p className="mt-4 text-xl text-red-600">
-              Unable to fetch user data. Please try again later.
-            </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="mt-4"
-            >
-              Retry
-            </Button>
-          </div>
-        </div>
+        <SkeletonHeader />
+        <ErrorState
+          onRetry={() => window.location.reload()}
+          message="Failed to load users. Please try again."
+        />
       </div>
     );
   }
@@ -601,24 +593,31 @@ export const UsersPage: React.FC = () => {
 
         {/* Empty state */}
         {(!normalizedData?.items || normalizedData.items.length === 0) && !isLoading && (
-          <div className="text-center py-12">
-            <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {hasActiveFilters
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Get started by creating a new user.'
-              }
-            </p>
-            {!hasActiveFilters && (
+          hasActiveFilters ? (
+            <EmptySearchResults
+              onReset={() => {
+                setSearch('');
+                setUserTypeFilter(undefined);
+                setActiveFilter(undefined);
+                setDateFromFilter('');
+                setDateToFilter('');
+                setInactiveDaysFilter(undefined);
+                setSearchParams({});
+              }}
+            />
+          ) : (
+            <div className="text-center py-12">
+              <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating a new user.</p>
               <div className="mt-6">
                 <Button onClick={() => setShowCreateModal(true)}>
                   <UserPlusIcon className="w-5 h-5 mr-2" />
                   Add User
                 </Button>
               </div>
-            )}
-          </div>
+            </div>
+          )
         )}
 
         {/* Pagination */}

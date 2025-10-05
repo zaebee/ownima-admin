@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminService } from '../services/admin';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { MetricCard } from '../components/ui/MetricCard';
 import { MetricBlock } from '../components/ui/MetricBlock';
 import { FilterPanel } from '../components/ui/FilterPanel';
+import { SkeletonMetricBlock, SkeletonHeader } from '../components/ui/SkeletonLoader';
+import { ErrorState } from '../components/ui/EmptyState';
 import {
   UsersIcon,
   UserIcon,
@@ -55,20 +56,24 @@ export const DashboardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner size="lg" />
+      <div className="space-y-8">
+        <SkeletonHeader />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SkeletonMetricBlock />
+          <SkeletonMetricBlock />
+          <SkeletonMetricBlock />
+          <SkeletonMetricBlock />
+        </div>
       </div>
     );
   }
 
   if (error || !blockMetrics) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 text-lg font-semibold">Failed to load metrics</p>
-          <p className="text-gray-600 mt-2">Please try refreshing the page</p>
-        </div>
-      </div>
+      <ErrorState
+        onRetry={() => window.location.reload()}
+        message="Failed to load dashboard metrics. Please try again."
+      />
     );
   }
 

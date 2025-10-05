@@ -97,14 +97,16 @@ describe('UsersPage', () => {
   })
 
   describe('Loading State', () => {
-    it('shows loading spinner while fetching users', () => {
+    it('shows skeleton loaders while fetching users', () => {
       vi.mocked(adminService.getAdminUsers).mockImplementation(
         () => new Promise(() => {}) // Never resolves
       )
 
-      renderUsersPage()
+      const { container } = renderUsersPage()
 
-      expect(screen.getByRole('status')).toBeInTheDocument()
+      // Check for skeleton loaders (animated pulse elements)
+      const skeletons = container.querySelectorAll('.animate-pulse')
+      expect(skeletons.length).toBeGreaterThan(0)
     })
 
     it('does not show user list while loading', () => {
