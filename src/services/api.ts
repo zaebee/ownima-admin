@@ -51,8 +51,19 @@ class ApiClient {
         (response: AxiosResponse) => response,
         (error) => {
           if (error.response?.status === 401) {
+            // Dispatch custom event for toast notification
+            window.dispatchEvent(
+              new CustomEvent('auth:unauthorized', {
+                detail: { message: 'Your session has expired. Please log in again.' },
+              })
+            );
+
             localStorage.removeItem('auth_token');
-            window.location.href = '/login';
+
+            // Delay redirect to allow toast to show
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 1500);
           }
           return Promise.reject(error);
         }
