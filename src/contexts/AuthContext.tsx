@@ -32,6 +32,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const currentUser = await authService.getCurrentUser();
           setUser(currentUser);
         } catch {
+          // Clear invalid token from both state and localStorage
+          setToken(null);
           localStorage.removeItem('auth_token');
         }
       }

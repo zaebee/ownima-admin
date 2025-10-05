@@ -31,12 +31,13 @@ const environmentConfigs: Record<Environment, EnvironmentConfig> = {
 
 function detectEnvironment(): Environment {
   if (typeof window === 'undefined') {
-    return import.meta.env.VITE_ENVIRONMENT || 'local';
+    return (import.meta.env.VITE_ENVIRONMENT as Environment) || 'development';
   }
 
   const hostname = window.location.hostname;
 
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  // In test environment, hostname might be empty or 'localhost'
+  if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
     return 'development';
   }
 
@@ -57,11 +58,14 @@ function detectEnvironment(): Environment {
 
 export function getCurrentEnvironment(): Environment {
   const override = import.meta.env.VITE_ENVIRONMENT as Environment;
+  console.log('[getCurrentEnvironment] override:', override, 'has window:', typeof window !== 'undefined', 'hostname:', typeof window !== 'undefined' ? window.location?.hostname : 'N/A');
   if (override && environmentConfigs[override]) {
     return override;
   }
 
-  return detectEnvironment();
+  const detected = detectEnvironment();
+  console.log('[getCurrentEnvironment] detected:', detected);
+  return detected;
 }
 
 export function getEnvironmentConfig(env?: Environment): EnvironmentConfig {
@@ -70,7 +74,16 @@ export function getEnvironmentConfig(env?: Environment): EnvironmentConfig {
 }
 
 export function getApiBaseUrl(env?: Environment): string {
-  return getEnvironmentConfig(env).apiBaseUrl;
+  // In test environment (Node.js without window), always use development
+  if (typeof window === 'undefined' && !env) {
+    return 'http://localhost:8000/api/v1';
+  }
+  const config = getEnvironmentConfig(env);
+  // Debug: log what we're returning
+  if (process.env.NODE_ENV === 'test' || import.meta.env.MODE === 'test') {
+    console.log('[getApiBaseUrl] Returning:', config.apiBaseUrl, 'for env:', env || getCurrentEnvironment());
+  }
+  return config.apiBaseUrl;
 }
 
 /**

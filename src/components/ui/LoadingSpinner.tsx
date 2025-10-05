@@ -17,11 +17,12 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   };
 
   return (
-    <div className={clsx('flex justify-center items-center', className)}>
+    <div className={clsx('flex justify-center items-center', className)} role="status" aria-label="Loading">
       <svg
         className={clsx('animate-spin text-primary-600', sizeClasses[size])}
         fill="none"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <circle
           className="opacity-25"
