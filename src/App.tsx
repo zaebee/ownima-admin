@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
@@ -6,12 +6,15 @@ import { ToastProvider } from './contexts/ToastContext';
 import { useAuth } from './hooks/useAuth';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { LoginPage } from './pages/LoginPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { UsersPage } from './pages/UsersPage';
-import { UserDetailPage } from './pages/UserDetailPage';
-import { SystemPage } from './pages/SystemPage';
-import { LandingPage } from './pages/LandingPage';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
+
+// Lazy load pages for code splitting
+const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const UsersPage = lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })));
+const UserDetailPage = lazy(() => import('./pages/UserDetailPage').then(m => ({ default: m.UserDetailPage })));
+const SystemPage = lazy(() => import('./pages/SystemPage').then(m => ({ default: m.SystemPage })));
+const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,31 +25,41 @@ const queryClient = new QueryClient({
   },
 });
 
-const AppRoutes: React.FC = () => {
+export const PageLoader: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+    <LoadingSpinner size="lg" />
+  </div>
+);
+
+export const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route 
-        path="/login" 
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
-      />
-      <Route path="/dashboard/*" element={
-        <ProtectedRoute>
-          <Layout>
-            <Routes>
-              <Route index element={<Navigate to="overview" replace />} />
-              <Route path="overview" element={<DashboardPage />} />
-              <Route path="users" element={<UsersPage />} />
-              <Route path="users/:userId" element={<UserDetailPage />} />
-              <Route path="system" element={<SystemPage />} />
-            </Routes>
-          </Layout>
-        </ProtectedRoute>
-      } />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route 
+          path="/login" 
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+        />
+        <Route path="/dashboard/*" element={
+          <ProtectedRoute>
+            <Layout>
+              <Suspense fallback={<LoadingSpinner size="lg" />}>
+                <Routes>
+                  <Route index element={<Navigate to="overview" replace />} />
+                  <Route path="overview" element={<DashboardPage />} />
+                  <Route path="users" element={<UsersPage />} />
+                  <Route path="users/:userId" element={<UserDetailPage />} />
+                  <Route path="system" element={<SystemPage />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 };
 
