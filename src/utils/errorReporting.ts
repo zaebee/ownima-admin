@@ -1,4 +1,4 @@
-import { ErrorInfo } from 'react';
+import type { ErrorInfo } from 'react';
 
 /**
  * Error reporting utility for logging errors to external services
