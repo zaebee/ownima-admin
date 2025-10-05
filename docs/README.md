@@ -18,10 +18,22 @@ Complete documentation for the Ownima Admin Dashboard project.
 - **[IMPLEMENTATION_START_PLAN.md](./IMPLEMENTATION_START_PLAN.md)** - Day 1 execution plan
 - **[TESTING_IMPLEMENTATION_GUIDE.md](./TESTING_IMPLEMENTATION_GUIDE.md)** - Technical reference and patterns
 
+## UI/UX Documentation
+
+- **[UI_UX_IMPROVEMENTS.md](./UI_UX_IMPROVEMENTS.md)** - Complete UI/UX improvement documentation
+  - Phase 1: Skeleton loaders and empty states (Complete)
+  - Phase 2: Data visualization and interactions (Planned)
+  - Phase 3: AI-assisted features (Future)
+  - Before/after comparisons and metrics
+
 ## CI/CD & Deployment
 
 - **[CI_CD_SETUP.md](./CI_CD_SETUP.md)** - GitHub Actions workflow setup and configuration
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Production deployment instructions
+
+## Coverage Improvement
+
+- **[TESTING_PHASE_5_PLAN.md](./TESTING_PHASE_5_PLAN.md)** - Plan to increase coverage from 50% to 70%+
 
 ## Documentation Structure
 
@@ -37,10 +49,14 @@ docs/
 │   ├── TESTING_INDEX.md               # Master testing index
 │   ├── TESTING_PLAN.md                # Comprehensive strategy
 │   ├── TESTING_DECISION_TREE.md       # Decision flowcharts
-│   └── TESTING_IMPLEMENTATION_GUIDE.md # Technical patterns
+│   ├── TESTING_IMPLEMENTATION_GUIDE.md # Technical patterns
+│   └── TESTING_PHASE_5_PLAN.md        # Coverage improvement plan
 │
 ├── Implementation
 │   └── IMPLEMENTATION_START_PLAN.md   # Day 1 execution
+│
+├── UI/UX
+│   └── UI_UX_IMPROVEMENTS.md          # Complete UI/UX documentation
 │
 └── Operations
     ├── CI_CD_SETUP.md                 # CI/CD configuration
@@ -76,8 +92,10 @@ docs/
 | TESTING_IMPLEMENTATION_GUIDE.md | ✅ Complete | 2025-10-05 | 1.0 |
 | IMPLEMENTATION_START_PLAN.md | ✅ Complete | 2025-10-05 | 1.0 |
 | TESTING_QUICK_START.md | ✅ Complete | 2025-10-05 | 1.0 |
+| TESTING_PHASE_5_PLAN.md | ✅ Complete | 2025-10-05 | 1.0 |
 | CI_CD_SETUP.md | ✅ Complete | 2025-10-05 | 1.0 |
 | DEPLOYMENT_GUIDE.md | ✅ Complete | 2025-10-05 | 1.0 |
+| UI_UX_IMPROVEMENTS.md | ✅ Complete | 2025-10-05 | 1.0 |
 
 ## Contributing to Documentation
 
