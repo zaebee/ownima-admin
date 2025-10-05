@@ -67,6 +67,36 @@ describe('ErrorFallback', () => {
 
       expect(resetError).toHaveBeenCalledTimes(1);
     });
+
+    it('reloads page when Reload Page is clicked', async () => {
+      const user = userEvent.setup();
+      const reloadSpy = vi.fn();
+      Object.defineProperty(window.location, 'reload', {
+        configurable: true,
+        value: reloadSpy,
+      });
+
+      render(<ErrorFallback error={mockError} />);
+
+      await user.click(screen.getByRole('button', { name: /reload page/i }));
+
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to home when Go to Home is clicked', async () => {
+      const user = userEvent.setup();
+      const assignSpy = vi.fn();
+      Object.defineProperty(window.location, 'href', {
+        configurable: true,
+        set: assignSpy,
+      });
+
+      render(<ErrorFallback error={mockError} />);
+
+      await user.click(screen.getByRole('button', { name: /go to home/i }));
+
+      expect(assignSpy).toHaveBeenCalledWith('/');
+    });
   });
 
   describe('Error Details', () => {
