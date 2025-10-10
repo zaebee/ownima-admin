@@ -34,7 +34,6 @@ interface SystemErrorQueryParams extends Record<string, unknown> {
 
 interface UserActivityQueryParams extends Record<string, unknown> {
   limit?: number;
-  skip?: number;
   user_id?: string;
   activity_type?: 'LOGIN' | 'REGISTRATION' | 'BOOKING' | 'ALL';
   date_from?: string;
@@ -86,7 +85,6 @@ class AdminService {
 
   /**
    * Get recent user activities (logins, registrations, bookings)
-   * NOTE: This requires a backend change to support the `skip` parameter for pagination.
    */
   async getRecentActivity(params?: UserActivityQueryParams): Promise<RecentActivity> {
     return await apiClient.get<RecentActivity>('/admin/activity/recent', params);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Tab } from '@headlessui/react';
 import clsx from 'clsx';
 import { adminService } from '../services/admin';
@@ -7,13 +7,13 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { MetricCard } from '../components/ui/MetricCard';
 import { SystemErrorsPanel } from '../components/SystemErrorsPanel';
 import { mockSystemErrors, getErrorStatistics } from '../mocks/systemErrors';
-import type { RecentActivity } from '../types';
 import {
   ClockIcon,
   ServerIcon,
   CircleStackIcon,
   GlobeAltIcon,
   UserIcon,
+  UsersIcon,
   CalendarIcon,
   CheckCircleIcon,
   InformationCircleIcon,
@@ -164,20 +164,10 @@ export const SystemPage: React.FC = () => {
     enabled: !useMockErrors, // Disable real API when using mock data
   });
 
-  const {
-    data: userActivities,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading: isActivitiesLoading,
-  } = useInfiniteQuery<RecentActivity, Error>({
+  const { data: userActivities, isLoading: isActivitiesLoading } = useQuery({
     queryKey: ['user-activities'],
-    queryFn: ({ pageParam = 0 }) => adminService.getRecentActivity({ limit: 50, skip: pageParam as number }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const currentLength = allPages.reduce((acc, page) => acc + (page.users?.length || 0), 0);
-      return currentLength < 200 && lastPage.users.length > 0 ? currentLength : undefined;
-    },
+    queryFn: () => adminService.getRecentActivity(),
+    refetchInterval: 30000,
   });
 
   // Use mock data or real data
@@ -348,8 +338,8 @@ export const SystemPage: React.FC = () => {
                 }
               >
                 <div className="flex items-center justify-center">
-                  <UserIcon className="w-5 h-5 mr-2" />
-                  Users ({userActivities?.pages.reduce((acc, page) => acc + (page.users?.length || 0), 0) || 0})
+                  <UsersIcon className="w-5 h-5 mr-2" />
+                  Users ({userActivities?.users?.length || 0})
                 </div>
               </Tab>
               <Tab
@@ -364,7 +354,7 @@ export const SystemPage: React.FC = () => {
               >
                 <div className="flex items-center justify-center">
                   <TruckIcon className="w-5 h-5 mr-2" />
-                  Vehicles ({userActivities?.pages.reduce((acc, page) => acc + (page.vehicles?.length || 0), 0) || 0})
+                  Vehicles ({userActivities?.vehicles?.length || 0})
                 </div>
               </Tab>
               <Tab
@@ -379,7 +369,7 @@ export const SystemPage: React.FC = () => {
               >
                 <div className="flex items-center justify-center">
                   <CalendarIcon className="w-5 h-5 mr-2" />
-                  Reservations ({userActivities?.pages.reduce((acc, page) => acc + (page.reservations?.length || 0), 0) || 0})
+                  Reservations ({userActivities?.reservations?.length || 0})
                 </div>
               </Tab>
             </Tab.List>
@@ -387,9 +377,9 @@ export const SystemPage: React.FC = () => {
             <Tab.Panels>
               {/* User Activities Tab */}
               <Tab.Panel>
-                {userActivities && userActivities.pages.flatMap(page => page.users).length > 0 ? (
+                {userActivities && userActivities.users?.length > 0 ? (
                   <div className="space-y-4">
-                    {userActivities.pages.flatMap(page => page.users).map((activity) => {
+                    {userActivities.users?.slice(0, 10).map((activity) => {
                       const activityType =
                         (activity.activity_type as string) ||
                         (activity.type as string) ||
@@ -482,24 +472,13 @@ export const SystemPage: React.FC = () => {
                     </p>
                   </div>
                 )}
-                {hasNextPage && (
-                  <div className="mt-6 flex justify-center">
-                    <button
-                      onClick={() => fetchNextPage()}
-                      disabled={isFetchingNextPage}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-                    >
-                      {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-                    </button>
-                  </div>
-                )}
               </Tab.Panel>
 
               {/* Vehicle Activities Tab */}
               <Tab.Panel>
-                {userActivities && userActivities.pages.flatMap(page => page.vehicles).length > 0 ? (
+                {userActivities && userActivities.vehicles?.length > 0 ? (
                   <div className="space-y-4">
-                    {userActivities.pages.flatMap(page => page.vehicles).map((activity, idx) => {
+                    {userActivities.vehicles.slice(0, 10).map((activity, idx) => {
                       const ActivityIcon = getVehicleActivityIcon(activity.activity_type);
                       const color = getVehicleActivityColor(activity.activity_type);
 
@@ -574,24 +553,13 @@ export const SystemPage: React.FC = () => {
                     </p>
                   </div>
                 )}
-                {hasNextPage && (
-                  <div className="mt-6 flex justify-center">
-                    <button
-                      onClick={() => fetchNextPage()}
-                      disabled={isFetchingNextPage}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400"
-                    >
-                      {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-                    </button>
-                  </div>
-                )}
               </Tab.Panel>
 
               {/* Reservation Activities Tab */}
               <Tab.Panel>
-                {userActivities && userActivities.pages.flatMap(page => page.reservations).length > 0 ? (
+                {userActivities && userActivities.reservations?.length > 0 ? (
                   <div className="space-y-4">
-                    {userActivities.pages.flatMap(page => page.reservations).map((activity, idx) => {
+                    {userActivities.reservations.slice(0, 10).map((activity, idx) => {
                       const ActivityIcon = getReservationActivityIcon(activity.activity_type);
                       const color = getReservationActivityColor(activity.activity_type);
 
@@ -670,17 +638,6 @@ export const SystemPage: React.FC = () => {
                     <p className="text-sm text-gray-500 mt-2">
                       Reservation activities will appear here
                     </p>
-                  </div>
-                )}
-                {hasNextPage && (
-                  <div className="mt-6 flex justify-center">
-                    <button
-                      onClick={() => fetchNextPage()}
-                      disabled={isFetchingNextPage}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400"
-                    >
-                      {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-                    </button>
                   </div>
                 )}
               </Tab.Panel>
