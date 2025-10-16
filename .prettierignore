@@ -1,0 +1,19 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+dist-ssr
+coverage
+
+# Generated files
+src/types/api-generated.ts
+
+# Config files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# IDE
+.vscode
+.idea

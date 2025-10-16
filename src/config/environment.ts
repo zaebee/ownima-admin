@@ -10,33 +10,34 @@ const environmentConfigs: Record<Environment, EnvironmentConfig> = {
   development: {
     name: 'development',
     apiBaseUrl: 'http://localhost:8000/api/v1',
-    displayName: 'Local Development'
+    displayName: 'Local Development',
   },
   staging: {
     name: 'staging',
     apiBaseUrl: 'https://stage.ownima.com/api/v1',
-    displayName: 'Staging'
+    displayName: 'Staging',
   },
   beta: {
     name: 'beta',
     apiBaseUrl: 'https://beta.ownima.com/api/v1',
-    displayName: 'Beta'
+    displayName: 'Beta',
   },
   production: {
     name: 'production',
     apiBaseUrl: 'https://api.ownima.com/api/v1',
-    displayName: 'Production'
-  }
+    displayName: 'Production',
+  },
 };
 
 function detectEnvironment(): Environment {
   if (typeof window === 'undefined') {
-    return import.meta.env.VITE_ENVIRONMENT || 'local';
+    return (import.meta.env.VITE_ENVIRONMENT as Environment) || 'development';
   }
 
   const hostname = window.location.hostname;
 
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  // In test environment, hostname might be empty or 'localhost'
+  if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
     return 'development';
   }
 
@@ -61,7 +62,8 @@ export function getCurrentEnvironment(): Environment {
     return override;
   }
 
-  return detectEnvironment();
+  const detected = detectEnvironment();
+  return detected;
 }
 
 export function getEnvironmentConfig(env?: Environment): EnvironmentConfig {
@@ -70,7 +72,12 @@ export function getEnvironmentConfig(env?: Environment): EnvironmentConfig {
 }
 
 export function getApiBaseUrl(env?: Environment): string {
-  return getEnvironmentConfig(env).apiBaseUrl;
+  // In test environment (Node.js without window), always use development
+  if (typeof window === 'undefined' && !env) {
+    return 'http://localhost:8000/api/v1';
+  }
+  const config = getEnvironmentConfig(env);
+  return config.apiBaseUrl;
 }
 
 /**

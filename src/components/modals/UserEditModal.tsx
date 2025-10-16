@@ -21,11 +21,7 @@ interface UserEditModalProps {
   user: User | null;
 }
 
-export const UserEditModal: React.FC<UserEditModalProps> = ({
-  isOpen,
-  onClose,
-  user,
-}) => {
+export const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, user }) => {
   const queryClient = useQueryClient();
   const toast = useToastContext();
   const [formData, setFormData] = useState<UpdateUserData>({
@@ -53,9 +49,9 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
       toast.success('User updated', `${updatedUser.email} has been successfully updated.`);
     },
     onError: (error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update user. Please try again.';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to update user. Please try again.';
       toast.error('Update failed', errorMessage);
-      console.error('Failed to update user:', error);
     },
   });
 
@@ -78,19 +74,19 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
     // Clear error when user starts typing
     if (errors[name as keyof UpdateUserData]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<UpdateUserData> = {};
-    
+
     if (!formData.email?.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -120,12 +116,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Edit User"
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} title="Edit User" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* User Info */}
         <div>
@@ -154,16 +145,14 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             value={formData.email || ''}
             onChange={handleInputChange}
             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors ${
-              errors.email 
-                ? 'border-red-300 focus:border-red-500' 
+              errors.email
+                ? 'border-red-300 focus:border-red-500'
                 : 'border-gray-300 focus:border-primary-500'
             }`}
             placeholder="Enter email address"
             required
           />
-          {errors.email && (
-            <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-          )}
+          {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
         </div>
 
         {/* Status toggles */}
@@ -172,12 +161,8 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             <div className="flex items-center">
               <CheckCircleIcon className="w-5 h-5 mr-3 text-gray-400" />
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Active Status
-                </label>
-                <p className="text-xs text-gray-500">
-                  User can log in and access the platform
-                </p>
+                <label className="text-sm font-medium text-gray-700">Active Status</label>
+                <p className="text-xs text-gray-500">User can log in and access the platform</p>
               </div>
             </div>
             <div className="relative">
@@ -192,7 +177,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                 className={`block w-12 h-6 rounded-full cursor-pointer transition-colors ${
                   formData.is_active ? 'bg-primary-600' : 'bg-gray-300'
                 }`}
-                onClick={() => setFormData(prev => ({ ...prev, is_active: !prev.is_active }))}
+                onClick={() => setFormData((prev) => ({ ...prev, is_active: !prev.is_active }))}
               >
                 <span
                   className={`block w-4 h-4 bg-white rounded-full shadow transform transition-transform mt-1 ${
@@ -207,12 +192,8 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             <div className="flex items-center">
               <ShieldCheckIcon className="w-5 h-5 mr-3 text-gray-400" />
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Administrator
-                </label>
-                <p className="text-xs text-gray-500">
-                  User has full access to admin functions
-                </p>
+                <label className="text-sm font-medium text-gray-700">Administrator</label>
+                <p className="text-xs text-gray-500">User has full access to admin functions</p>
               </div>
             </div>
             <div className="relative">
@@ -227,7 +208,9 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                 className={`block w-12 h-6 rounded-full cursor-pointer transition-colors ${
                   formData.is_superuser ? 'bg-purple-600' : 'bg-gray-300'
                 }`}
-                onClick={() => setFormData(prev => ({ ...prev, is_superuser: !prev.is_superuser }))}
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, is_superuser: !prev.is_superuser }))
+                }
               >
                 <span
                   className={`block w-4 h-4 bg-white rounded-full shadow transform transition-transform mt-1 ${
