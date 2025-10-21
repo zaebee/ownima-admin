@@ -1,6 +1,6 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw';
 
-const API_BASE = 'http://localhost:8000/api/v1'
+const API_BASE = 'http://localhost:8000/api/v1';
 
 // Mock users data
 const mockUsers = [
@@ -30,7 +30,7 @@ const mockUsers = [
     login_count: 5,
     last_login_at: '2024-01-14T00:00:00Z',
   },
-]
+];
 
 const mockBlockMetrics = {
   users: {
@@ -59,27 +59,24 @@ const mockBlockMetrics = {
     cancelled: 8,
     maintenance: 2,
   },
-}
+};
 
 export const handlers = [
   // Auth endpoints
   http.post(`${API_BASE}/auth/access-token`, async ({ request }) => {
-    const formData = await request.formData()
-    const username = formData.get('username')
-    const password = formData.get('password')
+    const formData = await request.formData();
+    const username = formData.get('username');
+    const password = formData.get('password');
 
     if (username === 'admin@example.com' && password === 'password') {
       return HttpResponse.json({
         access_token: 'mock-jwt-token',
         token_type: 'bearer',
         expires_in: 3600,
-      })
+      });
     }
 
-    return HttpResponse.json(
-      { detail: 'Invalid credentials' },
-      { status: 401 }
-    )
+    return HttpResponse.json({ detail: 'Invalid credentials' }, { status: 401 });
   }),
 
   http.get(`${API_BASE}/users/me`, () => {
@@ -92,7 +89,7 @@ export const handlers = [
       is_superuser: true,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z',
-    })
+    });
   }),
 
   // Admin endpoints
@@ -100,11 +97,11 @@ export const handlers = [
     return HttpResponse.json({
       data: mockUsers,
       count: mockUsers.length,
-    })
+    });
   }),
 
   http.get(`${API_BASE}/admin/metrics/blocks`, () => {
-    return HttpResponse.json(mockBlockMetrics)
+    return HttpResponse.json(mockBlockMetrics);
   }),
 
   http.get(`${API_BASE}/admin/system/info`, () => {
@@ -127,11 +124,11 @@ export const handlers = [
         test_query_result: 1,
       },
       uptime_seconds: 3600,
-    })
+    });
   }),
 
   http.get(`${API_BASE}/admin/system/errors`, () => {
-    return HttpResponse.json([])
+    return HttpResponse.json([]);
   }),
 
   http.get(`${API_BASE}/admin/activity/recent`, () => {
@@ -139,7 +136,42 @@ export const handlers = [
       users: [],
       vehicles: [],
       reservations: [],
-    })
+    });
+  }),
+
+  http.get(`${API_BASE}/admin/activity/users`, () => {
+    return HttpResponse.json({
+      data: [{ id: '1', timestamp: '2024-01-01T12:00:00Z', activity_type: 'LOGIN', details: {} }],
+      total: 1,
+    });
+  }),
+
+  http.get(`${API_BASE}/admin/activity/vehicles`, () => {
+    return HttpResponse.json({
+      data: [
+        {
+          id: '1',
+          timestamp: '2024-01-01T12:00:00Z',
+          activity_type: 'VEHICLE_CREATED',
+          details: {},
+        },
+      ],
+      total: 1,
+    });
+  }),
+
+  http.get(`${API_BASE}/admin/activity/reservations`, () => {
+    return HttpResponse.json({
+      data: [
+        {
+          id: '1',
+          timestamp: '2024-01-01T12:00:00Z',
+          activity_type: 'RESERVATION_CREATED',
+          details: {},
+        },
+      ],
+      total: 1,
+    });
   }),
 
   // User CRUD endpoints
@@ -147,25 +179,22 @@ export const handlers = [
     return HttpResponse.json({
       data: mockUsers,
       count: mockUsers.length,
-    })
+    });
   }),
 
   http.get(`${API_BASE}/users/:id`, ({ params }) => {
-    const user = mockUsers.find(u => u.id === params.id)
-    
+    const user = mockUsers.find((u) => u.id === params.id);
+
     if (!user) {
-      return HttpResponse.json(
-        { detail: 'User not found' },
-        { status: 404 }
-      )
+      return HttpResponse.json({ detail: 'User not found' }, { status: 404 });
     }
 
-    return HttpResponse.json(user)
+    return HttpResponse.json(user);
   }),
 
   http.post(`${API_BASE}/users`, async ({ request }) => {
-    const newUser = await request.json()
-    
+    const newUser = await request.json();
+
     return HttpResponse.json(
       {
         id: '3',
@@ -174,37 +203,31 @@ export const handlers = [
         updated_at: new Date().toISOString(),
       },
       { status: 201 }
-    )
+    );
   }),
 
   http.patch(`${API_BASE}/users/:id`, async ({ params, request }) => {
-    const updates = await request.json()
-    const user = mockUsers.find(u => u.id === params.id)
-    
+    const updates = await request.json();
+    const user = mockUsers.find((u) => u.id === params.id);
+
     if (!user) {
-      return HttpResponse.json(
-        { detail: 'User not found' },
-        { status: 404 }
-      )
+      return HttpResponse.json({ detail: 'User not found' }, { status: 404 });
     }
 
     return HttpResponse.json({
       ...user,
       ...updates,
       updated_at: new Date().toISOString(),
-    })
+    });
   }),
 
   http.delete(`${API_BASE}/users/:id`, ({ params }) => {
-    const user = mockUsers.find(u => u.id === params.id)
-    
+    const user = mockUsers.find((u) => u.id === params.id);
+
     if (!user) {
-      return HttpResponse.json(
-        { detail: 'User not found' },
-        { status: 404 }
-      )
+      return HttpResponse.json({ detail: 'User not found' }, { status: 404 });
     }
 
-    return HttpResponse.json({ message: 'User deleted successfully' })
+    return HttpResponse.json({ message: 'User deleted successfully' });
   }),
-]
+];
