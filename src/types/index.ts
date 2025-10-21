@@ -22,7 +22,6 @@ export interface User {
   updated_at: string;
 }
 
-
 export interface LoginRequest {
   username: string;
   password: string;
@@ -42,11 +41,11 @@ export interface ApiResponse<T> {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[];
+  data: T[];
   total: number;
-  page: number;
-  size: number;
-  pages: number;
+  page?: number;
+  size?: number;
+  pages?: number;
 }
 
 export interface DashboardMetrics {
@@ -108,7 +107,13 @@ export interface FilterParams {
   role?: 'OWNER' | 'RIDER' | 'ALL';
   userStatus?: string;
   vehicleStatus?: 'draft' | 'free' | 'collected' | 'maintenance' | 'archived';
-  reservationStatus?: 'pending' | 'confirmed' | 'collected' | 'completed' | 'cancelled' | 'maintenance';
+  reservationStatus?:
+    | 'pending'
+    | 'confirmed'
+    | 'collected'
+    | 'completed'
+    | 'cancelled'
+    | 'maintenance';
 }
 
 export type DateRangePreset = 'today' | 'yesterday' | 'last_7_days' | 'last_30_days' | 'custom';
