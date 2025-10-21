@@ -10,7 +10,6 @@ import {
   UsersIcon,
   UserIcon,
   ClipboardDocumentListIcon,
-  ArrowRightOnRectangleIcon,
   CalendarDaysIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -19,22 +18,26 @@ import {
   DocumentCheckIcon,
   XCircleIcon,
   WrenchScrewdriverIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import type { FilterParams, MetricRowData } from '../types';
-
 
 export const DashboardPage: React.FC = () => {
   // Filter state
   const [filters, setFilters] = useState<FilterParams>({
     dateRange: {
       start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
-      end: new Date().toISOString().split('T')[0] // today
+      end: new Date().toISOString().split('T')[0], // today
     },
-    role: 'ALL'
+    role: 'ALL',
   });
 
   // Query block metrics with filters
-  const { data: blockMetrics, isLoading, error } = useQuery({
+  const {
+    data: blockMetrics,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['block-metrics', filters],
     queryFn: () => adminService.getBlockMetrics(filters),
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -48,9 +51,9 @@ export const DashboardPage: React.FC = () => {
     setFilters({
       dateRange: {
         start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        end: new Date().toISOString().split('T')[0]
+        end: new Date().toISOString().split('T')[0],
       },
-      role: 'ALL'
+      role: 'ALL',
     });
   };
 
@@ -80,33 +83,100 @@ export const DashboardPage: React.FC = () => {
   const data = blockMetrics;
 
   // Prepare metrics for each block
-  const userMetrics: MetricRowData[] = [
-    { label: 'Total Users', value: data.users.total, icon: UsersIcon, href: '/dashboard/users', color: 'blue' },
-    { label: 'Online (30 days)', value: data.users.online_last_30_days, icon: UserIcon, color: 'green', trend: { value: 12, direction: 'up' } },
-    { label: 'Internal Users', value: data.users.internal, icon: CogIcon, color: 'gray' },
-    { label: 'External Users', value: data.users.external, icon: UsersIcon, color: 'blue' },
-    { label: 'Vehicle Owners', value: data.users.owners, icon: TruckIcon, href: '/dashboard/users?type=OWNER', color: 'purple' },
-    { label: 'Riders', value: data.users.riders, icon: UserIcon, href: '/dashboard/users?type=RIDER', color: 'green' },
-    { label: 'Login Sessions', value: data.users.logins, icon: ArrowRightOnRectangleIcon, color: 'blue', trend: { value: 8, direction: 'up' } }
+  const ownerMetrics: MetricRowData[] = [
+    {
+      label: 'Total Vehicle Owners',
+      value: data.users.owners,
+      icon: TruckIcon,
+      href: '/dashboard/users?type=OWNER',
+      color: 'purple',
+    },
+    {
+      label: 'Avg. Vehicles per Owner',
+      value: data.users.owners > 0 ? (data.vehicles.total / data.users.owners).toFixed(1) : 'N/A',
+      icon: CogIcon,
+      color: 'gray',
+    },
+    {
+      label: 'New Owners (in range)',
+      value: data.users.owners,
+      icon: UserPlusIcon,
+      color: 'green',
+    },
+  ];
+
+  const riderMetrics: MetricRowData[] = [
+    {
+      label: 'Total Riders',
+      value: data.users.riders,
+      icon: UserIcon,
+      href: '/dashboard/users?type=RIDER',
+      color: 'green',
+    },
+    {
+      label: 'Avg. Bookings per Rider',
+      value:
+        data.users.riders > 0 ? (data.reservations.total / data.users.riders).toFixed(1) : 'N/A',
+      icon: CalendarDaysIcon,
+      color: 'purple',
+    },
+    { label: 'New Riders (in range)', value: data.users.riders, icon: UserPlusIcon, color: 'blue' },
   ];
 
   const vehicleMetrics: MetricRowData[] = [
     { label: 'Total Vehicles', value: data.vehicles.total, icon: TruckIcon, color: 'green' },
     { label: 'Draft Status', value: data.vehicles.draft, icon: DocumentCheckIcon, color: 'yellow' },
-    { label: 'Available', value: data.vehicles.free, icon: CheckCircleIcon, color: 'green', trend: { value: 5, direction: 'up' } },
+    {
+      label: 'Available',
+      value: data.vehicles.free,
+      icon: CheckCircleIcon,
+      color: 'green',
+      trend: { value: 5, direction: 'up' },
+    },
     { label: 'Currently Rented', value: data.vehicles.collected, icon: ClockIcon, color: 'blue' },
-    { label: 'Under Maintenance', value: data.vehicles.maintenance, icon: WrenchScrewdriverIcon, color: 'red' },
-    { label: 'Archived', value: data.vehicles.archived, icon: XCircleIcon, color: 'gray' }
+    {
+      label: 'Under Maintenance',
+      value: data.vehicles.maintenance,
+      icon: WrenchScrewdriverIcon,
+      color: 'red',
+    },
+    { label: 'Archived', value: data.vehicles.archived, icon: XCircleIcon, color: 'gray' },
   ];
 
   const reservationMetrics: MetricRowData[] = [
-    { label: 'Total Reservations', value: data.reservations.total, icon: CalendarDaysIcon, color: 'purple' },
-    { label: 'Pending Approval', value: data.reservations.pending, icon: ClockIcon, color: 'yellow' },
-    { label: 'Confirmed', value: data.reservations.confirmed, icon: CheckCircleIcon, color: 'green', trend: { value: 15, direction: 'up' } },
+    {
+      label: 'Total Reservations',
+      value: data.reservations.total,
+      icon: CalendarDaysIcon,
+      color: 'purple',
+    },
+    {
+      label: 'Pending Approval',
+      value: data.reservations.pending,
+      icon: ClockIcon,
+      color: 'yellow',
+    },
+    {
+      label: 'Confirmed',
+      value: data.reservations.confirmed,
+      icon: CheckCircleIcon,
+      color: 'green',
+      trend: { value: 15, direction: 'up' },
+    },
     { label: 'Active Rentals', value: data.reservations.collected, icon: TruckIcon, color: 'blue' },
-    { label: 'Completed', value: data.reservations.completed, icon: DocumentCheckIcon, color: 'green' },
+    {
+      label: 'Completed',
+      value: data.reservations.completed,
+      icon: DocumentCheckIcon,
+      color: 'green',
+    },
     { label: 'Cancelled', value: data.reservations.cancelled, icon: XCircleIcon, color: 'red' },
-    { label: 'Maintenance', value: data.reservations.maintenance, icon: WrenchScrewdriverIcon, color: 'red' }
+    {
+      label: 'Maintenance',
+      value: data.reservations.maintenance,
+      icon: WrenchScrewdriverIcon,
+      color: 'red',
+    },
   ];
 
   return (
@@ -137,14 +207,24 @@ export const DashboardPage: React.FC = () => {
         onReset={handleFiltersReset}
       />
 
-      {/* 3-Block Metrics Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Users Block */}
+      {/* 4-Block Metrics Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        {/* Owners Block */}
         <MetricBlock
-          title="Users"
-          icon={UsersIcon}
-          metrics={userMetrics}
-          color="blue"
+          title="Owners"
+          icon={TruckIcon}
+          metrics={ownerMetrics}
+          color="purple"
+          loading={isLoading}
+          liveIndicator={true}
+        />
+
+        {/* Riders Block */}
+        <MetricBlock
+          title="Riders"
+          icon={UserIcon}
+          metrics={riderMetrics}
+          color="green"
           loading={isLoading}
           liveIndicator={true}
         />
@@ -154,7 +234,7 @@ export const DashboardPage: React.FC = () => {
           title="Vehicles"
           icon={TruckIcon}
           metrics={vehicleMetrics}
-          color="green"
+          color="blue"
           loading={isLoading}
           liveIndicator={true}
         />

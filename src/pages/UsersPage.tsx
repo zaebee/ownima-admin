@@ -128,17 +128,24 @@ export const UsersPage: React.FC = () => {
       inactiveDaysFilter,
     ],
     queryFn: async () => {
-      const result = await adminService.getAdminUsers({
+      const params = {
         skip: (page - 1) * 20,
         limit: 20,
         search: debouncedSearch || undefined,
-        user_type: userTypeFilter,
         is_active: activeFilter,
         registration_date_from: dateFromFilter || undefined,
         registration_date_to: dateToFilter || undefined,
         inactive_days: inactiveDaysFilter,
+      };
+
+      if (userTypeFilter === 'RIDER') {
+        return await adminService.getAdminRiders(params);
+      }
+
+      return await adminService.getAdminUsers({
+        ...params,
+        user_type: userTypeFilter,
       });
-      return result;
     },
   });
 
@@ -320,6 +327,69 @@ export const UsersPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Tabs for filtering */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+          <button
+            onClick={() => {
+              setUserTypeFilter(undefined);
+              setPage(1);
+            }}
+            className={clsx(
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+              !userTypeFilter
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            )}
+          >
+            All Users
+            {normalizedData && !userTypeFilter && (
+              <span className="bg-gray-200 text-gray-600 ml-2 py-0.5 px-2 rounded-full text-xs">
+                {normalizedData.total}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setUserTypeFilter('OWNER');
+              setPage(1);
+            }}
+            className={clsx(
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+              userTypeFilter === 'OWNER'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            )}
+          >
+            Owners
+            {normalizedData && userTypeFilter === 'OWNER' && (
+              <span className="bg-blue-100 text-blue-600 ml-2 py-0.5 px-2 rounded-full text-xs">
+                {normalizedData.total}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setUserTypeFilter('RIDER');
+              setPage(1);
+            }}
+            className={clsx(
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+              userTypeFilter === 'RIDER'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            )}
+          >
+            Riders
+            {normalizedData && userTypeFilter === 'RIDER' && (
+              <span className="bg-green-100 text-green-600 ml-2 py-0.5 px-2 rounded-full text-xs">
+                {normalizedData.total}
+              </span>
+            )}
+          </button>
+        </nav>
+      </div>
+
       {/* Filters section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 p-6">
         <div className="flex items-center justify-between mb-6">
@@ -364,22 +434,6 @@ export const UsersPage: React.FC = () => {
         {/* Advanced filters */}
         {showFilters && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 border-t pt-6">
-            {/* User Type Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">User Type</label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
-                value={userTypeFilter || ''}
-                onChange={(e) =>
-                  setUserTypeFilter((e.target.value as 'OWNER' | 'RIDER') || undefined)
-                }
-              >
-                <option value="">All Types</option>
-                <option value="OWNER">Owners</option>
-                <option value="RIDER">Riders</option>
-              </select>
-            </div>
-
             {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
