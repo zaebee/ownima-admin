@@ -166,7 +166,7 @@ describe('DashboardPage', () => {
       renderDashboardPage();
 
       await waitFor(() => {
-        expect(screen.getByText('Owners')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Owners' })).toBeInTheDocument();
       });
     });
 
@@ -174,25 +174,30 @@ describe('DashboardPage', () => {
       renderDashboardPage();
 
       await waitFor(() => {
-        expect(screen.getByText('Riders')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Riders' })).toBeInTheDocument();
       });
     });
     it('displays total vehicle owners metric', async () => {
       renderDashboardPage();
 
-      await waitFor(() => {
-        expect(screen.getByText('Total Vehicle Owners')).toBeInTheDocument();
-        expect(screen.getByText('620')).toBeInTheDocument();
+      await waitFor(async () => {
+        const ownersHeading = await screen.findByRole('heading', { name: 'Owners' });
+        const ownersContainer = ownersHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(ownersContainer!).getByText('Total Vehicle Owners')).toBeInTheDocument();
+        // 620 appears twice in the Owners block (total and new), so use getAllByText
+        expect(within(ownersContainer!).getAllByText('620').length).toBeGreaterThan(0);
       });
     });
 
     it('displays avg. vehicles per owner metric', async () => {
       renderDashboardPage();
 
-      await waitFor(() => {
-        expect(screen.getByText('Avg. Vehicles per Owner')).toBeInTheDocument();
+      await waitFor(async () => {
+        const ownersHeading = await screen.findByRole('heading', { name: 'Owners' });
+        const ownersContainer = ownersHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(ownersContainer!).getByText('Avg. Vehicles per Owner')).toBeInTheDocument();
         // 450 vehicles / 620 owners = 0.725... rounded to 1 decimal place
-        expect(screen.getByText('0.7')).toBeInTheDocument();
+        expect(within(ownersContainer!).getByText('0.7')).toBeInTheDocument();
       });
     });
 
@@ -200,10 +205,11 @@ describe('DashboardPage', () => {
       renderDashboardPage();
 
       await waitFor(async () => {
-        const ownersBlock = await screen.findByText('Owners');
-        const ownersContainer = ownersBlock.closest('div[class*="rounded-2xl"]');
+        const ownersHeading = await screen.findByRole('heading', { name: 'Owners' });
+        const ownersContainer = ownersHeading.closest('div[class*="rounded-2xl"]');
         expect(within(ownersContainer!).getByText('New Owners (in range)')).toBeInTheDocument();
-        expect(within(ownersContainer!).getByText('620')).toBeInTheDocument();
+        // 620 appears twice in the Owners block (total and new), so use getAllByText
+        expect(within(ownersContainer!).getAllByText('620').length).toBeGreaterThan(0);
       });
     });
 
@@ -211,29 +217,35 @@ describe('DashboardPage', () => {
       renderDashboardPage();
 
       await waitFor(async () => {
-        const ridersBlock = await screen.findByText('Riders');
-        const ridersContainer = ridersBlock.closest('div[class*="rounded-2xl"]');
+        const ridersHeading = await screen.findByRole('heading', { name: 'Riders' });
+        const ridersContainer = ridersHeading.closest('div[class*="rounded-2xl"]');
         expect(within(ridersContainer!).getByText('Total Riders')).toBeInTheDocument();
-        expect(within(ridersContainer!).getByText('630')).toBeInTheDocument();
+        // 630 appears twice in the Riders block (total and new), so use getAllByText
+        expect(within(ridersContainer!).getAllByText('630').length).toBeGreaterThan(0);
       });
     });
 
     it('displays avg. bookings per rider metric', async () => {
       renderDashboardPage();
 
-      await waitFor(() => {
-        expect(screen.getByText('Avg. Bookings per Rider')).toBeInTheDocument();
+      await waitFor(async () => {
+        const ridersHeading = await screen.findByRole('heading', { name: 'Riders' });
+        const ridersContainer = ridersHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(ridersContainer!).getByText('Avg. Bookings per Rider')).toBeInTheDocument();
         // 2340 reservations / 630 riders = 3.71...
-        expect(screen.getByText('3.7')).toBeInTheDocument();
+        expect(within(ridersContainer!).getByText('3.7')).toBeInTheDocument();
       });
     });
 
     it('displays new riders metric', async () => {
       renderDashboardPage();
 
-      await waitFor(() => {
-        expect(screen.getByText('New Riders (in range)')).toBeInTheDocument();
-        expect(screen.getByText('630')).toBeInTheDocument();
+      await waitFor(async () => {
+        const ridersHeading = await screen.findByRole('heading', { name: 'Riders' });
+        const ridersContainer = ridersHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(ridersContainer!).getByText('New Riders (in range)')).toBeInTheDocument();
+        // 630 appears twice in the Riders block (total and new), so use getAllByText
+        expect(within(ridersContainer!).getAllByText('630').length).toBeGreaterThan(0);
       });
     });
   });
@@ -482,7 +494,8 @@ describe('DashboardPage', () => {
       renderDashboardPage();
 
       await waitFor(() => {
-        expect(screen.getByText('Total Users')).toBeInTheDocument();
+        // New block-based dashboard doesn't have "Total Users", but has "Total Vehicle Owners"
+        expect(screen.getByText('Total Vehicle Owners')).toBeInTheDocument();
         // Multiple zeros will appear
         expect(screen.getAllByText('0').length).toBeGreaterThan(0);
       });
@@ -524,7 +537,8 @@ describe('DashboardPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Total Vehicle Owners')).toBeInTheDocument();
-        expect(screen.getByText('999,999')).toBeInTheDocument();
+        // 999,999 appears multiple times (total and new owners), so use getAllByText
+        expect(screen.getAllByText('999,999').length).toBeGreaterThan(0);
       });
     });
   });
