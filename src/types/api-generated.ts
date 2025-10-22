@@ -16,6 +16,9 @@ export interface paths {
         /**
          * Auth Access Token
          * @description OAuth2 compatible token auth, get an access token for future requests.
+         *
+         *     Args:
+         *         user_type: Type of user - "owner" or "rider" (default: "owner")
          */
         post: operations["Auth-auth_access_token"];
         delete?: never;
@@ -71,7 +74,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Recover Password */
+        /**
+         * Recover Password
+         * @description Send password recovery email.
+         *
+         *     Args:
+         *         email: User email address
+         *         user_type: Type of user account ("owner" or "rider")
+         */
         post: operations["Auth-recover_password"];
         delete?: never;
         options?: never;
@@ -88,7 +98,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reset Password */
+        /**
+         * Reset Password
+         * @description Reset password using token from recovery email.
+         *
+         *     Token contains both email and user_type information.
+         */
         post: operations["Auth-reset_password"];
         delete?: never;
         options?: never;
@@ -105,7 +120,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Recover Password Html Content */
+        /**
+         * Recover Password Html Content
+         * @description Get password recovery email HTML content (admin only).
+         *
+         *     Args:
+         *         email: User email address
+         *         user_type: Type of user account ("owner" or "rider")
+         */
         post: operations["Auth-recover_password_html_content"];
         delete?: never;
         options?: never;
@@ -125,6 +147,10 @@ export interface paths {
         /**
          * Send Code
          * @description Sends cryptographically secure 6-digit code to validate email.
+         *
+         *     Args:
+         *         email: Email address to send verification code to
+         *         user_type: Type of user account ("owner" or "rider")
          */
         post: operations["Auth-send_code"];
         delete?: never;
@@ -145,6 +171,10 @@ export interface paths {
         /**
          * Verify Code
          * @description Verifies code with rate limiting and comprehensive security.
+         *
+         *     Args:
+         *         request: Email and verification code
+         *         user_type: Type of user account ("owner" or "rider")
          */
         post: operations["Auth-verify_code"];
         delete?: never;
@@ -402,7 +432,7 @@ export interface paths {
         };
         /**
          * Search Vehicles
-         * @description Search for available vehicles based on various criteria including date availability.
+         * @description Search for available vehicles with currency conversion.
          */
         get: operations["Rider-search_vehicles"];
         put?: never;
@@ -488,7 +518,7 @@ export interface paths {
         put?: never;
         /**
          * Create Reservation
-         * @description Create a new reservation for a vehicle.
+         * @description Create a new reservation for a vehicle with calculated pricing.
          */
         post: operations["Rider-create_reservation"];
         delete?: never;
@@ -511,6 +541,26 @@ export interface paths {
         get: operations["Rider-get_reservation"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/reservations/{reservation_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Reservation
+         * @description Cancel a reservation.
+         */
+        post: operations["Rider-cancel_reservation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1085,26 +1135,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/finance/currencies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Currencies
-         * @description Returns a list of currencies.
-         */
-        get: operations["Finance-list_currencies"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/finance/balance": {
         parameters: {
             query?: never;
@@ -1115,6 +1145,8 @@ export interface paths {
         /**
          * Get Balance
          * @description Gets the wallet balance for the current user.
+         *
+         *     Phase 1: Only Owner users have wallets. Riders will get 404.
          */
         get: operations["Finance-get_balance"];
         put?: never;
@@ -1334,6 +1366,8 @@ export interface paths {
         /**
          * Delete User Me
          * @description Delete own user with proper cascading deletes.
+         *
+         *     Phase 1: Supports both Owner (User) and Rider (RiderUser) deletion.
          */
         delete: operations["User-delete_user_me"];
         options?: never;
@@ -1376,9 +1410,31 @@ export interface paths {
         put?: never;
         /**
          * Register User
-         * @description Create new user without the need to be logged in.
+         * @description Create new Owner user without the need to be logged in.
          */
         post: operations["User-register_user"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/signup/rider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register Rider User
+         * @description Create new Rider user without the need to be logged in.
+         *
+         *     Note: Same email can be used for both Owner and Rider accounts.
+         */
+        post: operations["User-register_rider_user"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1524,6 +1580,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/utils/rates/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Currencies
+         * @description Returns a list of currencies.
+         */
+        get: operations["Utils-list_currencies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/utils/languages/": {
         parameters: {
             query?: never;
@@ -1640,6 +1716,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/activity/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent User Activities
+         * @description Get recent user activities (logins, registrations) for admin monitoring.
+         */
+        get: operations["Admin-get_recent_user_activities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/activity/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent Vehicle Activities
+         * @description Get recent vehicle activities for admin monitoring.
+         */
+        get: operations["Admin-get_recent_vehicle_activities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/activity/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent Reservation Activities
+         * @description Get recent reservation activities for admin monitoring.
+         */
+        get: operations["Admin-get_recent_reservation_activities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/activity/recent": {
         parameters: {
             query?: never;
@@ -1649,7 +1785,10 @@ export interface paths {
         };
         /**
          * Get Recent Activity
+         * @deprecated
          * @description Get recent activities for users, vehicles, and reservations.
+         *
+         *     Optionally filter activities for a specific user by providing user_id.
          */
         get: operations["Admin-get_recent_activity"];
         put?: never;
@@ -1683,6 +1822,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/riders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Admin Riders
+         * @description Get paginated list of riders with admin information and filtering.
+         *
+         *     Supports filtering by:
+         *     - Registration date range
+         *     - Inactive riders (not logged in for X days)
+         *     - Search by email or name
+         */
+        get: operations["Admin-get_admin_riders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/riders/{rider_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Admin Rider
+         * @description Get specific rider details for admin.
+         */
+        get: operations["Admin-get_admin_rider"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Admin Rider
+         * @description Delete rider account (admin only).
+         */
+        delete: operations["Admin-delete_admin_rider"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Admin Rider
+         * @description Update rider profile (admin only).
+         */
+        patch: operations["Admin-update_admin_rider"];
+        trace?: never;
+    };
     "/metrics": {
         parameters: {
             query?: never;
@@ -1707,6 +1899,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Activity */
+        Activity: {
+            /** Id */
+            id: string;
+            /** Timestamp */
+            timestamp: string;
+            /** User Id */
+            user_id: string;
+            /** Activity Type */
+            activity_type: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+        };
         /** AdditionalInfo */
         AdditionalInfo: {
             /** Insurance Included */
@@ -1857,6 +2064,13 @@ export interface components {
             vehicle?: components["schemas"]["Vehicle-Output"];
             /** Error */
             error?: string;
+        };
+        /** AvailableHour */
+        AvailableHour: {
+            /** Name */
+            name?: string;
+            /** Available */
+            available?: boolean;
         };
         /** BalanceResponse */
         BalanceResponse: {
@@ -2124,6 +2338,7 @@ export interface components {
             date_to?: string;
             pick_up?: components["schemas"]["PickUp"];
             drop_off?: components["schemas"]["DropOff"];
+            selected_extra_options?: components["schemas"]["SelectedExtraOptions"];
         };
         /** CreateTransactionRequest */
         CreateTransactionRequest: {
@@ -2259,6 +2474,13 @@ export interface components {
          * @enum {integer}
          */
         ExtraOptionPricePer: 0 | 1 | 2 | 3 | 4;
+        /** ExtraPreview */
+        ExtraPreview: {
+            /** Previews */
+            previews?: {
+                [key: string]: string;
+            };
+        };
         /** FeatureFlag */
         FeatureFlag: {
             /** Feature Name */
@@ -2582,6 +2804,13 @@ export interface components {
              */
             created_at: string;
         };
+        /** PaginatedActivityResponse */
+        PaginatedActivityResponse: {
+            /** Data */
+            data: components["schemas"]["Activity"][];
+            /** Total */
+            total: number;
+        };
         /** Pagination */
         Pagination: {
             /** Limit */
@@ -2642,6 +2871,10 @@ export interface components {
             cover_previews?: {
                 [key: string]: string;
             };
+            /** Extra Previews */
+            extra_previews?: {
+                [key: string]: components["schemas"]["ExtraPreview"];
+            };
         };
         /** Point */
         Point: {
@@ -2649,6 +2882,20 @@ export interface components {
             lat?: number;
             /** Lon */
             lon?: number;
+        };
+        /** PriceConversion */
+        PriceConversion: {
+            /** Amount */
+            amount?: number;
+            /** Currency */
+            currency?: string;
+            /** Rate */
+            rate?: number;
+            /**
+             * Valid Until
+             * Format: date-time
+             */
+            valid_until?: string;
         };
         /** PriceDayDetail */
         PriceDayDetail: {
@@ -2831,16 +3078,15 @@ export interface components {
             selected_extra_options?: components["schemas"]["SelectedExtraOptionItem"][];
             /** Allowed To Collect */
             allowed_to_collect?: boolean;
+            /** Owner Phone */
+            owner_phone?: string;
         };
         /**
          * ReservationActivity
          * @description Model for a single reservation activity event.
          */
         ReservationActivity: {
-            /**
-             * Timestamp
-             * Format: date-time
-             */
+            /** Timestamp */
             timestamp: string;
             /** Activity Type */
             activity_type: string;
@@ -3023,6 +3269,8 @@ export interface components {
             /** @default 0 */
             reservation_type: components["schemas"]["ReservationType"];
             selected_extra_options?: components["schemas"]["SelectedExtraOptions"] | null;
+            /** Deadline Timestamp */
+            deadline_timestamp?: number | null;
         };
         /** ReservationExtra */
         ReservationExtra: {
@@ -3077,6 +3325,8 @@ export interface components {
             user_agent?: string;
             /** Rating */
             rating?: number;
+            /** Avatar */
+            avatar?: string;
         };
         /**
          * RiderProfileResponse
@@ -3134,6 +3384,205 @@ export interface components {
              * @description Account creation date
              */
             created_at: string;
+        };
+        /**
+         * RiderUserAdmin
+         * @description Admin view of rider with tracking information.
+         */
+        RiderUserAdmin: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Is Superuser
+             * @default false
+             */
+            is_superuser: boolean;
+            /**
+             * Is Beta Tester
+             * @description User is in beta testing program
+             * @default false
+             */
+            is_beta_tester: boolean;
+            /** Full Name */
+            full_name?: string | null;
+            /** @default USD */
+            currency: components["schemas"]["CurrencyEnum"] | null;
+            /** @default EN */
+            language: components["schemas"]["LanguageEnum"] | null;
+            /** Location */
+            location?: string | null;
+            /** Avatar */
+            avatar?: string | null;
+            /** Phone Number */
+            phone_number?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Login At */
+            last_login_at?: string | null;
+            /**
+             * Login Count
+             * @default 0
+             */
+            login_count: number;
+        };
+        /** RiderUserRegister */
+        RiderUserRegister: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Password */
+            password: string;
+            /** Full Name */
+            full_name?: string | null;
+        };
+        /** RiderUserUpdate */
+        RiderUserUpdate: {
+            /** Email */
+            email?: string | null;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Is Superuser
+             * @default false
+             */
+            is_superuser: boolean;
+            /**
+             * Is Beta Tester
+             * @description User is in beta testing program
+             * @default false
+             */
+            is_beta_tester: boolean;
+            /** Full Name */
+            full_name?: string | null;
+            /** @default USD */
+            currency: components["schemas"]["CurrencyEnum"] | null;
+            /** @default EN */
+            language: components["schemas"]["LanguageEnum"] | null;
+            /** Location */
+            location?: string | null;
+            /** Avatar */
+            avatar?: string | null;
+            /** Phone Number */
+            phone_number?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
+            /** Password */
+            password?: string | null;
+        };
+        /**
+         * RiderUserWithToken
+         * @description Rider user with authentication token (for signup/login responses).
+         */
+        RiderUserWithToken: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Is Superuser
+             * @default false
+             */
+            is_superuser: boolean;
+            /**
+             * Is Beta Tester
+             * @description User is in beta testing program
+             * @default false
+             */
+            is_beta_tester: boolean;
+            /** Full Name */
+            full_name?: string | null;
+            /** @default USD */
+            currency: components["schemas"]["CurrencyEnum"] | null;
+            /** @default EN */
+            language: components["schemas"]["LanguageEnum"] | null;
+            /** Location */
+            location?: string | null;
+            /** Avatar */
+            avatar?: string | null;
+            /** Phone Number */
+            phone_number?: string | null;
+            /**
+             * Date Of Birth
+             * @description Date of birth
+             */
+            date_of_birth?: string | null;
+            /**
+             * Bio
+             * @description Profile biography
+             */
+            bio?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Access Token */
+            access_token: string;
+            /**
+             * Token Type
+             * @default bearer
+             */
+            token_type: string;
+        };
+        /**
+         * RiderUsersAdmin
+         * @description Paginated admin response for riders.
+         */
+        RiderUsersAdmin: {
+            /** Data */
+            data: components["schemas"]["RiderUserAdmin"][];
+            /** Count */
+            count: number;
         };
         /**
          * RoleEnum
@@ -3557,10 +4006,7 @@ export interface components {
          * @description Model for a single user activity event.
          */
         UserActivity: {
-            /**
-             * Timestamp
-             * Format: date-time
-             */
+            /** Timestamp */
             timestamp: string;
             /** Activity Type */
             activity_type: string;
@@ -4111,6 +4557,8 @@ export interface components {
             commission?: components["schemas"]["ReservationCommission"];
             /** Selected Extra Options */
             selected_extra_options?: components["schemas"]["SelectedExtraOptionItem"][];
+            /** Available Hours */
+            available_hours?: components["schemas"]["AvailableHour"][];
         };
         /** ValidationError */
         ValidationError: {
@@ -4157,6 +4605,12 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Price Conversions */
+            price_conversions?: {
+                [key: string]: components["schemas"]["PriceConversion"];
+            };
+            /** Currency */
+            currency?: string;
         };
         /** Vehicle */
         "Vehicle-Output": {
@@ -4194,16 +4648,19 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Price Conversions */
+            price_conversions?: {
+                [key: string]: components["schemas"]["PriceConversion"];
+            };
+            /** Currency */
+            currency?: string;
         };
         /**
          * VehicleActivity
          * @description Model for a single vehicle activity event.
          */
         VehicleActivity: {
-            /**
-             * Timestamp
-             * Format: date-time
-             */
+            /** Timestamp */
             timestamp: string;
             /** Activity Type */
             activity_type: string;
@@ -4374,7 +4831,9 @@ export type $defs = Record<string, never>;
 export interface operations {
     "Auth-auth_access_token": {
         parameters: {
-            query?: never;
+            query?: {
+                user_type?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4541,7 +5000,9 @@ export interface operations {
     };
     "Auth-recover_password": {
         parameters: {
-            query?: never;
+            query?: {
+                user_type?: string;
+            };
             header?: never;
             path: {
                 email: string;
@@ -4659,7 +5120,9 @@ export interface operations {
     };
     "Auth-recover_password_html_content": {
         parameters: {
-            query?: never;
+            query?: {
+                user_type?: string;
+            };
             header?: never;
             path: {
                 email: string;
@@ -4717,7 +5180,9 @@ export interface operations {
     };
     "Auth-send_code": {
         parameters: {
-            query?: never;
+            query?: {
+                user_type?: string;
+            };
             header?: never;
             path: {
                 email: string;
@@ -4775,7 +5240,9 @@ export interface operations {
     };
     "Auth-verify_code": {
         parameters: {
-            query?: never;
+            query?: {
+                user_type?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5931,7 +6398,12 @@ export interface operations {
     };
     "Rider-get_vehicle": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter from this date (ISO format) */
+                date_from?: string | null;
+                /** @description Filter to this date (ISO format) */
+                date_to?: string | null;
+            };
             header?: never;
             path: {
                 owner_id: string;
@@ -6256,6 +6728,62 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GetReservationResponse"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-cancel_reservation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {
@@ -8463,53 +8991,6 @@ export interface operations {
             };
         };
     };
-    "Finance-list_currencies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListCurrencyRatesResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-        };
-    };
     "Finance-get_balance": {
         parameters: {
             query?: never;
@@ -9569,6 +10050,66 @@ export interface operations {
             };
         };
     };
+    "User-register_rider_user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RiderUserRegister"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderUserWithToken"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "User-read_user_by_id": {
         parameters: {
             query?: never;
@@ -10023,7 +10564,54 @@ export interface operations {
                 content: {
                     "application/json": {
                         [key: string]: string;
-                    };
+                    }[];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
+    "Utils-list_currencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListCurrencyRatesResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -10354,9 +10942,194 @@ export interface operations {
             };
         };
     };
+    "Admin-get_recent_user_activities": {
+        parameters: {
+            query?: {
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedActivityResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_recent_vehicle_activities": {
+        parameters: {
+            query?: {
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedActivityResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_recent_reservation_activities": {
+        parameters: {
+            query?: {
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedActivityResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "Admin-get_recent_activity": {
         parameters: {
             query?: {
+                /** @description Filter activities for specific user */
+                user_id?: string | null;
                 /** @description Number of recent activities to return per block */
                 limit?: number;
             };
@@ -10431,6 +11204,255 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserMetrics"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_admin_riders": {
+        parameters: {
+            query?: {
+                /** @description Number of riders to skip */
+                skip?: number;
+                /** @description Number of riders to return */
+                limit?: number;
+                /** @description Filter riders registered after this date */
+                registration_from?: string | null;
+                /** @description Filter riders registered before this date */
+                registration_to?: string | null;
+                /** @description Filter riders inactive for X days */
+                inactive_days?: number | null;
+                /** @description Search by email or name */
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderUsersAdmin"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_admin_rider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderUserAdmin"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-delete_admin_rider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-update_admin_rider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RiderUserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiderUserAdmin"];
                 };
             };
             /** @description Unauthorized */

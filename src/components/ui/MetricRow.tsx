@@ -14,7 +14,7 @@ const colorClasses = {
   purple: 'text-purple-600 bg-purple-50',
   yellow: 'text-yellow-600 bg-yellow-50',
   red: 'text-red-600 bg-red-50',
-  gray: 'text-gray-600 bg-gray-50'
+  gray: 'text-gray-600 bg-gray-50',
 };
 
 const getTrendIcon = (direction: 'up' | 'down' | 'neutral') => {
@@ -39,7 +39,7 @@ const getTrendColor = (direction: 'up' | 'down' | 'neutral') => {
   }
 };
 
-const formatValue = (value: number): string => {
+const formatValue = (value: string | number): string => {
   return value.toLocaleString();
 };
 
@@ -51,7 +51,7 @@ export const MetricRow: React.FC<MetricRowProps> = ({
   href,
   color = 'gray',
   loading = false,
-  onClick
+  onClick,
 }) => {
   const RowContent = () => (
     <div
@@ -69,20 +69,21 @@ export const MetricRow: React.FC<MetricRowProps> = ({
             <Icon className="w-4 h-4" />
           </div>
         )}
-        <span className="text-sm font-medium text-gray-700">
-          {label}
-        </span>
+        <span className="text-sm font-medium text-gray-700">{label}</span>
       </div>
 
       {/* Right side: Value + Trend */}
       <div className="flex items-center space-x-3">
         {/* Trend indicator */}
         {trend && !loading && (
-          <div className={clsx(
-            'px-2 py-1 rounded-full text-xs font-medium',
-            getTrendColor(trend.direction)
-          )}>
-            {getTrendIcon(trend.direction)} {trend.value > 0 ? '+' : ''}{trend.value}%
+          <div
+            className={clsx(
+              'px-2 py-1 rounded-full text-xs font-medium',
+              getTrendColor(trend.direction)
+            )}
+          >
+            {getTrendIcon(trend.direction)} {trend.value > 0 ? '+' : ''}
+            {trend.value}%
           </div>
         )}
 
@@ -90,9 +91,7 @@ export const MetricRow: React.FC<MetricRowProps> = ({
         {loading ? (
           <div className="h-5 w-16 bg-gray-200 rounded animate-pulse" />
         ) : (
-          <span className="text-lg font-bold text-gray-900">
-            {formatValue(value)}
-          </span>
+          <span className="text-lg font-bold text-gray-900">{formatValue(value)}</span>
         )}
       </div>
     </div>

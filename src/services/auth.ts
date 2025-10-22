@@ -8,7 +8,8 @@ class AuthService {
     const formData = new URLSearchParams();
     formData.append('username', credentials.username);
     formData.append('password', credentials.password);
-    
+    formData.append('user_type', 'admin');
+
     const response = await axios.post<LoginResponse>(
       `${getApiBaseUrl()}/auth/access-token`,
       formData,
@@ -18,7 +19,7 @@ class AuthService {
         },
       }
     );
-    
+
     return response.data;
   }
 

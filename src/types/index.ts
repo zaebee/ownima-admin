@@ -22,7 +22,6 @@ export interface User {
   updated_at: string;
 }
 
-
 export interface LoginRequest {
   username: string;
   password: string;
@@ -108,7 +107,13 @@ export interface FilterParams {
   role?: 'OWNER' | 'RIDER' | 'ALL';
   userStatus?: string;
   vehicleStatus?: 'draft' | 'free' | 'collected' | 'maintenance' | 'archived';
-  reservationStatus?: 'pending' | 'confirmed' | 'collected' | 'completed' | 'cancelled' | 'maintenance';
+  reservationStatus?:
+    | 'pending'
+    | 'confirmed'
+    | 'collected'
+    | 'completed'
+    | 'cancelled'
+    | 'maintenance';
 }
 
 export type DateRangePreset = 'today' | 'yesterday' | 'last_7_days' | 'last_30_days' | 'custom';
@@ -116,7 +121,7 @@ export type DateRangePreset = 'today' | 'yesterday' | 'last_7_days' | 'last_30_d
 // Metric row interface for UI components
 export interface MetricRowData {
   label: string;
-  value: number;
+  value: number | string;
   icon?: React.ElementType;
   trend?: {
     value: number;
