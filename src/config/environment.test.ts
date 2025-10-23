@@ -99,7 +99,7 @@ describe('environment', () => {
     it('returns production config', () => {
       const config = getEnvironmentConfig('production');
       expect(config.name).toBe('production');
-      expect(config.apiBaseUrl).toBe('https://api.ownima.com/api/v1');
+      expect(config.apiBaseUrl).toBe('https://beta.ownima.com/api/v1');
       expect(config.displayName).toBe('Production');
     });
 
@@ -128,7 +128,7 @@ describe('environment', () => {
 
     it('returns production URL for production env', () => {
       const url = getApiBaseUrl('production');
-      expect(url).toBe('https://api.ownima.com/api/v1');
+      expect(url).toBe('https://beta.ownima.com/api/v1');
     });
 
     it('uses current environment when no env specified', () => {
