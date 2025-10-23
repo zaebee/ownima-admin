@@ -85,7 +85,7 @@ jobs:
 
             - name: Build package for ${{ matrix.environment }}
               # The env vars APP_ENV and DOMAIN will be available to bun run build
-              run: bun run build
+              run: bun run build:${{ matrix.environment }}
               env:
                   VITE_DOMAIN: https://${{ matrix.domain }} # for back compat.
                   VITE_APP_ENV: ${{ matrix.environment }}
@@ -122,12 +122,6 @@ jobs:
                   app-id: ${{ secrets.OWNIMA_BOT_APP_ID }}
                   private-key: ${{ secrets.OWNIMA_BOT_PRIVATE_KEY }}
 
-            - name: Download staging build artifact
-              uses: actions/download-artifact@v4
-              with:
-                  name: build-archive-staging
-                  # No path specified, defaults to current directory. Files will be build-staging-TAG.tar.gz
-
             - name: Download production build artifact
               uses: actions/download-artifact@v4
               with:
@@ -148,5 +142,4 @@ jobs:
                   prerelease: false
                   generate_release_notes: true
                   files: |
-                      build-staging-${{ github.ref_name }}.tar.gz
                       build-production-${{ github.ref_name }}.tar.gz
