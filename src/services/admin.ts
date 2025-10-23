@@ -11,7 +11,7 @@ import type {
   VehicleBlockMetrics,
   ReservationBlockMetrics,
   FilterParams,
-  RecentActivity
+  RecentActivity,
 } from '../types';
 
 interface AdminUserQueryParams extends Record<string, unknown> {
@@ -64,8 +64,24 @@ class AdminService {
   /**
    * Get paginated list of users with admin-specific information
    */
-  async getAdminUsers(params?: AdminUserQueryParams): Promise<{data: AdminUser[], count: number} | AdminUser[] | PaginatedResponse<AdminUser>> {
-    const response = await apiClient.get<{data: AdminUser[], count: number} | AdminUser[] | PaginatedResponse<AdminUser>>('/admin/users', params);
+  async getAdminUsers(
+    params?: AdminUserQueryParams
+  ): Promise<{ data: AdminUser[]; count: number } | AdminUser[] | PaginatedResponse<AdminUser>> {
+    const response = await apiClient.get<
+      { data: AdminUser[]; count: number } | AdminUser[] | PaginatedResponse<AdminUser>
+    >('/admin/users', params);
+    return response;
+  }
+
+  /**
+   * Get paginated list of riders with admin-specific information
+   */
+  async getAdminRiders(
+    params?: AdminUserQueryParams
+  ): Promise<{ data: AdminUser[]; count: number } | AdminUser[] | PaginatedResponse<AdminUser>> {
+    const response = await apiClient.get<
+      { data: AdminUser[]; count: number } | AdminUser[] | PaginatedResponse<AdminUser>
+    >('/admin/riders', params);
     return response;
   }
 
@@ -99,7 +115,7 @@ class AdminService {
     return {
       owners: blockMetrics.users.owners,
       riders: blockMetrics.users.riders,
-      total: blockMetrics.users.total
+      total: blockMetrics.users.total,
     };
   }
 
@@ -196,7 +212,9 @@ class AdminService {
    * Get comprehensive metrics for a specific user
    */
   async getUserMetrics(userId: string): Promise<components['schemas']['UserMetrics']> {
-    return await apiClient.get<components['schemas']['UserMetrics']>(`/admin/users/${userId}/metrics`);
+    return await apiClient.get<components['schemas']['UserMetrics']>(
+      `/admin/users/${userId}/metrics`
+    );
   }
 
   /**
@@ -233,8 +251,4 @@ class AdminService {
 }
 
 export const adminService = new AdminService();
-export type {
-  AdminUserQueryParams,
-  SystemErrorQueryParams,
-  UserActivityQueryParams
-};
+export type { AdminUserQueryParams, SystemErrorQueryParams, UserActivityQueryParams };
