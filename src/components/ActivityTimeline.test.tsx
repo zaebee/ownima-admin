@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { ActivityTimeline } from './ActivityTimeline';
@@ -249,7 +249,7 @@ describe('ActivityTimeline', () => {
 
       it('shows fallback message for unknown activity types', async () => {
         const activity = createMockActivity({
-          activity_type: 'unknown_activity_type' as any,
+          activity_type: 'unknown_activity_type',
         });
 
         vi.mocked(adminService.getAllActivities).mockResolvedValue(

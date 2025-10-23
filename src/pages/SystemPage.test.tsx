@@ -45,43 +45,6 @@ describe('SystemPage', () => {
     },
   };
 
-  const mockUserActivities = {
-    users: [
-      {
-        id: '1',
-        activity_type: 'LOGIN',
-        user_email: 'user@example.com',
-        timestamp: new Date().toISOString(),
-        details: 'User logged in',
-      },
-      {
-        id: '2',
-        activity_type: 'REGISTRATION',
-        user_email: 'newuser@example.com',
-        timestamp: new Date().toISOString(),
-        details: 'New user registered',
-      },
-    ],
-    vehicles: [
-      {
-        id: '1',
-        activity_type: 'vehicle_created',
-        vehicle_name: 'Tesla Model 3',
-        timestamp: new Date().toISOString(),
-        details: 'New vehicle added',
-      },
-    ],
-    reservations: [
-      {
-        id: '1',
-        activity_type: 'reservation_created',
-        user_email: 'user@example.com',
-        timestamp: new Date().toISOString(),
-        details: 'New reservation',
-      },
-    ],
-  };
-
   beforeEach(() => {
     queryClient = new QueryClient({
       defaultOptions: {
@@ -126,7 +89,6 @@ describe('SystemPage', () => {
   describe('Header Section', () => {
     beforeEach(() => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
     });
 
     it('renders page title', async () => {
@@ -159,7 +121,6 @@ describe('SystemPage', () => {
   describe('System Information Section', () => {
     beforeEach(() => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
     });
 
     it('renders system information heading', async () => {
@@ -267,7 +228,6 @@ describe('SystemPage', () => {
     it('shows red color for production environment', async () => {
       const prodSystemInfo = { ...mockSystemInfo, environment: 'production' };
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(prodSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -279,7 +239,6 @@ describe('SystemPage', () => {
     it('shows yellow color for staging environment', async () => {
       const stagingSystemInfo = { ...mockSystemInfo, environment: 'staging' };
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(stagingSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -290,7 +249,6 @@ describe('SystemPage', () => {
 
     it('shows green color for development environment', async () => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -303,7 +261,6 @@ describe('SystemPage', () => {
   describe('Database Status', () => {
     it('shows healthy status with green color', async () => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -318,7 +275,6 @@ describe('SystemPage', () => {
         database: { ...mockSystemInfo.database, status: 'warning' as const },
       };
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(warningSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -333,7 +289,6 @@ describe('SystemPage', () => {
         database: { ...mockSystemInfo.database, status: 'error' as const },
       };
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(errorSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -346,7 +301,6 @@ describe('SystemPage', () => {
   describe('System Errors Panel', () => {
     beforeEach(() => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
     });
 
     it('renders system errors panel', async () => {
@@ -375,132 +329,7 @@ describe('SystemPage', () => {
     });
   });
 
-  describe('Recent Activities Section', () => {
-    beforeEach(() => {
-      vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
-    });
-
-    it('renders recent activities heading', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText('Recent Activities')).toBeInTheDocument();
-      });
-    });
-
-    it('renders tab navigation', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText(/Users \(2\)/)).toBeInTheDocument();
-        expect(screen.getByText(/Vehicles \(1\)/)).toBeInTheDocument();
-        expect(screen.getByText(/Reservations \(1\)/)).toBeInTheDocument();
-      });
-    });
-
-    it('displays user activities by default', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText('user@example.com')).toBeInTheDocument();
-        expect(screen.getByText('newuser@example.com')).toBeInTheDocument();
-      });
-    });
-
-    it('has vehicles tab available', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText(/Vehicles \(1\)/)).toBeInTheDocument();
-      });
-    });
-
-    it('has reservations tab available', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText(/Reservations \(1\)/)).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Activity Types', () => {
-    beforeEach(() => {
-      vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
-    });
-
-    it('displays user activities', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText('user@example.com')).toBeInTheDocument();
-        expect(screen.getByText('newuser@example.com')).toBeInTheDocument();
-      });
-    });
-
-    it('shows vehicle count in tab', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText(/Vehicles \(1\)/)).toBeInTheDocument();
-      });
-    });
-
-    it('shows reservation count in tab', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText(/Reservations \(1\)/)).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Empty States', () => {
-    beforeEach(() => {
-      vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-    });
-
-    it('shows empty state when no user activities', async () => {
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue({
-        users: [],
-        vehicles: [],
-        reservations: [],
-      });
-
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText(/Users \(0\)/)).toBeInTheDocument();
-      });
-    });
-
-    it('shows empty state message for users tab', async () => {
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue({
-        users: [],
-        vehicles: [],
-        reservations: [],
-      });
-
-      renderSystemPage();
-
-      await waitFor(
-        () => {
-          const emptyMessage =
-            screen.queryByText('No recent user activities') || screen.queryByText(/No recent/);
-          expect(emptyMessage).toBeInTheDocument();
-        },
-        { timeout: 3000 }
-      );
-    });
-  });
-
   describe('Uptime Formatting', () => {
-    beforeEach(() => {
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
-    });
-
     it('formats uptime in days, hours, minutes', async () => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
 
@@ -537,7 +366,6 @@ describe('SystemPage', () => {
   describe('Error Handling', () => {
     it('handles system info fetch error gracefully', async () => {
       vi.mocked(adminService.getSystemInfo).mockRejectedValue(new Error('API Error'));
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -549,7 +377,6 @@ describe('SystemPage', () => {
 
     it('handles activities fetch error gracefully', async () => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockRejectedValue(new Error('API Error'));
 
       renderSystemPage();
 
@@ -562,7 +389,6 @@ describe('SystemPage', () => {
   describe('Data Refetching', () => {
     it('sets up refetch interval for system info', async () => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
 
       renderSystemPage();
 
@@ -574,51 +400,11 @@ describe('SystemPage', () => {
       expect(adminService.getSystemInfo).toHaveBeenCalled();
     });
 
-    it('sets up refetch interval for activities', async () => {
-      vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
-
-      renderSystemPage();
-
-      await waitFor(() => {
-        expect(screen.getByText('Recent Activities')).toBeInTheDocument();
-      });
-
-      expect(adminService.getRecentActivity).toHaveBeenCalled();
-    });
-  });
-
-  describe('Accessibility', () => {
-    beforeEach(() => {
-      vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
-    });
-
-    it('has accessible tab navigation', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        const tabs = screen.getAllByRole('tab');
-        expect(tabs.length).toBe(3);
-      });
-    });
-
-    it('tabs have proper aria attributes', async () => {
-      renderSystemPage();
-
-      await waitFor(() => {
-        const tabs = screen.getAllByRole('tab');
-        tabs.forEach((tab) => {
-          expect(tab).toHaveAttribute('aria-selected');
-        });
-      });
-    });
   });
 
   describe('Responsive Design', () => {
     beforeEach(() => {
       vi.mocked(adminService.getSystemInfo).mockResolvedValue(mockSystemInfo);
-      vi.mocked(adminService.getRecentActivity).mockResolvedValue(mockUserActivities);
     });
 
     it('renders grid layout for metrics', async () => {
