@@ -1,0 +1,67 @@
+# Config for Release Drafter: .github/release-drafter-config.yml
+
+# Categories for changes. Order determines the order in the release notes.
+categories:
+    - title: '🚀 Features'
+      labels:
+          - 'feature'
+          - 'feat'
+    - title: '🐛 Bug Fixes'
+      labels:
+          - 'fix'
+          - 'bugfix'
+    - title: '🧰 Maintenance'
+      labels:
+          - 'chore'
+          - 'docs'
+          - 'documentation'
+          - 'ci'
+          - 'build'
+          - 'refactor'
+          - 'test'
+          - 'tests'
+    - title: '⚠️ Breaking Changes'
+      labels:
+          - 'breaking-change'
+          - 'breaking'
+
+# Template for the release notes.
+template: |
+    ## Changes
+
+    $CHANGES
+
+# Configure versioning.
+# 'patch' will be bumped by default.
+# If 'minor' or 'major' labels are found, they will take precedence.
+version-resolver:
+    major:
+        labels:
+            - 'major'
+    minor:
+        labels:
+            - 'minor'
+    patch:
+        labels:
+            - 'patch'
+    default: patch
+# You can also exclude certain labels from affecting the release notes
+# exclude-labels:
+#   - 'skip-changelog'
+
+# Name template for the release draft
+# name-template: 'v$NEXT_PATCH_VERSION'
+
+# Tag template for the release draft
+# tag-template: 'v$NEXT_PATCH_VERSION'
+
+# (Optional) Automatically publish the release when a tag matching tag-template is pushed
+# autolabeler:
+#  - label: 'release'
+#    branch:
+#      - '/v\d+\.\d+\.\d+/' # Regex for version tags
+
+# Replacers can be used to clean up commit messages (e.g., remove PR numbers)
+# replacers:
+#  - search: '/(?:pull request|pr) #\d+/ig'
+#    replace: ''
