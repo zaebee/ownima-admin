@@ -1,0 +1,21 @@
+name: Notify Telegram
+
+on:
+    release:
+        types: [published]
+
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+jobs:
+    notify:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Send Telegram notification
+              uses: appleboy/telegram-action@master
+              with:
+                  to: ${{ secrets.TELEGRAM_TO }}
+                  token: ${{ secrets.TELEGRAM_TOKEN }}
+                  message: |
+                      🚀 New release Admin web: ${{ github.event.release.tag_name }}
+                      See the release notes: ${{ github.event.release.html_url }}
