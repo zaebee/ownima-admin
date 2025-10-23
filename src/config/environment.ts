@@ -24,7 +24,7 @@ const environmentConfigs: Record<Environment, EnvironmentConfig> = {
   },
   production: {
     name: 'production',
-    apiBaseUrl: 'https://api.ownima.com/api/v1',
+    apiBaseUrl: 'https://beta.ownima.com/api/v1',
     displayName: 'Production',
   },
 };
