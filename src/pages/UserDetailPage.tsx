@@ -10,7 +10,7 @@ import { useToastContext } from '../contexts/ToastContext';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
 import { MetricCard } from '../components/ui/MetricCard';
-import { ActivityTimeline } from '../components/ActivityTimeline';
+// ActivityTimeline removed - now available on dedicated Activity page
 import { UserEditModal } from '../components/modals/UserEditModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import {
@@ -60,12 +60,8 @@ export const UserDetailPage: React.FC = () => {
     enabled: !!userId,
   });
 
-  // Fetch user activities
-  const { data: userActivities, isLoading: activitiesLoading } = useQuery({
-    queryKey: ['user-activities', userId],
-    queryFn: () => adminService.getRecentActivity({ user_id: userId, limit: 20 }),
-    enabled: !!userId,
-  });
+  // Activity feed moved to dedicated ActivityPage
+  // Per-user activity filtering will be added in a future update
 
   // Delete user mutation
   const deleteMutation = useMutation({
@@ -530,10 +526,17 @@ export const UserDetailPage: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Activity</h3>
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <ActivityTimeline
-                      activities={userActivities?.users || []}
-                      loading={activitiesLoading}
-                    />
+                    <div className="text-center py-8">
+                      <p className="text-sm text-gray-500 mb-4">
+                        Per-user activity filtering will be available in a future update.
+                      </p>
+                      <a
+                        href="/dashboard/activity"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+                      >
+                        View All Activities
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

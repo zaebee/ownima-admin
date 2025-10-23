@@ -134,11 +134,221 @@ export const handlers = [
     return HttpResponse.json([])
   }),
 
-  http.get(`${API_BASE}/admin/activity/recent`, () => {
+  // Activity endpoints
+  http.get(`${API_BASE}/admin/activity/users`, ({ request }) => {
+    const url = new URL(request.url)
+    const skip = Number(url.searchParams.get('skip')) || 0
+    const limit = Number(url.searchParams.get('limit')) || 10
+
+    const mockUserActivities = [
+      {
+        id: 'user-1',
+        timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
+        user_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_type: 'user_registered',
+        details: {
+          user_id: '123e4567-e89b-12d3-a456-426614174000',
+          user_email: 'john@example.com',
+          user_name: 'John Doe',
+          user_role: 'OWNER',
+        },
+      },
+      {
+        id: 'user-2',
+        timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 minutes ago
+        user_id: '456e7890-e89b-12d3-a456-426614174001',
+        activity_type: 'rider_registered',
+        details: {
+          user_id: '456e7890-e89b-12d3-a456-426614174001',
+          user_email: 'jane@example.com',
+          user_name: 'Jane Smith',
+          user_role: 'RIDER',
+        },
+      },
+      {
+        id: 'user-3',
+        timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+        user_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_type: 'user_login',
+        details: {
+          user_id: '123e4567-e89b-12d3-a456-426614174000',
+          user_email: 'john@example.com',
+          user_name: 'John Doe',
+          user_role: 'OWNER',
+          login_count: 5,
+        },
+      },
+    ]
+
+    const paginatedData = mockUserActivities.slice(skip, skip + limit)
+
     return HttpResponse.json({
-      users: [],
-      vehicles: [],
-      reservations: [],
+      data: paginatedData,
+      total: paginatedData.length,
+    })
+  }),
+
+  http.get(`${API_BASE}/admin/activity/vehicles`, ({ request }) => {
+    const url = new URL(request.url)
+    const skip = Number(url.searchParams.get('skip')) || 0
+    const limit = Number(url.searchParams.get('limit')) || 10
+
+    const mockVehicleActivities = [
+      {
+        id: 'vehicle-1',
+        timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(), // 10 minutes ago
+        user_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_type: 'vehicle_created',
+        details: {
+          event_type: 'vehicle_created',
+          vehicle_id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'Tesla Model 3',
+          status: 'draft',
+          vehicle_type: 'sedan',
+          brand: 'Tesla',
+          model: 'Model 3',
+          entity_id: '550e8400-e29b-41d4-a716-446655440000',
+          user_id: '123e4567-e89b-12d3-a456-426614174000',
+        },
+      },
+      {
+        id: 'vehicle-2',
+        timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), // 20 minutes ago
+        user_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_type: 'vehicle_updated',
+        details: {
+          event_type: 'vehicle_updated',
+          vehicle_id: '550e8400-e29b-41d4-a716-446655440001',
+          name: 'BMW X5',
+          status: 'free',
+          entity_id: '550e8400-e29b-41d4-a716-446655440001',
+          user_id: '123e4567-e89b-12d3-a456-426614174000',
+          changes: {
+            status: { from: 'draft', to: 'free' },
+            name: { from: 'BMW X3', to: 'BMW X5' },
+          },
+        },
+      },
+      {
+        id: 'vehicle-3',
+        timestamp: new Date(Date.now() - 1000 * 60 * 40).toISOString(), // 40 minutes ago
+        user_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_type: 'vehicle_published',
+        details: {
+          event_type: 'vehicle_published',
+          vehicle_id: '550e8400-e29b-41d4-a716-446655440002',
+          name: 'Audi A4',
+          status: 'free',
+          entity_id: '550e8400-e29b-41d4-a716-446655440002',
+          user_id: '123e4567-e89b-12d3-a456-426614174000',
+          changes: {
+            status: { from: 'draft', to: 'free' },
+          },
+        },
+      },
+      {
+        id: 'vehicle-4',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
+        user_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_type: 'vehicle_drafts_deleted',
+        details: {
+          event_type: 'vehicle_drafts_deleted',
+          deleted_count: 5,
+          entity_id: 'bulk-operation-uuid',
+          user_id: '123e4567-e89b-12d3-a456-426614174000',
+        },
+      },
+    ]
+
+    const paginatedData = mockVehicleActivities.slice(skip, skip + limit)
+
+    return HttpResponse.json({
+      data: paginatedData,
+      total: paginatedData.length,
+    })
+  }),
+
+  http.get(`${API_BASE}/admin/activity/reservations`, ({ request }) => {
+    const url = new URL(request.url)
+    const skip = Number(url.searchParams.get('skip')) || 0
+    const limit = Number(url.searchParams.get('limit')) || 10
+
+    const mockReservationActivities = [
+      {
+        id: 'reservation-1',
+        timestamp: new Date(Date.now() - 1000 * 60 * 7).toISOString(), // 7 minutes ago
+        user_id: '456e7890-e89b-12d3-a456-426614174001',
+        activity_type: 'reservation_created',
+        details: {
+          event_type: 'reservation_created',
+          reservation_id: '750e8400-e29b-41d4-a716-446655440000',
+          status: 'pending',
+          total_price: 250.0,
+          start_date: '2025-10-25',
+          end_date: '2025-10-27',
+          vehicle_id: '550e8400-e29b-41d4-a716-446655440000',
+          entity_id: '750e8400-e29b-41d4-a716-446655440000',
+          user_id: '456e7890-e89b-12d3-a456-426614174001',
+        },
+      },
+      {
+        id: 'reservation-2',
+        timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(), // 25 minutes ago
+        user_id: '456e7890-e89b-12d3-a456-426614174001',
+        activity_type: 'reservation_status_updated_collected',
+        details: {
+          event_type: 'reservation_status_updated_collected',
+          reservation_id: '750e8400-e29b-41d4-a716-446655440001',
+          status: 'collected',
+          total_price: 180.0,
+          entity_id: '750e8400-e29b-41d4-a716-446655440001',
+          user_id: '456e7890-e89b-12d3-a456-426614174001',
+          changes: {
+            status: { from: 'confirmed', to: 'collected' },
+          },
+        },
+      },
+      {
+        id: 'reservation-3',
+        timestamp: new Date(Date.now() - 1000 * 60 * 50).toISOString(), // 50 minutes ago
+        user_id: '456e7890-e89b-12d3-a456-426614174002',
+        activity_type: 'reservation_status_updated_completed',
+        details: {
+          event_type: 'reservation_status_updated_completed',
+          reservation_id: '750e8400-e29b-41d4-a716-446655440002',
+          status: 'completed',
+          total_price: 320.0,
+          entity_id: '750e8400-e29b-41d4-a716-446655440002',
+          user_id: '456e7890-e89b-12d3-a456-426614174002',
+          changes: {
+            status: { from: 'collected', to: 'completed' },
+          },
+        },
+      },
+      {
+        id: 'reservation-4',
+        timestamp: new Date(Date.now() - 1000 * 60 * 70).toISOString(), // 70 minutes ago
+        user_id: '456e7890-e89b-12d3-a456-426614174003',
+        activity_type: 'reservation_status_updated_cancelled',
+        details: {
+          event_type: 'reservation_status_updated_cancelled',
+          reservation_id: '750e8400-e29b-41d4-a716-446655440003',
+          status: 'cancelled',
+          total_price: 150.0,
+          entity_id: '750e8400-e29b-41d4-a716-446655440003',
+          user_id: '456e7890-e89b-12d3-a456-426614174003',
+          changes: {
+            status: { from: 'pending', to: 'cancelled' },
+          },
+        },
+      },
+    ]
+
+    const paginatedData = mockReservationActivities.slice(skip, skip + limit)
+
+    return HttpResponse.json({
+      data: paginatedData,
+      total: paginatedData.length,
     })
   }),
 

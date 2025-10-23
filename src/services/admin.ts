@@ -11,7 +11,7 @@ import type {
   VehicleBlockMetrics,
   ReservationBlockMetrics,
   FilterParams,
-  RecentActivity,
+  PaginatedActivityResponse,
 } from '../types';
 
 interface AdminUserQueryParams extends Record<string, unknown> {
@@ -100,10 +100,83 @@ class AdminService {
   }
 
   /**
-   * Get recent user activities (logins, registrations, bookings)
+   * Get paginated user activities (registrations and logins)
+   * @param skip - Number of activities to skip for pagination
+   * @param limit - Number of activities to return (default: 10, max: 100)
    */
-  async getRecentActivity(params?: UserActivityQueryParams): Promise<RecentActivity> {
-    return await apiClient.get<RecentActivity>('/admin/activity/recent', params);
+  async getActivityUsers(skip: number = 0, limit: number = 10): Promise<PaginatedActivityResponse> {
+    return await apiClient.get<PaginatedActivityResponse>('/admin/activity/users', { skip, limit });
+  }
+
+  /**
+   * Get paginated vehicle activities from OpenSearch events
+   * @param skip - Number of activities to skip for pagination
+   * @param limit - Number of activities to return (default: 10, max: 100)
+   */
+  async getActivityVehicles(
+    skip: number = 0,
+    limit: number = 10
+  ): Promise<PaginatedActivityResponse> {
+    return await apiClient.get<PaginatedActivityResponse>('/admin/activity/vehicles', {
+      skip,
+      limit,
+    });
+  }
+
+  /**
+   * Get paginated reservation activities from OpenSearch events
+   * @param skip - Number of activities to skip for pagination
+   * @param limit - Number of activities to return (default: 10, max: 100)
+   */
+  async getActivityReservations(
+    skip: number = 0,
+    limit: number = 10
+  ): Promise<PaginatedActivityResponse> {
+    return await apiClient.get<PaginatedActivityResponse>('/admin/activity/reservations', {
+      skip,
+      limit,
+    });
+  }
+
+  /**
+   * Get all activities merged from users, vehicles, and reservations
+   * Makes 3 parallel requests and merges results sorted by timestamp
+   * Uses Promise.allSettled to show partial results if some endpoints fail
+   * @param skip - Number of activities to skip for pagination
+   * @param limit - Number of activities to return (default: 10)
+   */
+  async getAllActivities(skip: number = 0, limit: number = 10): Promise<PaginatedActivityResponse> {
+    // Fetch all 3 activity streams in parallel with graceful failure handling
+    const results = await Promise.allSettled([
+      this.getActivityUsers(skip, limit),
+      this.getActivityVehicles(skip, limit),
+      this.getActivityReservations(skip, limit),
+    ]);
+
+    // Extract successful results
+    const usersRes = results[0].status === 'fulfilled' ? results[0].value : { data: [], total: 0 };
+    const vehiclesRes =
+      results[1].status === 'fulfilled' ? results[1].value : { data: [], total: 0 };
+    const reservationsRes =
+      results[2].status === 'fulfilled' ? results[2].value : { data: [], total: 0 };
+
+    // Log any failures for debugging (but don't throw)
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const category = ['users', 'vehicles', 'reservations'][index];
+        console.error(`Failed to fetch ${category} activities:`, result.reason);
+      }
+    });
+
+    // Merge and sort by timestamp (newest first)
+    const allActivities = [...usersRes.data, ...vehiclesRes.data, ...reservationsRes.data]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit); // Take only the top N after sorting
+
+    return {
+      data: allActivities,
+      total: usersRes.total + vehiclesRes.total + reservationsRes.total,
+    };
   }
 
   /**

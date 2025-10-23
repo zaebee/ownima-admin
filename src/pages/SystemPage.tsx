@@ -164,11 +164,16 @@ export const SystemPage: React.FC = () => {
     enabled: !useMockErrors, // Disable real API when using mock data
   });
 
-  const { data: userActivities, isLoading: isActivitiesLoading } = useQuery({
-    queryKey: ['user-activities'],
-    queryFn: () => adminService.getRecentActivity(),
-    refetchInterval: 30000,
-  });
+  // Activity feed moved to dedicated ActivityPage
+  // const { data: userActivities, isLoading: isActivitiesLoading } = useQuery({
+  //   queryKey: ['user-activities'],
+  //   queryFn: () => adminService.getAllActivities(0, 10),
+  //   refetchInterval: 30000,
+  // });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type UserActivityData = { users: any[]; vehicles: any[]; reservations: any[] };
+  const userActivities: UserActivityData = { users: [], vehicles: [], reservations: [] }; // Temporarily empty - use /dashboard/activity page instead
+  const isActivitiesLoading = false;
 
   // Use mock data or real data
   const displayErrors = useMockErrors ? mockSystemErrors : systemErrors;
