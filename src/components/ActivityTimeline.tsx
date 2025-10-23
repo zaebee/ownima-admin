@@ -273,7 +273,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
 
       setHasMore(data.data.length === limit);
     } catch (err) {
-      console.error('Failed to load activities:', err);
+      console.error('Error in loadActivities:', err);
       setError('Failed to load activities. Please try again.');
     } finally {
       setLoading(false);

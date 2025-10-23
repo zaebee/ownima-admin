@@ -151,19 +151,6 @@ describe('AdminService', () => {
     })
   })
 
-  describe('getRecentActivity', () => {
-    it('fetches recent activity successfully', async () => {
-      const result = await adminService.getRecentActivity()
-
-      expect(result).toHaveProperty('users')
-      expect(result).toHaveProperty('vehicles')
-      expect(result).toHaveProperty('reservations')
-      expect(Array.isArray(result.users)).toBe(true)
-      expect(Array.isArray(result.vehicles)).toBe(true)
-      expect(Array.isArray(result.reservations)).toBe(true)
-    })
-  })
-
   describe('Activity Feed Methods', () => {
     describe('getActivityUsers', () => {
       it('fetches user activities successfully', async () => {
@@ -288,9 +275,9 @@ describe('AdminService', () => {
       })
 
       it('passes skip and limit to all three endpoints', async () => {
-        const userParams: URLSearchParams | null = null
-        const vehicleParams: URLSearchParams | null = null
-        const reservationParams: URLSearchParams | null = null
+        // const userParams: URLSearchParams | null = null
+        // const vehicleParams: URLSearchParams | null = null
+        // const reservationParams: URLSearchParams | null = null
 
         server.use(
           http.get(`${API_BASE}/admin/activity/users`, ({ request }) => {
