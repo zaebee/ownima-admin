@@ -4,6 +4,7 @@ import {
   HomeIcon,
   UsersIcon,
   ServerIcon,
+  ClockIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
@@ -12,6 +13,7 @@ import clsx from 'clsx';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard/overview', icon: HomeIcon },
   { name: 'Users', href: '/dashboard/users', icon: UsersIcon },
+  { name: 'Activity', href: '/dashboard/activity', icon: ClockIcon },
   { name: 'System', href: '/dashboard/system', icon: ServerIcon },
 ];
 

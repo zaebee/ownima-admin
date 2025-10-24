@@ -494,7 +494,7 @@ export interface paths {
         put?: never;
         /**
          * Calculate Pricing
-         * @description Calculate comprehensive pricing for vehicle rental including extra options and taxes.
+         * @description Calculate comprehensive pricing for vehicle rental with currency conversion support.
          */
         post: operations["Rider-calculate_pricing"];
         delete?: never;
@@ -1570,6 +1570,9 @@ export interface paths {
         /**
          * Get Currencies
          * @description Get list of supported currencies.
+         *
+         *     Dynamically generated from CurrencyEnum to ensure consistency.
+         *     Any new currencies added to CurrencyEnum will automatically appear here.
          */
         get: operations["Utils-get_currencies"];
         put?: never;
@@ -1610,6 +1613,9 @@ export interface paths {
         /**
          * Get Languages
          * @description Get list of supported languages.
+         *
+         *     Dynamically generated from LanguageEnum to ensure consistency.
+         *     Any new languages added to LanguageEnum will automatically appear here.
          */
         get: operations["Utils-get_languages"];
         put?: never;
@@ -2336,8 +2342,10 @@ export interface components {
              * Format: date-time
              */
             date_to?: string;
-            pick_up?: components["schemas"]["PickUp"];
-            drop_off?: components["schemas"]["DropOff"];
+            /** Pick Up Time */
+            pick_up_time?: string;
+            /** Drop Off Time */
+            drop_off_time?: string;
             selected_extra_options?: components["schemas"]["SelectedExtraOptions"];
         };
         /** CreateTransactionRequest */
@@ -2934,6 +2942,8 @@ export interface components {
              * Format: date-time
              */
             created_date?: string;
+            /** Vehicle Ids */
+            vehicle_ids?: string[];
         };
         /** PriceTemplate */
         "PriceTemplate-Output": {
@@ -2958,6 +2968,8 @@ export interface components {
              * Format: date-time
              */
             created_date?: string;
+            /** Vehicle Ids */
+            vehicle_ids?: string[];
         };
         /** PublicationStats */
         PublicationStats: {
@@ -4539,6 +4551,8 @@ export interface components {
              */
             date_to?: string;
             selected_extra_options?: components["schemas"]["SelectedExtraOptions"];
+            /** Currency */
+            currency?: string;
         };
         /** ValidateReservationResponse */
         ValidateReservationResponse: {
@@ -4559,6 +4573,12 @@ export interface components {
             selected_extra_options?: components["schemas"]["SelectedExtraOptionItem"][];
             /** Available Hours */
             available_hours?: components["schemas"]["AvailableHour"][];
+            /** Currency */
+            currency?: string;
+            /** Base Currency */
+            base_currency?: string;
+            /** Conversion Rate */
+            conversion_rate?: number;
         };
         /** ValidationError */
         ValidationError: {

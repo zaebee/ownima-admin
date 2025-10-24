@@ -151,16 +151,312 @@ describe('AdminService', () => {
     })
   })
 
-  describe('getRecentActivity', () => {
-    it('fetches recent activity successfully', async () => {
-      const result = await adminService.getRecentActivity()
+  describe('Activity Feed Methods', () => {
+    describe('getActivityUsers', () => {
+      it('fetches user activities successfully', async () => {
+        const result = await adminService.getActivityUsers(0, 10)
 
-      expect(result).toHaveProperty('users')
-      expect(result).toHaveProperty('vehicles')
-      expect(result).toHaveProperty('reservations')
-      expect(Array.isArray(result.users)).toBe(true)
-      expect(Array.isArray(result.vehicles)).toBe(true)
-      expect(Array.isArray(result.reservations)).toBe(true)
+        expect(result).toHaveProperty('data')
+        expect(result).toHaveProperty('total')
+        expect(Array.isArray(result.data)).toBe(true)
+      })
+
+      it('passes skip and limit parameters correctly', async () => {
+        let searchParams: URLSearchParams | null = null
+
+        server.use(
+          http.get(`${API_BASE}/admin/activity/users`, ({ request }) => {
+            searchParams = new URL(request.url).searchParams
+            return HttpResponse.json({ data: [], total: 0 })
+          })
+        )
+
+        await adminService.getActivityUsers(25, 50)
+
+        expect(searchParams?.get('skip')).toBe('25')
+        expect(searchParams?.get('limit')).toBe('50')
+      })
+
+      it('uses default values when parameters not provided', async () => {
+        let searchParams: URLSearchParams | null = null
+
+        server.use(
+          http.get(`${API_BASE}/admin/activity/users`, ({ request }) => {
+            searchParams = new URL(request.url).searchParams
+            return HttpResponse.json({ data: [], total: 0 })
+          })
+        )
+
+        await adminService.getActivityUsers()
+
+        expect(searchParams?.get('skip')).toBe('0')
+        expect(searchParams?.get('limit')).toBe('10')
+      })
+    })
+
+    describe('getActivityVehicles', () => {
+      it('fetches vehicle activities successfully', async () => {
+        const result = await adminService.getActivityVehicles(0, 10)
+
+        expect(result).toHaveProperty('data')
+        expect(result).toHaveProperty('total')
+        expect(Array.isArray(result.data)).toBe(true)
+      })
+
+      it('passes pagination parameters correctly', async () => {
+        let searchParams: URLSearchParams | null = null
+
+        server.use(
+          http.get(`${API_BASE}/admin/activity/vehicles`, ({ request }) => {
+            searchParams = new URL(request.url).searchParams
+            return HttpResponse.json({ data: [], total: 0 })
+          })
+        )
+
+        await adminService.getActivityVehicles(10, 20)
+
+        expect(searchParams?.get('skip')).toBe('10')
+        expect(searchParams?.get('limit')).toBe('20')
+      })
+    })
+
+    describe('getActivityReservations', () => {
+      it('fetches reservation activities successfully', async () => {
+        const result = await adminService.getActivityReservations(0, 10)
+
+        expect(result).toHaveProperty('data')
+        expect(result).toHaveProperty('total')
+        expect(Array.isArray(result.data)).toBe(true)
+      })
+
+      it('passes pagination parameters correctly', async () => {
+        let searchParams: URLSearchParams | null = null
+
+        server.use(
+          http.get(`${API_BASE}/admin/activity/reservations`, ({ request }) => {
+            searchParams = new URL(request.url).searchParams
+            return HttpResponse.json({ data: [], total: 0 })
+          })
+        )
+
+        await adminService.getActivityReservations(15, 30)
+
+        expect(searchParams?.get('skip')).toBe('15')
+        expect(searchParams?.get('limit')).toBe('30')
+      })
+    })
+
+    describe('getAllActivities', () => {
+      it('fetches and merges all activity types successfully', async () => {
+        const result = await adminService.getAllActivities(0, 10)
+
+        expect(result).toHaveProperty('data')
+        expect(result).toHaveProperty('total')
+        expect(Array.isArray(result.data)).toBe(true)
+        // Total should be sum of all activity types
+        expect(result.total).toBeGreaterThan(0)
+      })
+
+      it('sorts merged activities by timestamp (newest first)', async () => {
+        const result = await adminService.getAllActivities(0, 10)
+
+        // Verify activities are sorted by timestamp descending
+        for (let i = 1; i < result.data.length; i++) {
+          const prevTime = new Date(result.data[i - 1].timestamp).getTime()
+          const currTime = new Date(result.data[i].timestamp).getTime()
+          expect(prevTime).toBeGreaterThanOrEqual(currTime)
+        }
+      })
+
+      it('limits results to specified limit after merging', async () => {
+        const result = await adminService.getAllActivities(0, 5)
+
+        expect(result.data.length).toBeLessThanOrEqual(5)
+      })
+
+      it('passes skip and limit to all three endpoints', async () => {
+        // const userParams: URLSearchParams | null = null
+        // const vehicleParams: URLSearchParams | null = null
+        // const reservationParams: URLSearchParams | null = null
+
+        server.use(
+          http.get(`${API_BASE}/admin/activity/users`, ({ request }) => {
+            const params = new URL(request.url).searchParams
+            expect(params.get('skip')).toBe('10')
+            expect(params.get('limit')).toBe('20')
+            return HttpResponse.json({ data: [], total: 0 })
+          }),
+          http.get(`${API_BASE}/admin/activity/vehicles`, ({ request }) => {
+            const params = new URL(request.url).searchParams
+            expect(params.get('skip')).toBe('10')
+            expect(params.get('limit')).toBe('20')
+            return HttpResponse.json({ data: [], total: 0 })
+          }),
+          http.get(`${API_BASE}/admin/activity/reservations`, ({ request }) => {
+            const params = new URL(request.url).searchParams
+            expect(params.get('skip')).toBe('10')
+            expect(params.get('limit')).toBe('20')
+            return HttpResponse.json({ data: [], total: 0 })
+          })
+        )
+
+        await adminService.getAllActivities(10, 20)
+      })
+
+      describe('Partial Success Handling', () => {
+        it('returns data from successful endpoints when one fails', async () => {
+          server.use(
+            http.get(`${API_BASE}/admin/activity/users`, () => {
+              return HttpResponse.json({
+                data: [
+                  {
+                    id: 'user-1',
+                    timestamp: new Date().toISOString(),
+                    user_id: 'user-123',
+                    activity_type: 'user_login',
+                    details: { user_name: 'John Doe', user_email: 'john@test.com', user_role: 'OWNER', user_id: 'user-123' },
+                  },
+                ],
+                total: 1,
+              })
+            }),
+            http.get(`${API_BASE}/admin/activity/vehicles`, () => {
+              return HttpResponse.error() // Simulate failure
+            }),
+            http.get(`${API_BASE}/admin/activity/reservations`, () => {
+              return HttpResponse.json({
+                data: [
+                  {
+                    id: 'reservation-1',
+                    timestamp: new Date().toISOString(),
+                    user_id: 'user-456',
+                    activity_type: 'reservation_created',
+                    details: { reservation_id: 'res-123', status: 'pending', total_price: 250, entity_id: 'entity-123', user_id: 'user-456', event_type: 'reservation_created' },
+                  },
+                ],
+                total: 1,
+              })
+            })
+          )
+
+          const result = await adminService.getAllActivities(0, 10)
+
+          // Should have data from users and reservations, but not vehicles
+          expect(result.data.length).toBe(2)
+          expect(result.total).toBe(2) // 1 from users + 1 from reservations
+        })
+
+        it('returns empty result when all endpoints fail', async () => {
+          server.use(
+            http.get(`${API_BASE}/admin/activity/users`, () => HttpResponse.error()),
+            http.get(`${API_BASE}/admin/activity/vehicles`, () => HttpResponse.error()),
+            http.get(`${API_BASE}/admin/activity/reservations`, () => HttpResponse.error())
+          )
+
+          const result = await adminService.getAllActivities(0, 10)
+
+          expect(result.data).toEqual([])
+          expect(result.total).toBe(0)
+        })
+
+        it('returns data when two endpoints fail', async () => {
+          server.use(
+            http.get(`${API_BASE}/admin/activity/users`, () => HttpResponse.error()),
+            http.get(`${API_BASE}/admin/activity/vehicles`, () => {
+              return HttpResponse.json({
+                data: [
+                  {
+                    id: 'vehicle-1',
+                    timestamp: new Date().toISOString(),
+                    user_id: 'user-123',
+                    activity_type: 'vehicle_created',
+                    details: { vehicle_id: 'vehicle-123', name: 'Tesla Model 3', status: 'draft', entity_id: 'entity-123', user_id: 'user-123', event_type: 'vehicle_created' },
+                  },
+                ],
+                total: 1,
+              })
+            }),
+            http.get(`${API_BASE}/admin/activity/reservations`, () => HttpResponse.error())
+          )
+
+          const result = await adminService.getAllActivities(0, 10)
+
+          expect(result.data.length).toBe(1)
+          expect(result.data[0].activity_type).toBe('vehicle_created')
+          expect(result.total).toBe(1)
+        })
+
+        it('continues execution without throwing when endpoints fail', async () => {
+          server.use(
+            http.get(`${API_BASE}/admin/activity/users`, () => HttpResponse.error()),
+            http.get(`${API_BASE}/admin/activity/vehicles`, () => HttpResponse.error()),
+            http.get(`${API_BASE}/admin/activity/reservations`, () => HttpResponse.error())
+          )
+
+          // Should not throw an error
+          await expect(adminService.getAllActivities(0, 10)).resolves.toBeDefined()
+        })
+      })
+
+      describe('Data Merging and Sorting', () => {
+        it('merges activities from all three sources', async () => {
+          server.use(
+            http.get(`${API_BASE}/admin/activity/users`, () => {
+              return HttpResponse.json({
+                data: [
+                  {
+                    id: 'user-1',
+                    timestamp: new Date(Date.now() - 1000).toISOString(), // 1 second ago
+                    user_id: 'user-123',
+                    activity_type: 'user_login',
+                    details: { user_name: 'User 1', user_email: 'user1@test.com', user_role: 'OWNER', user_id: 'user-123' },
+                  },
+                ],
+                total: 1,
+              })
+            }),
+            http.get(`${API_BASE}/admin/activity/vehicles`, () => {
+              return HttpResponse.json({
+                data: [
+                  {
+                    id: 'vehicle-1',
+                    timestamp: new Date(Date.now() - 3000).toISOString(), // 3 seconds ago
+                    user_id: 'user-123',
+                    activity_type: 'vehicle_created',
+                    details: { vehicle_id: 'vehicle-123', name: 'Vehicle 1', status: 'draft', entity_id: 'entity-123', user_id: 'user-123', event_type: 'vehicle_created' },
+                  },
+                ],
+                total: 1,
+              })
+            }),
+            http.get(`${API_BASE}/admin/activity/reservations`, () => {
+              return HttpResponse.json({
+                data: [
+                  {
+                    id: 'reservation-1',
+                    timestamp: new Date(Date.now() - 2000).toISOString(), // 2 seconds ago
+                    user_id: 'user-456',
+                    activity_type: 'reservation_created',
+                    details: { reservation_id: 'res-123', status: 'pending', total_price: 250, entity_id: 'entity-123', user_id: 'user-456', event_type: 'reservation_created' },
+                  },
+                ],
+                total: 1,
+              })
+            })
+          )
+
+          const result = await adminService.getAllActivities(0, 10)
+
+          // Should have all 3 activities
+          expect(result.data.length).toBe(3)
+          expect(result.total).toBe(3)
+
+          // Should be sorted newest first
+          expect(result.data[0].id).toBe('user-1') // Most recent
+          expect(result.data[1].id).toBe('reservation-1') // Middle
+          expect(result.data[2].id).toBe('vehicle-1') // Oldest
+        })
+      })
     })
   })
 

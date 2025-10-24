@@ -191,45 +191,88 @@ export interface SystemError {
   resolved: boolean;
 }
 
-export interface UserActivity {
-  id?: string;
-  timestamp: string;
-  user_id?: string;
-  user_email?: string;
-  user_name?: string;
-  user_role?: string;
-  activity_type: string;
-  type?: string; // Backend uses lowercase 'type' field
-  description?: string;
-  ip_address?: string;
-  user_agent?: string;
-  metadata?: Record<string, unknown>;
-  details: {
-    user_id?: string;
-    user_email?: string;
-    user_name?: string;
-    user_role?: string;
-    login_count?: number;
-    [key: string]: unknown;
+// Activity Feed Types (Backend Specification v2.0)
+
+// Activity type definitions
+export type UserActivityType = 'user_registered' | 'user_login' | 'rider_registered' | 'rider_login';
+
+export type VehicleActivityType =
+  | 'vehicle_created'
+  | 'vehicle_updated'
+  | 'vehicle_published'
+  | 'vehicle_archived'
+  | 'vehicle_deleted'
+  | 'vehicle_drafts_deleted';
+
+export type ReservationActivityType =
+  | 'reservation_created'
+  | 'reservation_status_updated_collected'
+  | 'reservation_status_updated_completed'
+  | 'reservation_status_updated_cancelled';
+
+export type ActivityType = UserActivityType | VehicleActivityType | ReservationActivityType;
+
+// Activity details interfaces for different activity types
+export interface UserActivityDetails {
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  user_role: 'OWNER' | 'RIDER';
+  login_count?: number;
+}
+
+export interface VehicleActivityDetails {
+  event_type: string;
+  vehicle_id?: string;
+  name?: string;
+  status?: 'draft' | 'free' | 'collected' | 'maintenance' | 'archived' | 'deleted';
+  vehicle_type?: string;
+  brand?: string;
+  model?: string;
+  entity_id: string;
+  user_id: string;
+  deleted_count?: number; // For bulk operations
+  changes?: {
+    [key: string]: {
+      from: string | number;
+      to: string | number;
+    };
   };
 }
 
-export interface VehicleActivity {
-  timestamp: string;
-  activity_type: string;
-  details: Record<string, unknown>;
+export interface ReservationActivityDetails {
+  event_type: string;
+  reservation_id: string;
+  status: 'pending' | 'confirmed' | 'collected' | 'completed' | 'cancelled';
+  total_price: number;
+  start_date?: string;
+  end_date?: string;
+  vehicle_id?: string;
+  entity_id: string;
+  user_id: string;
+  changes?: {
+    [key: string]: {
+      from: string | number;
+      to: string | number;
+    };
+  };
 }
 
-export interface ReservationActivity {
-  timestamp: string;
-  activity_type: string;
-  details: Record<string, unknown>;
+export type ActivityDetails = UserActivityDetails | VehicleActivityDetails | ReservationActivityDetails;
+
+// Main Activity interface matching backend specification
+export interface Activity {
+  id: string; // Entity ID (vehicle_id, reservation_id, or user_id)
+  timestamp: string; // ISO 8601 format
+  user_id: string; // Who performed the action
+  activity_type: ActivityType;
+  details: ActivityDetails;
 }
 
-export interface RecentActivity {
-  users: UserActivity[];
-  vehicles: VehicleActivity[];
-  reservations: ReservationActivity[];
+// Paginated response from backend
+export interface PaginatedActivityResponse {
+  data: Activity[];
+  total: number; // Total count of activities returned
 }
 
 export interface BookingStats {
