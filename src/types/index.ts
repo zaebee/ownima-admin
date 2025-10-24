@@ -102,6 +102,7 @@ export interface VehicleBlockMetrics {
   collected: number;
   maintenance: number;
   archived: number;
+  unspecified: number; // NEW - from api-generated.ts
 }
 
 export interface ReservationBlockMetrics {
@@ -112,6 +113,14 @@ export interface ReservationBlockMetrics {
   completed: number;
   cancelled: number;
   maintenance: number;
+
+  // NEW FIELDS - from api-generated.ts
+  confirmation_by_rider: number;
+  confirmation_by_owner: number;
+  overdue: number;
+  conflict: number;
+  no_response: number;
+  unspecified: number;
 }
 
 export interface BlockMetrics {
@@ -130,14 +139,20 @@ export interface FilterParams {
   dateRange?: DateRange;
   role?: 'OWNER' | 'RIDER' | 'ALL';
   userStatus?: string;
-  vehicleStatus?: 'draft' | 'free' | 'collected' | 'maintenance' | 'archived';
+  vehicleStatus?: 'draft' | 'free' | 'collected' | 'maintenance' | 'archived' | 'unspecified';
   reservationStatus?:
     | 'pending'
     | 'confirmed'
     | 'collected'
     | 'completed'
     | 'cancelled'
-    | 'maintenance';
+    | 'maintenance'
+    | 'confirmation_by_rider'
+    | 'confirmation_by_owner'
+    | 'overdue'
+    | 'conflict'
+    | 'no_response'
+    | 'unspecified';
 }
 
 export type DateRangePreset = 'today' | 'yesterday' | 'last_7_days' | 'last_30_days' | 'custom';

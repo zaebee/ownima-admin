@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import clsx from 'clsx';
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { MetricRow } from './MetricRow';
+import { MetricCard } from './MetricCard';
 import type { MetricRowData } from '../../types';
 
 interface MetricBlockProps {
@@ -13,6 +14,11 @@ interface MetricBlockProps {
   collapsible?: boolean;
   defaultExpanded?: boolean;
   liveIndicator?: boolean;
+  layout?: 'row' | 'card'; // Layout mode: row (horizontal) or card (vertical tiles)
+  gridColumns?: 1 | 2 | 3; // Number of columns for grid layout (default: 1 for row, 3 for card)
+  secondaryMetrics?: MetricRowData[]; // Optional advanced/secondary metrics
+  secondaryLabel?: string; // Label for secondary section (default: "Advanced")
+  secondaryDefaultExpanded?: boolean; // Whether secondary section is expanded by default
 }
 
 const colorThemes = {
@@ -42,6 +48,12 @@ const colorThemes = {
   }
 };
 
+const gridColumnsMap = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-1 md:grid-cols-2',
+  3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+};
+
 export const MetricBlock: React.FC<MetricBlockProps> = ({
   title,
   icon: Icon,
@@ -50,10 +62,21 @@ export const MetricBlock: React.FC<MetricBlockProps> = ({
   loading = false,
   collapsible = true,
   defaultExpanded = true,
-  liveIndicator = true
+  liveIndicator = true,
+  layout = 'row',
+  gridColumns,
+  secondaryMetrics,
+  secondaryLabel = 'Advanced',
+  secondaryDefaultExpanded = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [isSecondaryExpanded, setIsSecondaryExpanded] = useState(secondaryDefaultExpanded);
   const theme = colorThemes[color];
+
+  // Default grid columns based on layout
+  const defaultGridColumns = layout === 'card' ? 3 : 1;
+  const effectiveGridColumns = gridColumns ?? defaultGridColumns;
+  const gridClass = gridColumnsMap[effectiveGridColumns];
 
   const toggleExpanded = () => {
     if (collapsible) {
@@ -124,16 +147,89 @@ export const MetricBlock: React.FC<MetricBlockProps> = ({
         isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
       )}>
         <div className="p-6 pt-0">
-          {/* Metrics list */}
-          <div className="space-y-2">
+          {/* Primary Metrics - Grid Layout */}
+          <div className={clsx('grid', layout === 'card' ? 'gap-4' : 'gap-2', gridClass)}>
             {metrics.map((metric, index) => (
-              <MetricRow
-                key={`${metric.label}-${index}`}
-                {...metric}
-                loading={loading}
-              />
+              layout === 'card' ? (
+                metric.icon && (
+                  <MetricCard
+                    key={`${metric.label}-${index}`}
+                    title={metric.label}
+                    value={metric.value}
+                    icon={metric.icon}
+                    color={color}
+                    size="small"
+                    trend={metric.trend ? { ...metric.trend, label: '' } : undefined}
+                    href={metric.href}
+                    loading={loading}
+                    clickable={!!metric.href}
+                  />
+                )
+              ) : (
+                <MetricRow
+                  key={`${metric.label}-${index}`}
+                  {...metric}
+                  loading={loading}
+                />
+              )
             ))}
           </div>
+
+          {/* Secondary/Advanced Metrics Section */}
+          {secondaryMetrics && secondaryMetrics.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setIsSecondaryExpanded(!isSecondaryExpanded)}
+                className="flex items-center justify-between w-full text-left hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold text-gray-700">
+                    {secondaryLabel} Status
+                  </span>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                    {secondaryMetrics.length}
+                  </span>
+                </div>
+                {isSecondaryExpanded ? (
+                  <ChevronUpIcon className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+
+              <div className={clsx(
+                'transition-all duration-300 overflow-hidden',
+                isSecondaryExpanded ? 'max-h-screen opacity-100 mt-2' : 'max-h-0 opacity-0'
+              )}>
+                <div className={clsx('grid', layout === 'card' ? 'gap-4' : 'gap-2', gridClass)}>
+                  {secondaryMetrics.map((metric, index) => (
+                    layout === 'card' ? (
+                      metric.icon && (
+                        <MetricCard
+                          key={`secondary-${metric.label}-${index}`}
+                          title={metric.label}
+                          value={metric.value}
+                          icon={metric.icon}
+                          color={color}
+                          size="small"
+                          trend={metric.trend ? { ...metric.trend, label: '' } : undefined}
+                          href={metric.href}
+                          loading={loading}
+                          clickable={!!metric.href}
+                        />
+                      )
+                    ) : (
+                      <MetricRow
+                        key={`secondary-${metric.label}-${index}`}
+                        {...metric}
+                        loading={loading}
+                      />
+                    )
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Loading skeleton */}
           {loading && metrics.length === 0 && (

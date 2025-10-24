@@ -6,6 +6,9 @@ import { MetricBlock } from '../components/ui/MetricBlock';
 import { FilterPanel } from '../components/ui/FilterPanel';
 import { SkeletonMetricBlock, SkeletonHeader } from '../components/ui/SkeletonLoader';
 import { ErrorState } from '../components/ui/EmptyState';
+import { StatusPieChart } from '../components/ui/StatusPieChart';
+import { STATUS_COLORS } from '../components/ui/statusColors';
+import type { StatusData } from '../components/ui/StatusPieChart';
 import {
   UsersIcon,
   UserIcon,
@@ -20,6 +23,11 @@ import {
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 import type { FilterParams, MetricRowData } from '../types';
+import {
+  createOwnerMetrics,
+  createRiderMetrics,
+  createVehicleMetrics,
+} from '../utils/metricFactory';
 
 export const DashboardPage: React.FC = () => {
   // Filter state
@@ -81,97 +89,13 @@ export const DashboardPage: React.FC = () => {
 
   const data = blockMetrics;
 
-  // Prepare metrics for each block
-  const ownerMetrics: MetricRowData[] = [
-    {
-      label: 'Total Vehicle Owners',
-      value: data.users.owners.total,
-      icon: TruckIcon,
-      href: '/dashboard/users?type=OWNER',
-      color: 'purple',
-    },
-    {
-      label: 'Active Owners (30 days)',
-      value: data.users.owners.online_last_30_days,
-      icon: UserIcon,
-      color: 'green',
-      trend: {
-        value: data.users.owners.total > 0
-          ? Math.round((data.users.owners.online_last_30_days / data.users.owners.total) * 100)
-          : 0,
-        direction: 'neutral' as const,
-      },
-    },
-    {
-      label: 'Owner Logins Today',
-      value: data.users.owners.logins_today,
-      icon: ClockIcon,
-      color: 'blue',
-    },
-    {
-      label: 'Avg. Vehicles per Owner',
-      value: data.users.owners.total > 0 ? (data.vehicles.total / data.users.owners.total).toFixed(1) : 'N/A',
-      icon: CogIcon,
-      color: 'gray',
-    },
-  ];
+  // Create metrics using factory functions (DRY pattern)
+  const { primary: ownerMetrics, secondary: ownerMetricsSecondary } = createOwnerMetrics(data);
+  const { primary: riderMetrics, secondary: riderMetricsSecondary } = createRiderMetrics(data);
+  const { primary: vehicleMetrics, secondary: vehicleMetricsSecondary } = createVehicleMetrics(data);
 
-  const riderMetrics: MetricRowData[] = [
-    {
-      label: 'Total Riders',
-      value: data.users.riders.total,
-      icon: UserIcon,
-      href: '/dashboard/users?type=RIDER',
-      color: 'green',
-    },
-    {
-      label: 'Active Riders (30 days)',
-      value: data.users.riders.online_last_30_days,
-      icon: UserIcon,
-      color: 'green',
-      trend: {
-        value: data.users.riders.total > 0
-          ? Math.round((data.users.riders.online_last_30_days / data.users.riders.total) * 100)
-          : 0,
-        direction: 'neutral' as const,
-      },
-    },
-    {
-      label: 'Rider Logins Today',
-      value: data.users.riders.logins_today,
-      icon: ClockIcon,
-      color: 'blue',
-    },
-    {
-      label: 'Avg. Bookings per Rider',
-      value:
-        data.users.riders.total > 0 ? (data.reservations.total / data.users.riders.total).toFixed(1) : 'N/A',
-      icon: CalendarDaysIcon,
-      color: 'purple',
-    },
-  ];
-
-  const vehicleMetrics: MetricRowData[] = [
-    { label: 'Total Vehicles', value: data.vehicles.total, icon: TruckIcon, color: 'green' },
-    { label: 'Draft Status', value: data.vehicles.draft, icon: DocumentCheckIcon, color: 'yellow' },
-    {
-      label: 'Available',
-      value: data.vehicles.free,
-      icon: CheckCircleIcon,
-      color: 'green',
-      trend: { value: 5, direction: 'up' },
-    },
-    { label: 'Currently Rented', value: data.vehicles.collected, icon: ClockIcon, color: 'blue' },
-    {
-      label: 'Under Maintenance',
-      value: data.vehicles.maintenance,
-      icon: WrenchScrewdriverIcon,
-      color: 'red',
-    },
-    { label: 'Archived', value: data.vehicles.archived, icon: XCircleIcon, color: 'gray' },
-  ];
-
-  const reservationMetrics: MetricRowData[] = [
+  // Primary reservation metrics (most important statuses)
+  const reservationMetricsPrimary: MetricRowData[] = [
     {
       label: 'Total Reservations',
       value: data.reservations.total,
@@ -205,6 +129,80 @@ export const DashboardPage: React.FC = () => {
       icon: WrenchScrewdriverIcon,
       color: 'red',
     },
+  ];
+
+  // Secondary/Advanced reservation metrics (edge cases and detailed statuses)
+  const reservationMetricsSecondary: MetricRowData[] = [
+    {
+      label: 'Awaiting Rider Confirmation',
+      value: data.reservations.confirmation_by_rider || 0,
+      icon: UserIcon,
+      color: 'yellow',
+    },
+    {
+      label: 'Awaiting Owner Confirmation',
+      value: data.reservations.confirmation_by_owner || 0,
+      icon: TruckIcon,
+      color: 'yellow',
+    },
+    {
+      label: 'Overdue',
+      value: data.reservations.overdue || 0,
+      icon: ClockIcon,
+      color: 'red',
+    },
+    {
+      label: 'Conflict',
+      value: data.reservations.conflict || 0,
+      icon: XCircleIcon,
+      color: 'red',
+    },
+    {
+      label: 'No Response',
+      value: data.reservations.no_response || 0,
+      icon: ClockIcon,
+      color: 'gray',
+    },
+    {
+      label: 'Unspecified Status',
+      value: data.reservations.unspecified || 0,
+      icon: CogIcon,
+      color: 'gray',
+    },
+  ];
+
+  // Prepare data for vehicle status chart
+  const vehicleStatusData: StatusData[] = [
+    { name: 'Available', value: data.vehicles.free, color: STATUS_COLORS.free },
+    { name: 'Draft', value: data.vehicles.draft, color: STATUS_COLORS.draft },
+    { name: 'Rented', value: data.vehicles.collected, color: STATUS_COLORS.collected },
+    { name: 'Maintenance', value: data.vehicles.maintenance, color: STATUS_COLORS.maintenance },
+    { name: 'Archived', value: data.vehicles.archived, color: STATUS_COLORS.archived },
+    { name: 'Unspecified', value: data.vehicles.unspecified || 0, color: STATUS_COLORS.unspecified },
+  ];
+
+  // Prepare data for reservation status chart
+  const reservationStatusData: StatusData[] = [
+    { name: 'Completed', value: data.reservations.completed, color: STATUS_COLORS.completed },
+    { name: 'Confirmed', value: data.reservations.confirmed, color: STATUS_COLORS.confirmed },
+    { name: 'Collected', value: data.reservations.collected, color: STATUS_COLORS.collected },
+    { name: 'Pending', value: data.reservations.pending, color: STATUS_COLORS.pending },
+    { name: 'Cancelled', value: data.reservations.cancelled, color: STATUS_COLORS.cancelled },
+    { name: 'Maintenance', value: data.reservations.maintenance, color: STATUS_COLORS.maintenance },
+    {
+      name: 'Conf. by Rider',
+      value: data.reservations.confirmation_by_rider || 0,
+      color: STATUS_COLORS.confirmation_by_rider,
+    },
+    {
+      name: 'Conf. by Owner',
+      value: data.reservations.confirmation_by_owner || 0,
+      color: STATUS_COLORS.confirmation_by_owner,
+    },
+    { name: 'Overdue', value: data.reservations.overdue || 0, color: STATUS_COLORS.overdue },
+    { name: 'Conflict', value: data.reservations.conflict || 0, color: STATUS_COLORS.conflict },
+    { name: 'No Response', value: data.reservations.no_response || 0, color: STATUS_COLORS.no_response },
+    { name: 'Unspecified', value: data.reservations.unspecified || 0, color: STATUS_COLORS.unspecified },
   ];
 
   return (
@@ -242,6 +240,8 @@ export const DashboardPage: React.FC = () => {
           title="Owners"
           icon={TruckIcon}
           metrics={ownerMetrics}
+          secondaryMetrics={ownerMetricsSecondary}
+          secondaryLabel="Additional"
           color="purple"
           loading={isLoading}
           liveIndicator={true}
@@ -252,6 +252,8 @@ export const DashboardPage: React.FC = () => {
           title="Riders"
           icon={UserIcon}
           metrics={riderMetrics}
+          secondaryMetrics={riderMetricsSecondary}
+          secondaryLabel="Additional"
           color="green"
           loading={isLoading}
           liveIndicator={true}
@@ -262,6 +264,8 @@ export const DashboardPage: React.FC = () => {
           title="Vehicles"
           icon={TruckIcon}
           metrics={vehicleMetrics}
+          secondaryMetrics={vehicleMetricsSecondary}
+          secondaryLabel="Other Statuses"
           color="blue"
           loading={isLoading}
           liveIndicator={true}
@@ -271,11 +275,34 @@ export const DashboardPage: React.FC = () => {
         <MetricBlock
           title="Reservations"
           icon={CalendarDaysIcon}
-          metrics={reservationMetrics}
+          metrics={reservationMetricsPrimary}
+          secondaryMetrics={reservationMetricsSecondary}
+          secondaryLabel="Advanced"
           color="purple"
           loading={isLoading}
           liveIndicator={true}
         />
+      </div>
+
+      {/* Status Distribution Charts */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Status Distribution</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StatusPieChart
+            data={vehicleStatusData}
+            title="Vehicle Status Distribution"
+            loading={isLoading}
+            innerRadius={60}
+            height={350}
+          />
+          <StatusPieChart
+            data={reservationStatusData}
+            title="Reservation Status Distribution"
+            loading={isLoading}
+            innerRadius={60}
+            height={350}
+          />
+        </div>
       </div>
 
       {/* Quick Actions section */}
