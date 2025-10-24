@@ -52,9 +52,11 @@ describe('AdminService', () => {
       expect(result).toHaveProperty('vehicles')
       expect(result).toHaveProperty('reservations')
 
-      expect(result.users).toHaveProperty('total')
       expect(result.users).toHaveProperty('owners')
       expect(result.users).toHaveProperty('riders')
+      expect(result.users).toHaveProperty('total_users')
+      expect(result.users.owners).toHaveProperty('total')
+      expect(result.users.riders).toHaveProperty('total')
 
       expect(result.vehicles).toHaveProperty('total')
       expect(result.vehicles).toHaveProperty('free')
@@ -70,7 +72,29 @@ describe('AdminService', () => {
         http.get(`${API_BASE}/admin/metrics/blocks`, ({ request }) => {
           searchParams = new URL(request.url).searchParams
           return HttpResponse.json({
-            users: { total: 0, owners: 0, riders: 0, logins: 0, online_last_30_days: 0, internal: 0, external: 0 },
+            users: {
+              owners: {
+                total: 0,
+                online_last_30_days: 0,
+                logins_today: 0,
+                internal: 0,
+                external: 0,
+                verified: 0,
+                with_vehicles: 0,
+                with_active_rentals: 0,
+              },
+              riders: {
+                total: 0,
+                online_last_30_days: 0,
+                logins_today: 0,
+                internal: 0,
+                external: 0,
+                with_bookings: 0,
+                with_completed_trips: 0,
+                with_active_bookings: 0,
+              },
+              total_users: 0,
+            },
             vehicles: { total: 0, draft: 0, free: 0, collected: 0, maintenance: 0, archived: 0 },
             reservations: { total: 0, pending: 0, confirmed: 0, collected: 0, completed: 0, cancelled: 0, maintenance: 0 },
           })
@@ -97,7 +121,29 @@ describe('AdminService', () => {
         http.get(`${API_BASE}/admin/metrics/blocks`, ({ request }) => {
           searchParams = new URL(request.url).searchParams
           return HttpResponse.json({
-            users: { total: 0, owners: 0, riders: 0, logins: 0, online_last_30_days: 0, internal: 0, external: 0 },
+            users: {
+              owners: {
+                total: 0,
+                online_last_30_days: 0,
+                logins_today: 0,
+                internal: 0,
+                external: 0,
+                verified: 0,
+                with_vehicles: 0,
+                with_active_rentals: 0,
+              },
+              riders: {
+                total: 0,
+                online_last_30_days: 0,
+                logins_today: 0,
+                internal: 0,
+                external: 0,
+                with_bookings: 0,
+                with_completed_trips: 0,
+                with_active_bookings: 0,
+              },
+              total_users: 0,
+            },
             vehicles: { total: 0, draft: 0, free: 0, collected: 0, maintenance: 0, archived: 0 },
             reservations: { total: 0, pending: 0, confirmed: 0, collected: 0, completed: 0, cancelled: 0, maintenance: 0 },
           })
@@ -535,6 +581,7 @@ describe('AdminService', () => {
       expect(result).toHaveProperty('total_owners')
       expect(result).toHaveProperty('total_riders')
       expect(result).toHaveProperty('total_bookings')
+      // Now returns nested total from owners/riders objects
       expect(result.total_owners).toBe(40)
       expect(result.total_riders).toBe(60)
     })
@@ -545,6 +592,7 @@ describe('AdminService', () => {
       expect(result).toHaveProperty('owners')
       expect(result).toHaveProperty('riders')
       expect(result).toHaveProperty('total')
+      // Now extracts total from nested owners/riders objects
       expect(result.owners).toBe(40)
       expect(result.riders).toBe(60)
       expect(result.total).toBe(100)

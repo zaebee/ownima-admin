@@ -60,15 +60,39 @@ export interface DashboardMetrics {
   bookings_for_today: number;
 }
 
-// New 3-Block Metrics Structure (from team dialog)
-export interface UserBlockMetrics {
+// Admin Metrics Blocks API v2.0 - Nested Structure
+export interface OwnerMetrics {
+  // Core metrics (real data from User table)
   total: number;
   online_last_30_days: number;
+  logins_today: number;
+
+  // Placeholder metrics (returns 0 - not yet implemented in backend)
   internal: number;
   external: number;
-  owners: number;
-  riders: number;
-  logins: number;
+  verified: number;
+  with_vehicles: number;
+  with_active_rentals: number;
+}
+
+export interface RiderMetrics {
+  // Core metrics (real data from RiderUser table)
+  total: number;
+  online_last_30_days: number;
+  logins_today: number;
+
+  // Placeholder metrics (returns 0 - not yet implemented in backend)
+  internal: number;
+  external: number;
+  with_bookings: number;
+  with_completed_trips: number;
+  with_active_bookings: number;
+}
+
+export interface UserBlockMetrics {
+  owners: OwnerMetrics;
+  riders: RiderMetrics;
+  total_users: number;
 }
 
 export interface VehicleBlockMetrics {

@@ -1905,7 +1905,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Activity */
+        /**
+         * Activity
+         * @description Model for activity events.
+         */
         Activity: {
             /** Id */
             id: string;
@@ -2272,6 +2275,22 @@ export interface components {
         ConflictReservationResponse: {
             /** Groups */
             groups?: components["schemas"]["ConflictGroup"][];
+        };
+        /**
+         * Coordinates
+         * @description Geographic coordinates (latitude, longitude).
+         */
+        Coordinates: {
+            /**
+             * Latitude
+             * @description Latitude in decimal degrees
+             */
+            latitude: number;
+            /**
+             * Longitude
+             * @description Longitude in decimal degrees
+             */
+            longitude: number;
         };
         /** CreateExtraOptionRequest */
         CreateExtraOptionRequest: {
@@ -2766,6 +2785,52 @@ export interface components {
          */
         OperationType: 0 | 1 | 2;
         /**
+         * OwnerMetrics
+         * @description Owner-specific metrics.
+         */
+        OwnerMetrics: {
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Internal
+             * @default 0
+             */
+            internal: number;
+            /**
+             * External
+             * @default 0
+             */
+            external: number;
+            /**
+             * Online Last 30 Days
+             * @default 0
+             */
+            online_last_30_days: number;
+            /**
+             * Logins Today
+             * @default 0
+             */
+            logins_today: number;
+            /**
+             * Verified
+             * @default 0
+             */
+            verified: number;
+            /**
+             * With Vehicles
+             * @default 0
+             */
+            with_vehicles: number;
+            /**
+             * With Active Rentals
+             * @default 0
+             */
+            with_active_rentals: number;
+        };
+        /**
          * OwnerPublicProfile
          * @description Schema for public owner profile information.
          */
@@ -2811,8 +2876,13 @@ export interface components {
              * @description Account creation date
              */
             created_at: string;
+            /** @description Optional geographic coordinates (latitude, longitude) */
+            coords?: components["schemas"]["Coordinates"] | null;
         };
-        /** PaginatedActivityResponse */
+        /**
+         * PaginatedActivityResponse
+         * @description Paginated response for activity events.
+         */
         PaginatedActivityResponse: {
             /** Data */
             data: components["schemas"]["Activity"][];
@@ -3006,7 +3076,7 @@ export interface components {
         };
         /**
          * RecentActivity
-         * @description Container model for recent activities across different domains.
+         * @description Container model for recent activities.
          */
         RecentActivity: {
             /** Users */
@@ -3095,7 +3165,7 @@ export interface components {
         };
         /**
          * ReservationActivity
-         * @description Model for a single reservation activity event.
+         * @description Model for reservation activity events.
          */
         ReservationActivity: {
             /** Timestamp */
@@ -3109,7 +3179,7 @@ export interface components {
         };
         /**
          * ReservationBlockMetrics
-         * @description Reservation metrics for admin dashboard - Plan Compliant.
+         * @description Reservation metrics for admin dashboard.
          */
         ReservationBlockMetrics: {
             /**
@@ -3339,6 +3409,52 @@ export interface components {
             rating?: number;
             /** Avatar */
             avatar?: string;
+        };
+        /**
+         * RiderMetrics
+         * @description Rider-specific metrics.
+         */
+        RiderMetrics: {
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Internal
+             * @default 0
+             */
+            internal: number;
+            /**
+             * External
+             * @default 0
+             */
+            external: number;
+            /**
+             * Online Last 30 Days
+             * @default 0
+             */
+            online_last_30_days: number;
+            /**
+             * Logins Today
+             * @default 0
+             */
+            logins_today: number;
+            /**
+             * With Bookings
+             * @default 0
+             */
+            with_bookings: number;
+            /**
+             * With Completed Trips
+             * @default 0
+             */
+            with_completed_trips: number;
+            /**
+             * With Active Bookings
+             * @default 0
+             */
+            with_active_bookings: number;
         };
         /**
          * RiderProfileResponse
@@ -3998,6 +4114,11 @@ export interface components {
              * @description Profile biography
              */
             bio?: string | null;
+            /**
+             * Currency
+             * @description Preferred currency
+             */
+            currency?: string | null;
         };
         /** UpdateVehicleRequest */
         UpdateVehicleRequest: {
@@ -4015,7 +4136,7 @@ export interface components {
         };
         /**
          * UserActivity
-         * @description Model for a single user activity event.
+         * @description Model for user activity events.
          */
         UserActivity: {
             /** Timestamp */
@@ -4102,44 +4223,16 @@ export interface components {
         };
         /**
          * UserBlockMetrics
-         * @description User metrics for admin dashboard.
+         * @description Separated user metrics for admin dashboard.
          */
         UserBlockMetrics: {
+            owners: components["schemas"]["OwnerMetrics"];
+            riders: components["schemas"]["RiderMetrics"];
             /**
-             * Total
+             * Total Users
              * @default 0
              */
-            total: number;
-            /**
-             * Online Last 30 Days
-             * @default 0
-             */
-            online_last_30_days: number;
-            /**
-             * Internal
-             * @default 0
-             */
-            internal: number;
-            /**
-             * External
-             * @default 0
-             */
-            external: number;
-            /**
-             * Owners
-             * @default 0
-             */
-            owners: number;
-            /**
-             * Riders
-             * @default 0
-             */
-            riders: number;
-            /**
-             * Logins
-             * @default 0
-             */
-            logins: number;
+            total_users: number;
         };
         /** UserCreate */
         UserCreate: {
@@ -4260,11 +4353,8 @@ export interface components {
              * @default 0
              */
             wallet_balance: number;
-            /**
-             * Wallet Currency
-             * @default EUR
-             */
-            wallet_currency: string;
+            /** @default USD */
+            wallet_currency: components["schemas"]["CurrencyEnum"];
             /**
              * Total Spent
              * @default 0
@@ -4677,7 +4767,7 @@ export interface components {
         };
         /**
          * VehicleActivity
-         * @description Model for a single vehicle activity event.
+         * @description Model for vehicle activity events.
          */
         VehicleActivity: {
             /** Timestamp */
@@ -4737,7 +4827,7 @@ export interface components {
         };
         /**
          * VehicleBlockMetrics
-         * @description Vehicle metrics for admin dashboard - Plan Compliant.
+         * @description Vehicle metrics for admin dashboard.
          */
         VehicleBlockMetrics: {
             /**

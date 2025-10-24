@@ -15,13 +15,27 @@ vi.mock('../services/admin', () => ({
 
 const mockBlockMetrics = {
   users: {
-    total: 1250,
-    online_last_30_days: 890,
-    internal: 45,
-    external: 1205,
-    owners: 620,
-    riders: 630,
-    logins: 3420,
+    owners: {
+      total: 620,
+      online_last_30_days: 450,
+      logins_today: 180,
+      internal: 0,
+      external: 0,
+      verified: 0,
+      with_vehicles: 0,
+      with_active_rentals: 0,
+    },
+    riders: {
+      total: 630,
+      online_last_30_days: 440,
+      logins_today: 200,
+      internal: 0,
+      external: 0,
+      with_bookings: 0,
+      with_completed_trips: 0,
+      with_active_bookings: 0,
+    },
+    total_users: 1250,
   },
   vehicles: {
     total: 450,
@@ -184,8 +198,7 @@ describe('DashboardPage', () => {
         const ownersHeading = await screen.findByRole('heading', { name: 'Owners' });
         const ownersContainer = ownersHeading.closest('div[class*="rounded-2xl"]');
         expect(within(ownersContainer!).getByText('Total Vehicle Owners')).toBeInTheDocument();
-        // 620 appears twice in the Owners block (total and new), so use getAllByText
-        expect(within(ownersContainer!).getAllByText('620').length).toBeGreaterThan(0);
+        expect(within(ownersContainer!).getByText('620')).toBeInTheDocument();
       });
     });
 
@@ -201,15 +214,25 @@ describe('DashboardPage', () => {
       });
     });
 
-    it('displays new owners metric', async () => {
+    it('displays active owners metric', async () => {
       renderDashboardPage();
 
       await waitFor(async () => {
         const ownersHeading = await screen.findByRole('heading', { name: 'Owners' });
         const ownersContainer = ownersHeading.closest('div[class*="rounded-2xl"]');
-        expect(within(ownersContainer!).getByText('New Owners (in range)')).toBeInTheDocument();
-        // 620 appears twice in the Owners block (total and new), so use getAllByText
-        expect(within(ownersContainer!).getAllByText('620').length).toBeGreaterThan(0);
+        expect(within(ownersContainer!).getByText('Active Owners (30 days)')).toBeInTheDocument();
+        expect(within(ownersContainer!).getByText('450')).toBeInTheDocument();
+      });
+    });
+
+    it('displays owner logins today metric', async () => {
+      renderDashboardPage();
+
+      await waitFor(async () => {
+        const ownersHeading = await screen.findByRole('heading', { name: 'Owners' });
+        const ownersContainer = ownersHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(ownersContainer!).getByText('Owner Logins Today')).toBeInTheDocument();
+        expect(within(ownersContainer!).getByText('180')).toBeInTheDocument();
       });
     });
 
@@ -220,8 +243,7 @@ describe('DashboardPage', () => {
         const ridersHeading = await screen.findByRole('heading', { name: 'Riders' });
         const ridersContainer = ridersHeading.closest('div[class*="rounded-2xl"]');
         expect(within(ridersContainer!).getByText('Total Riders')).toBeInTheDocument();
-        // 630 appears twice in the Riders block (total and new), so use getAllByText
-        expect(within(ridersContainer!).getAllByText('630').length).toBeGreaterThan(0);
+        expect(within(ridersContainer!).getByText('630')).toBeInTheDocument();
       });
     });
 
@@ -237,15 +259,25 @@ describe('DashboardPage', () => {
       });
     });
 
-    it('displays new riders metric', async () => {
+    it('displays active riders metric', async () => {
       renderDashboardPage();
 
       await waitFor(async () => {
         const ridersHeading = await screen.findByRole('heading', { name: 'Riders' });
         const ridersContainer = ridersHeading.closest('div[class*="rounded-2xl"]');
-        expect(within(ridersContainer!).getByText('New Riders (in range)')).toBeInTheDocument();
-        // 630 appears twice in the Riders block (total and new), so use getAllByText
-        expect(within(ridersContainer!).getAllByText('630').length).toBeGreaterThan(0);
+        expect(within(ridersContainer!).getByText('Active Riders (30 days)')).toBeInTheDocument();
+        expect(within(ridersContainer!).getByText('440')).toBeInTheDocument();
+      });
+    });
+
+    it('displays rider logins today metric', async () => {
+      renderDashboardPage();
+
+      await waitFor(async () => {
+        const ridersHeading = await screen.findByRole('heading', { name: 'Riders' });
+        const ridersContainer = ridersHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(ridersContainer!).getByText('Rider Logins Today')).toBeInTheDocument();
+        expect(within(ridersContainer!).getByText('200')).toBeInTheDocument();
       });
     });
   });
@@ -266,9 +298,11 @@ describe('DashboardPage', () => {
     it('displays total vehicles metric', async () => {
       renderDashboardPage();
 
-      await waitFor(() => {
-        expect(screen.getByText('Total Vehicles')).toBeInTheDocument();
-        expect(screen.getByText('450')).toBeInTheDocument();
+      await waitFor(async () => {
+        const vehiclesHeading = await screen.findByRole('heading', { name: 'Vehicles' });
+        const vehiclesContainer = vehiclesHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(vehiclesContainer!).getByText('Total Vehicles')).toBeInTheDocument();
+        expect(within(vehiclesContainer!).getByText('450')).toBeInTheDocument();
       });
     });
 
@@ -284,9 +318,11 @@ describe('DashboardPage', () => {
     it('displays available vehicles metric', async () => {
       renderDashboardPage();
 
-      await waitFor(() => {
-        expect(screen.getByText('Available')).toBeInTheDocument();
-        expect(screen.getByText('180')).toBeInTheDocument();
+      await waitFor(async () => {
+        const vehiclesHeading = await screen.findByRole('heading', { name: 'Vehicles' });
+        const vehiclesContainer = vehiclesHeading.closest('div[class*="rounded-2xl"]');
+        expect(within(vehiclesContainer!).getByText('Available')).toBeInTheDocument();
+        expect(within(vehiclesContainer!).getByText('180')).toBeInTheDocument();
       });
     });
 
@@ -469,13 +505,27 @@ describe('DashboardPage', () => {
     it('handles zero values in metrics', async () => {
       const zeroMetrics = {
         users: {
-          total: 0,
-          online_last_30_days: 0,
-          internal: 0,
-          external: 0,
-          owners: 0,
-          riders: 0,
-          logins: 0,
+          owners: {
+            total: 0,
+            online_last_30_days: 0,
+            logins_today: 0,
+            internal: 0,
+            external: 0,
+            verified: 0,
+            with_vehicles: 0,
+            with_active_rentals: 0,
+          },
+          riders: {
+            total: 0,
+            online_last_30_days: 0,
+            logins_today: 0,
+            internal: 0,
+            external: 0,
+            with_bookings: 0,
+            with_completed_trips: 0,
+            with_active_bookings: 0,
+          },
+          total_users: 0,
         },
         vehicles: { total: 0, draft: 0, free: 0, collected: 0, maintenance: 0, archived: 0 },
         reservations: {
@@ -494,23 +544,37 @@ describe('DashboardPage', () => {
       renderDashboardPage();
 
       await waitFor(() => {
-        // New block-based dashboard doesn't have "Total Users", but has "Total Vehicle Owners"
         expect(screen.getByText('Total Vehicle Owners')).toBeInTheDocument();
-        // Multiple zeros will appear
-        expect(screen.getAllByText('0').length).toBeGreaterThan(0);
+        // Multiple zeros and N/A will appear (division by zero shows N/A)
+        const zeros = screen.getAllByText('0');
+        expect(zeros.length).toBeGreaterThan(0);
       });
     });
 
     it('handles very large numbers in metrics', async () => {
       const largeMetrics = {
         users: {
-          total: 999999,
-          online_last_30_days: 890,
-          internal: 45,
-          external: 1205,
-          owners: 999999,
-          riders: 630,
-          logins: 3420,
+          owners: {
+            total: 999999,
+            online_last_30_days: 890000,
+            logins_today: 50000,
+            internal: 0,
+            external: 0,
+            verified: 0,
+            with_vehicles: 0,
+            with_active_rentals: 0,
+          },
+          riders: {
+            total: 630000,
+            online_last_30_days: 500000,
+            logins_today: 30000,
+            internal: 0,
+            external: 0,
+            with_bookings: 0,
+            with_completed_trips: 0,
+            with_active_bookings: 0,
+          },
+          total_users: 1629999,
         },
         vehicles: {
           total: 450,
@@ -537,8 +601,8 @@ describe('DashboardPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Total Vehicle Owners')).toBeInTheDocument();
-        // 999,999 appears multiple times (total and new owners), so use getAllByText
-        expect(screen.getAllByText('999,999').length).toBeGreaterThan(0);
+        // Check for formatted large number
+        expect(screen.getByText('999,999')).toBeInTheDocument();
       });
     });
   });
