@@ -48,10 +48,20 @@ Layout (persistent shell)
 ├── Sidebar (collapsible, localStorage persistence)
 ├── Header (user menu, logout)
 └── Page Content
-    ├── MetricCard (reusable dashboard cards)
+    ├── MetricBlock (dashboard metric blocks with primary/secondary metrics)
+    │   └── MetricRow (horizontal metric display)
+    ├── MetricCard (standalone metric cards for Quick Actions)
+    ├── StatusPieChart (status distribution visualizations)
+    ├── FilterPanel (date range and role filtering)
     ├── Modal (UserCreateModal, UserEditModal)
-    └── UI Components (Button, LoadingSpinner, etc.)
+    └── UI Components (Button, SkeletonLoader, EmptyState, etc.)
 ```
+
+**Dashboard Pattern (Hybrid Metrics):**
+- **MetricBlock**: Container with collapsible primary/secondary sections
+- **MetricRow**: Horizontal layout (icon + label | value + trend)
+- **Metric Factories**: DRY pattern for generating metric configurations
+- **Calculation Utilities**: Centralized business logic (KISS)
 
 ### Data Flow Patterns
 
