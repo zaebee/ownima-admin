@@ -1,0 +1,63 @@
+name: Deploy to Prod
+
+on:
+    release:
+        types: [published]
+    workflow_dispatch: {}
+
+env:
+    APP_ID: ${{ secrets.OWNIMA_BOT_APP_ID }}
+    APP_PRIVATE_KEY: ${{ secrets.OWNIMA_BOT_PRIVATE_KEY }}
+
+jobs:
+    deploy:
+        runs-on:
+            - self-hosted
+        steps:
+            - uses: actions/create-github-app-token@v2
+              id: app-token
+              with:
+                  app-id: ${{ env.APP_ID }}
+                  private-key: ${{ env.APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+            - name: Checkout Ansible
+              uses: actions/checkout@v4
+              with:
+                  repository: Ownima/ansible
+                  ref: main
+                  path: ./ansible
+                  token: ${{ steps.app-token.outputs.token }}
+
+            - name: Create venv
+              run: if ! test -d .venv; then python3 -m venv .venv; fi
+
+            - name: Activate virtual environment
+              run: echo PATH=${GITHUB_WORKSPACE}/.venv/bin:$PATH >> $GITHUB_ENV
+
+            - name: Install from requirements.txt
+              run: pip install -r ansible/requirements.txt
+
+            - name: Install ansible collections
+              run: |
+                  cd ansible
+                  if ! ansible-galaxy collection list | grep -q ansible.posix; then
+                    ansible-galaxy collection install ansible.posix
+                  fi
+                  if ! ansible-galaxy collection list | grep -q community.docker; then
+                    ansible-galaxy collection install community.docker
+                  fi
+
+            - name: Setup vault-pass
+              run: echo ${{ secrets.VAULT_PASS }} | base64 -d > ansible/vault-pass
+
+            - name: Prepare ssh key
+              run: |
+                  echo ${{ secrets.SSH_KEY_OWNIMA }} | base64 -d > ansible/id_ed25519
+                  chmod 0600 ansible/id_ed25519
+
+            - name: Run ansible
+              run: |
+                  cd ansible &&
+                  ansible-playbook -i inventories/production playbooks/deploy-owner-admin.yml \
+                    --diff \
+                    --extra-vars github_api_token=${{ steps.app-token.outputs.token }}
