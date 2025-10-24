@@ -49,11 +49,11 @@ class AdminService {
     // Fallback to block metrics and transform to legacy format for compatibility
     const blockMetrics = await this.getBlockMetrics();
     return {
-      total_owners: blockMetrics.users.owners,
-      total_riders: blockMetrics.users.riders,
+      total_owners: blockMetrics.users.owners.total,
+      total_riders: blockMetrics.users.riders.total,
       total_bookings: blockMetrics.reservations.total,
       new_registrations_today: 0, // Not available in new structure
-      logins_today: blockMetrics.users.logins,
+      logins_today: blockMetrics.users.owners.logins_today + blockMetrics.users.riders.logins_today,
       bookings_today: 0, // Not available in new structure
       bookings_pending: blockMetrics.reservations.pending,
       bookings_confirmed: blockMetrics.reservations.confirmed,
@@ -186,9 +186,9 @@ class AdminService {
   async getUserStats(): Promise<{ owners: number; riders: number; total: number }> {
     const blockMetrics = await this.getBlockMetrics();
     return {
-      owners: blockMetrics.users.owners,
-      riders: blockMetrics.users.riders,
-      total: blockMetrics.users.total,
+      owners: blockMetrics.users.owners.total,
+      riders: blockMetrics.users.riders.total,
+      total: blockMetrics.users.total_users,
     };
   }
 
@@ -225,7 +225,7 @@ class AdminService {
     const blockMetrics = await this.getBlockMetrics();
     return {
       new_registrations_today: 0, // Not available in new structure
-      logins_today: blockMetrics.users.logins,
+      logins_today: blockMetrics.users.owners.logins_today + blockMetrics.users.riders.logins_today,
       bookings_today: 0, // Not available in new structure
     };
   }

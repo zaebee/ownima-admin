@@ -18,7 +18,6 @@ import {
   DocumentCheckIcon,
   XCircleIcon,
   WrenchScrewdriverIcon,
-  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import type { FilterParams, MetricRowData } from '../types';
 
@@ -86,41 +85,70 @@ export const DashboardPage: React.FC = () => {
   const ownerMetrics: MetricRowData[] = [
     {
       label: 'Total Vehicle Owners',
-      value: data.users.owners,
+      value: data.users.owners.total,
       icon: TruckIcon,
       href: '/dashboard/users?type=OWNER',
       color: 'purple',
     },
     {
-      label: 'Avg. Vehicles per Owner',
-      value: data.users.owners > 0 ? (data.vehicles.total / data.users.owners).toFixed(1) : 'N/A',
-      icon: CogIcon,
-      color: 'gray',
+      label: 'Active Owners (30 days)',
+      value: data.users.owners.online_last_30_days,
+      icon: UserIcon,
+      color: 'green',
+      trend: {
+        value: data.users.owners.total > 0
+          ? Math.round((data.users.owners.online_last_30_days / data.users.owners.total) * 100)
+          : 0,
+        direction: 'neutral' as const,
+      },
     },
     {
-      label: 'New Owners (in range)',
-      value: data.users.owners,
-      icon: UserPlusIcon,
-      color: 'green',
+      label: 'Owner Logins Today',
+      value: data.users.owners.logins_today,
+      icon: ClockIcon,
+      color: 'blue',
+    },
+    {
+      label: 'Avg. Vehicles per Owner',
+      value: data.users.owners.total > 0 ? (data.vehicles.total / data.users.owners.total).toFixed(1) : 'N/A',
+      icon: CogIcon,
+      color: 'gray',
     },
   ];
 
   const riderMetrics: MetricRowData[] = [
     {
       label: 'Total Riders',
-      value: data.users.riders,
+      value: data.users.riders.total,
       icon: UserIcon,
       href: '/dashboard/users?type=RIDER',
       color: 'green',
     },
     {
+      label: 'Active Riders (30 days)',
+      value: data.users.riders.online_last_30_days,
+      icon: UserIcon,
+      color: 'green',
+      trend: {
+        value: data.users.riders.total > 0
+          ? Math.round((data.users.riders.online_last_30_days / data.users.riders.total) * 100)
+          : 0,
+        direction: 'neutral' as const,
+      },
+    },
+    {
+      label: 'Rider Logins Today',
+      value: data.users.riders.logins_today,
+      icon: ClockIcon,
+      color: 'blue',
+    },
+    {
       label: 'Avg. Bookings per Rider',
       value:
-        data.users.riders > 0 ? (data.reservations.total / data.users.riders).toFixed(1) : 'N/A',
+        data.users.riders.total > 0 ? (data.reservations.total / data.users.riders.total).toFixed(1) : 'N/A',
       icon: CalendarDaysIcon,
       color: 'purple',
     },
-    { label: 'New Riders (in range)', value: data.users.riders, icon: UserPlusIcon, color: 'blue' },
   ];
 
   const vehicleMetrics: MetricRowData[] = [

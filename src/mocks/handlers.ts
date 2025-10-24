@@ -34,13 +34,27 @@ const mockUsers = [
 
 const mockBlockMetrics = {
   users: {
-    total: 100,
-    online_last_30_days: 75,
-    internal: 10,
-    external: 90,
-    owners: 40,
-    riders: 60,
-    logins: 250,
+    owners: {
+      total: 40,
+      online_last_30_days: 28,
+      logins_today: 12,
+      internal: 0,
+      external: 0,
+      verified: 0,
+      with_vehicles: 0,
+      with_active_rentals: 0,
+    },
+    riders: {
+      total: 60,
+      online_last_30_days: 47,
+      logins_today: 23,
+      internal: 0,
+      external: 0,
+      with_bookings: 0,
+      with_completed_trips: 0,
+      with_active_bookings: 0,
+    },
+    total_users: 100,
   },
   vehicles: {
     total: 50,
