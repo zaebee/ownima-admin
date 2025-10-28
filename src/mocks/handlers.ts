@@ -63,6 +63,7 @@ const mockBlockMetrics = {
     collected: 15,
     maintenance: 5,
     archived: 5,
+    unspecified: 0, // NEW FIELD
   },
   reservations: {
     total: 200,
@@ -72,6 +73,13 @@ const mockBlockMetrics = {
     completed: 100,
     cancelled: 8,
     maintenance: 2,
+    // NEW FIELDS from api-generated.ts
+    confirmation_by_rider: 3,
+    confirmation_by_owner: 2,
+    overdue: 1,
+    conflict: 0,
+    no_response: 1,
+    unspecified: 0,
   },
 }
 

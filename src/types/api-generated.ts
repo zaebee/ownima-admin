@@ -3189,34 +3189,76 @@ export interface components {
             total: number;
             /**
              * Pending
+             * @description Count of pending reservations
              * @default 0
              */
             pending: number;
             /**
+             * Confirmation By Rider
+             * @description Count of reservations awaiting rider confirmation
+             * @default 0
+             */
+            confirmation_by_rider: number;
+            /**
              * Confirmed
+             * @description Count of confirmed reservations
              * @default 0
              */
             confirmed: number;
             /**
              * Collected
+             * @description Count of collected reservations
              * @default 0
              */
             collected: number;
             /**
+             * Maintenance
+             * @description Count of maintenance reservations
+             * @default 0
+             */
+            maintenance: number;
+            /**
              * Completed
+             * @description Count of completed reservations
              * @default 0
              */
             completed: number;
             /**
              * Cancelled
+             * @description Count of cancelled reservations
              * @default 0
              */
             cancelled: number;
             /**
-             * Maintenance
+             * Overdue
+             * @description Count of overdue reservations
              * @default 0
              */
-            maintenance: number;
+            overdue: number;
+            /**
+             * Conflict
+             * @description Count of conflicting reservations
+             * @default 0
+             */
+            conflict: number;
+            /**
+             * Confirmation By Owner
+             * @description Count of reservations awaiting owner confirmation
+             * @default 0
+             */
+            confirmation_by_owner: number;
+            /**
+             * No Response
+             * @description Count of reservations with no response
+             * @default 0
+             */
+            no_response: number;
+            /**
+             * Unspecified
+             * @description Count of reservations with unspecified status
+             * @default 0
+             */
+            unspecified: number;
         };
         /**
          * ReservationCollect
@@ -4836,27 +4878,38 @@ export interface components {
              */
             total: number;
             /**
+             * Unspecified
+             * @description Count of vehicles with unspecified status
+             * @default 0
+             */
+            unspecified: number;
+            /**
              * Draft
+             * @description Count of draft vehicles
              * @default 0
              */
             draft: number;
             /**
              * Free
+             * @description Count of free vehicles
              * @default 0
              */
             free: number;
             /**
-             * Collected
-             * @default 0
-             */
-            collected: number;
-            /**
              * Maintenance
+             * @description Count of vehicles in maintenance
              * @default 0
              */
             maintenance: number;
             /**
+             * Collected
+             * @description Count of collected vehicles
+             * @default 0
+             */
+            collected: number;
+            /**
              * Archived
+             * @description Count of archived vehicles
              * @default 0
              */
             archived: number;
