@@ -138,7 +138,7 @@ describe('csvExport', () => {
 
   describe('downloadCSV', () => {
     let createElementSpy: ReturnType<typeof vi.spyOn>;
-    let appendChildSpy: ReturnType<typeof vi.spyOn>;
+    // let appendChildSpy: ReturnType<typeof vi.spyOn>;
     let removeChildSpy: ReturnType<typeof vi.spyOn>;
     let clickSpy: ReturnType<typeof vi.fn>;
 

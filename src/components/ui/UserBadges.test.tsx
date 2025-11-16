@@ -62,7 +62,7 @@ describe('UserBadges', () => {
     });
 
     it('shows CheckCircleIcon for active users', () => {
-      const { container } = render(<UserBadges isActive={true} />);
+      // const { container } = render(<UserBadges isActive={true} />);
 
       // Check for icon in Active badge
       const activeBadge = screen.getByText('Active').closest('span');
@@ -71,7 +71,7 @@ describe('UserBadges', () => {
     });
 
     it('shows XCircleIcon for inactive users', () => {
-      const { container } = render(<UserBadges isActive={false} />);
+      // const { container } = render(<UserBadges isActive={false} />);
 
       // Check for icon in Inactive badge
       const inactiveBadge = screen.getByText('Inactive').closest('span');
@@ -102,7 +102,7 @@ describe('UserBadges', () => {
     });
 
     it('shows ShieldCheckIcon in Admin badge', () => {
-      const { container } = render(<UserBadges isActive={true} isSuperuser={true} />);
+      // const { container } = render(<UserBadges isActive={true} isSuperuser={true} />);
 
       const adminBadge = screen.getByText('Admin').closest('span');
       const icon = adminBadge?.querySelector('svg');
