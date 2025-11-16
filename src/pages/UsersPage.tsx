@@ -19,11 +19,14 @@ import { getAvatarUrl } from '../config/environment';
 import { useToastContext } from '../contexts/ToastContext';
 import { Button } from '../components/ui/Button';
 import { UserEditModal } from '../components/modals/UserEditModal';
+import { RiderEditModal } from '../components/modals/RiderEditModal';
 import { UserCreateModal } from '../components/modals/UserCreateModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { BulkActionBar } from '../components/ui/BulkActionBar';
 import { SkeletonTable, SkeletonHeader } from '../components/ui/SkeletonLoader';
 import { ErrorState, EmptySearchResults } from '../components/ui/EmptyState';
 import type { AdminUser, PaginatedResponse } from '../types';
+import type { components } from '../types/api-generated';
 import {
   MagnifyingGlassIcon,
   UserIcon,
@@ -39,8 +42,11 @@ import {
   ClipboardDocumentListIcon,
   ArrowRightOnRectangleIcon,
   PhoneIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { format, parseISO, isValid } from 'date-fns';
+import { formatDate, formatDateTime } from '../utils/dateFormatting';
+import { DEFAULT_PAGE_SIZE } from '../constants/validation';
+import { convertToCSV, downloadCSV, formatDateForCSV, formatDateTimeForCSV } from '../utils/csvExport';
 import clsx from 'clsx';
 
 export const UsersPage: React.FC = () => {
@@ -48,6 +54,15 @@ export const UsersPage: React.FC = () => {
   const queryClient = useQueryClient();
   const toast = useToastContext();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Helper function to navigate to user/rider detail page
+  const navigateToUserDetail = (userId: string, userType?: 'OWNER' | 'RIDER') => {
+    if (userType === 'RIDER') {
+      navigate(`/dashboard/riders/${userId}`);
+    } else {
+      navigate(`/dashboard/users/${userId}`);
+    }
+  };
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
@@ -67,6 +82,16 @@ export const UsersPage: React.FC = () => {
     searchParams.get('inactive_days') ? parseInt(searchParams.get('inactive_days')!) : undefined
   );
 
+  // Sort state
+  type SortField = 'name' | 'email' | 'created_at' | 'login_count' | 'last_login';
+  type SortDirection = 'asc' | 'desc';
+  const [sortField, setSortField] = useState<SortField>(
+    (searchParams.get('sort') as SortField) || 'created_at'
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    (searchParams.get('direction') as SortDirection) || 'desc'
+  );
+
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -74,6 +99,10 @@ export const UsersPage: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Bulk selection state
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   // Debounced search to prevent API calls on every keystroke
   const debouncedSearchUpdate = useMemo(
@@ -103,6 +132,8 @@ export const UsersPage: React.FC = () => {
     if (dateFromFilter) params.set('date_from', dateFromFilter);
     if (dateToFilter) params.set('date_to', dateToFilter);
     if (inactiveDaysFilter) params.set('inactive_days', inactiveDaysFilter.toString());
+    if (sortField !== 'created_at') params.set('sort', sortField);
+    if (sortDirection !== 'desc') params.set('direction', sortDirection);
 
     setSearchParams(params, { replace: true });
   }, [
@@ -113,6 +144,8 @@ export const UsersPage: React.FC = () => {
     dateFromFilter,
     dateToFilter,
     inactiveDaysFilter,
+    sortField,
+    sortDirection,
     setSearchParams,
   ]);
 
@@ -129,8 +162,8 @@ export const UsersPage: React.FC = () => {
     ],
     queryFn: async () => {
       const params = {
-        skip: (page - 1) * 20,
-        limit: 20,
+        skip: (page - 1) * DEFAULT_PAGE_SIZE,
+        limit: DEFAULT_PAGE_SIZE,
         search: debouncedSearch || undefined,
         is_active: activeFilter,
         registration_date_from: dateFromFilter || undefined,
@@ -149,19 +182,93 @@ export const UsersPage: React.FC = () => {
     },
   });
 
-  // Delete user mutation
+  // Delete user/rider mutation
   const deleteMutation = useMutation({
-    mutationFn: (userId: string) => adminService.deleteUser(userId),
+    mutationFn: ({ userId, userType }: { userId: string; userType?: 'OWNER' | 'RIDER' }) => {
+      if (userType === 'RIDER') {
+        return adminService.deleteAdminRider(userId);
+      }
+      return adminService.deleteUser(userId);
+    },
     onSuccess: () => {
       // Invalidate and refetch users list
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-riders'] });
       setShowDeleteDialog(false);
       const deletedUserEmail = userToDelete?.email || 'User';
+      const entityType = userToDelete?.user_type === 'RIDER' ? 'Rider' : 'User';
       setUserToDelete(null);
-      toast.success('User deleted', `${deletedUserEmail} has been successfully deleted.`);
+      toast.success(`${entityType} deleted`, `${deletedUserEmail} has been successfully deleted.`);
     },
     onError: (error: Error) => {
-      toast.error('Delete failed', error.message || 'Failed to delete user. Please try again.');
+      toast.error('Delete failed', error.message || 'Failed to delete. Please try again.');
+    },
+  });
+
+  // Bulk activate mutation
+  const bulkActivateMutation = useMutation({
+    mutationFn: (userIds: string[]) => adminService.bulkActivateUsers(userIds),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-riders'] });
+      setSelectedUserIds(new Set());
+
+      if (result.errors.length > 0) {
+        toast.warning(
+          `Activated ${result.updated} users`,
+          `${result.errors.length} failed: ${result.errors[0]}`
+        );
+      } else {
+        toast.success('Users activated', `Successfully activated ${result.updated} users.`);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error('Bulk activate failed', error.message || 'Failed to activate users.');
+    },
+  });
+
+  // Bulk deactivate mutation
+  const bulkDeactivateMutation = useMutation({
+    mutationFn: (userIds: string[]) => adminService.bulkDeactivateUsers(userIds),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-riders'] });
+      setSelectedUserIds(new Set());
+
+      if (result.errors.length > 0) {
+        toast.warning(
+          `Deactivated ${result.updated} users`,
+          `${result.errors.length} failed: ${result.errors[0]}`
+        );
+      } else {
+        toast.success('Users deactivated', `Successfully deactivated ${result.updated} users.`);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error('Bulk deactivate failed', error.message || 'Failed to deactivate users.');
+    },
+  });
+
+  // Bulk delete mutation
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (userIds: string[]) => adminService.bulkDeleteUsers(userIds, userTypeFilter),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-riders'] });
+      setSelectedUserIds(new Set());
+      setShowBulkDeleteDialog(false);
+
+      if (result.errors.length > 0) {
+        toast.warning(
+          `Deleted ${result.deleted} users`,
+          `${result.errors.length} failed: ${result.errors[0]}`
+        );
+      } else {
+        toast.success('Users deleted', `Successfully deleted ${result.deleted} users.`);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error('Bulk delete failed', error.message || 'Failed to delete users.');
     },
   });
 
@@ -176,7 +283,8 @@ export const UsersPage: React.FC = () => {
         const apiUser = user as Record<string, unknown>;
         return {
           ...apiUser,
-          user_type: apiUser.role, // Map role to user_type for UI compatibility
+          // For riders endpoint, role field doesn't exist, so use the filter type
+          user_type: apiUser.role || (userTypeFilter === 'RIDER' ? 'RIDER' : apiUser.role),
           phone: apiUser.phone_number, // Map phone_number to phone
           login_count: apiUser.login_count || 0, // Use login_count as booking_count for now
           last_login: apiUser.last_login_at, // Map last_login_at to last_login
@@ -184,12 +292,47 @@ export const UsersPage: React.FC = () => {
         };
       });
 
+      // Apply sorting
+      const sortedUsers = [...mappedUsers].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (sortField) {
+          case 'name':
+            aValue = ((a.full_name as string) || (a.email as string)).toLowerCase();
+            bValue = ((b.full_name as string) || (b.email as string)).toLowerCase();
+            break;
+          case 'email':
+            aValue = (a.email as string).toLowerCase();
+            bValue = (b.email as string).toLowerCase();
+            break;
+          case 'created_at':
+            aValue = new Date(a.created_at as string).getTime();
+            bValue = new Date(b.created_at as string).getTime();
+            break;
+          case 'login_count':
+            aValue = (a.login_count as number) || 0;
+            bValue = (b.login_count as number) || 0;
+            break;
+          case 'last_login':
+            aValue = a.last_login_at ? new Date(a.last_login_at as string).getTime() : 0;
+            bValue = b.last_login_at ? new Date(b.last_login_at as string).getTime() : 0;
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+
       return {
-        items: mappedUsers as AdminUser[],
+        items: sortedUsers as AdminUser[],
         total: data.count || data.data.length,
         page: page,
-        size: 20,
-        pages: Math.ceil((data.count || data.data.length) / 20),
+        size: DEFAULT_PAGE_SIZE,
+        pages: Math.ceil((data.count || data.data.length) / DEFAULT_PAGE_SIZE),
       };
     }
 
@@ -199,35 +342,99 @@ export const UsersPage: React.FC = () => {
         items: data as AdminUser[],
         total: data.length,
         page: page,
-        size: 20,
-        pages: Math.ceil(data.length / 20),
+        size: DEFAULT_PAGE_SIZE,
+        pages: Math.ceil(data.length / DEFAULT_PAGE_SIZE),
       };
     }
 
     // If data has items property, use as-is
     return data as PaginatedResponse<AdminUser>;
-  }, [data, page]);
+  }, [data, page, userTypeFilter, sortField, sortDirection]);
+
+  // Selection handlers
+  const toggleUserSelection = (userId: string) => {
+    const newSelection = new Set(selectedUserIds);
+    if (newSelection.has(userId)) {
+      newSelection.delete(userId);
+    } else {
+      newSelection.add(userId);
+    }
+    setSelectedUserIds(newSelection);
+  };
+
+  const toggleAllUsers = () => {
+    if (!normalizedData?.items) return;
+
+    if (selectedUserIds.size === normalizedData.items.length) {
+      // Deselect all
+      setSelectedUserIds(new Set());
+    } else {
+      // Select all visible users
+      const allIds = new Set(normalizedData.items.map((u) => u.id));
+      setSelectedUserIds(allIds);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedUserIds(new Set());
+  };
+
+  // Bulk action handlers
+  const handleBulkActivate = () => {
+    if (selectedUserIds.size === 0) return;
+    bulkActivateMutation.mutate(Array.from(selectedUserIds));
+  };
+
+  const handleBulkDeactivate = () => {
+    if (selectedUserIds.size === 0) return;
+    bulkDeactivateMutation.mutate(Array.from(selectedUserIds));
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedUserIds.size === 0) return;
+    setShowBulkDeleteDialog(true);
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteMutation.mutate(Array.from(selectedUserIds));
+  };
+
+  // CSV Export handler
+  const handleExportCSV = () => {
+    if (!normalizedData?.items || normalizedData.items.length === 0) {
+      toast.warning('No data to export', 'There are no users to export.');
+      return;
+    }
+
+    // Map users to CSV-friendly format
+    const csvData = normalizedData.items.map((user) => ({
+      Name: user.full_name || user.email.split('@')[0],
+      Email: user.email,
+      Phone: user.phone || '',
+      Role: user.user_type || '',
+      Status: user.is_active ? 'Active' : 'Inactive',
+      'Is Admin': user.is_superuser ? 'Yes' : 'No',
+      'Is Beta Tester': user.is_beta_tester ? 'Yes' : 'No',
+      'Join Date': formatDateForCSV(user.registration_date),
+      'Last Login': formatDateTimeForCSV(user.last_login),
+      'Login Count': user.login_count || 0,
+    }));
+
+    // Generate CSV
+    const csv = convertToCSV(csvData);
+
+    // Generate filename with current date
+    const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const filterSuffix = userTypeFilter ? `-${userTypeFilter.toLowerCase()}` : '';
+    const filename = `users-export${filterSuffix}-${timestamp}`;
+
+    // Trigger download
+    downloadCSV(csv, filename);
+
+    toast.success('Export successful', `Exported ${normalizedData.items.length} users to CSV.`);
+  };
 
   // Helper functions
-  const formatDate = (dateString: string) => {
-    try {
-      const date = parseISO(dateString);
-      return isValid(date) ? format(date, 'MMM d, yyyy') : 'Invalid date';
-    } catch {
-      return 'Invalid date';
-    }
-  };
-
-  const formatDateTime = (dateString?: string) => {
-    if (!dateString) return 'Never';
-    try {
-      const date = parseISO(dateString);
-      return isValid(date) ? format(date, 'MMM d, yyyy HH:mm') : 'Invalid date';
-    } catch {
-      return 'Invalid date';
-    }
-  };
-
   const getUserTypeBadge = (userType: 'OWNER' | 'RIDER') => {
     return userType === 'OWNER' ? (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -316,13 +523,24 @@ export const UsersPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center space-x-2"
-            >
-              <UserPlusIcon className="w-5 h-5" />
-              <span>Add User</span>
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="secondary"
+                onClick={handleExportCSV}
+                className="flex items-center space-x-2"
+                disabled={!normalizedData?.items || normalizedData.items.length === 0}
+              >
+                <ArrowDownTrayIcon className="w-5 h-5" />
+                <span>Export CSV</span>
+              </Button>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center space-x-2"
+              >
+                <UserPlusIcon className="w-5 h-5" />
+                <span>Add User</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -415,9 +633,10 @@ export const UsersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search bar */}
-        <div className="mb-6">
-          <div className="relative">
+        {/* Search bar and Sort */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
             </div>
@@ -428,6 +647,33 @@ export const UsersPage: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+
+          {/* Sort Controls */}
+          <div className="flex gap-2">
+            <select
+              className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm bg-gray-50 focus:bg-white"
+              value={sortField}
+              onChange={(e) => setSortField(e.target.value as SortField)}
+            >
+              <option value="created_at">Join Date</option>
+              <option value="name">Name</option>
+              <option value="email">Email</option>
+              <option value="login_count">Login Count</option>
+              <option value="last_login">Last Login</option>
+            </select>
+
+            <button
+              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+              className="px-4 py-3 border-2 border-gray-200 rounded-xl hover:border-primary-500 transition-all text-sm bg-gray-50 hover:bg-white flex items-center gap-2"
+              title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+            >
+              {sortDirection === 'asc' ? (
+                <ChevronDownIcon className="w-5 h-5 rotate-180" />
+              ) : (
+                <ChevronDownIcon className="w-5 h-5" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -539,6 +785,15 @@ export const UsersPage: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 py-3 w-12">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    checked={normalizedData?.items && selectedUserIds.size === normalizedData.items.length && normalizedData.items.length > 0}
+                    onChange={toggleAllUsers}
+                    disabled={!normalizedData?.items || normalizedData.items.length === 0}
+                  />
+                </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
                 </th>
@@ -558,6 +813,16 @@ export const UsersPage: React.FC = () => {
                 const avatarUrl = getAvatarUrl(user.avatar);
                 return (
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    {/* Checkbox Column */}
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                        checked={selectedUserIds.has(user.id)}
+                        onChange={() => toggleUserSelection(user.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
                     {/* User Column - Avatar, Name, Email */}
                     <td className="px-4 py-4">
                       <div className="flex items-center">
@@ -567,7 +832,7 @@ export const UsersPage: React.FC = () => {
                               className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
                               src={avatarUrl}
                               alt={user.full_name || user.email}
-                              onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                              onClick={() => navigateToUserDetail(user.id, user.user_type)}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.style.display = 'none';
@@ -579,7 +844,7 @@ export const UsersPage: React.FC = () => {
                           <div
                             className={`h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all ${avatarUrl ? 'hidden' : 'flex'}`}
                             style={{ display: avatarUrl ? 'none' : 'flex' }}
-                            onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                            onClick={() => navigateToUserDetail(user.id, user.user_type)}
                           >
                             <span className="text-white font-semibold text-sm">
                               {(user.full_name?.[0] || user.email[0]).toUpperCase()}
@@ -589,13 +854,13 @@ export const UsersPage: React.FC = () => {
                         <div className="ml-3 min-w-0 flex-1">
                           <div
                             className="text-sm font-medium text-gray-900 cursor-pointer hover:text-primary-600 transition-colors truncate"
-                            onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                            onClick={() => navigateToUserDetail(user.id, user.user_type)}
                           >
                             {user.full_name || user.email.split('@')[0]}
                           </div>
                           <div
                             className="text-xs text-gray-500 cursor-pointer hover:text-primary-500 transition-colors truncate"
-                            onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                            onClick={() => navigateToUserDetail(user.id, user.user_type)}
                           >
                             {user.email}
                           </div>
@@ -654,7 +919,7 @@ export const UsersPage: React.FC = () => {
                     <td className="px-4 py-4 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <button
-                          onClick={() => navigate(`/dashboard/users/${user.id}`)}
+                          onClick={() => navigateToUserDetail(user.id, user.user_type)}
                           className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                           title="View details"
                         >
@@ -776,14 +1041,30 @@ export const UsersPage: React.FC = () => {
       )}
 
       {showEditModal && selectedUser && (
-        <UserEditModal
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedUser(null);
-          }}
-          user={selectedUser}
-        />
+        <>
+          {selectedUser.user_type === 'RIDER' ? (
+            <RiderEditModal
+              isOpen={showEditModal}
+              onClose={() => {
+                setShowEditModal(false);
+                setSelectedUser(null);
+                queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+                queryClient.invalidateQueries({ queryKey: ['admin-riders'] });
+              }}
+              rider={selectedUser as unknown as components['schemas']['RiderUserAdmin']}
+            />
+          ) : (
+            <UserEditModal
+              isOpen={showEditModal}
+              onClose={() => {
+                setShowEditModal(false);
+                setSelectedUser(null);
+                queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+              }}
+              user={selectedUser}
+            />
+          )}
+        </>
       )}
 
       {showDeleteDialog && userToDelete && (
@@ -794,15 +1075,46 @@ export const UsersPage: React.FC = () => {
             setUserToDelete(null);
           }}
           onConfirm={() => {
-            deleteMutation.mutate(userToDelete.id);
+            deleteMutation.mutate({
+              userId: userToDelete.id,
+              userType: userToDelete.user_type,
+            });
           }}
-          title="Delete User"
+          title={`Delete ${userToDelete.user_type === 'RIDER' ? 'Rider' : 'User'}`}
           message={`Are you sure you want to delete ${userToDelete.email}? This action cannot be undone.`}
           confirmText={deleteMutation.isPending ? 'Deleting...' : 'Delete'}
           cancelText="Cancel"
           variant="danger"
         />
       )}
+
+      {/* Bulk Delete Dialog */}
+      <ConfirmDialog
+        isOpen={showBulkDeleteDialog}
+        onClose={() => setShowBulkDeleteDialog(false)}
+        onConfirm={confirmBulkDelete}
+        title="Delete Selected Users"
+        message={`Are you sure you want to delete ${selectedUserIds.size} selected user${selectedUserIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmText={bulkDeleteMutation.isPending ? 'Deleting...' : `Delete ${selectedUserIds.size}`}
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        selectedCount={selectedUserIds.size}
+        totalCount={normalizedData?.items?.length}
+        onSelectAll={toggleAllUsers}
+        onClearSelection={clearSelection}
+        onActivate={handleBulkActivate}
+        onDeactivate={handleBulkDeactivate}
+        onDelete={handleBulkDelete}
+        isLoading={
+          bulkActivateMutation.isPending ||
+          bulkDeactivateMutation.isPending ||
+          bulkDeleteMutation.isPending
+        }
+      />
     </div>
   );
 };

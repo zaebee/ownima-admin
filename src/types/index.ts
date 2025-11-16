@@ -184,12 +184,55 @@ export interface AdminUser extends User {
   rent_service_name?: string;
   address?: string;
 
+  // Rider-specific fields
+  bio?: string;
+  date_of_birth?: string;
+  rating?: number;
+
   // Computed/derived fields for UI compatibility
   user_type?: 'OWNER' | 'RIDER';
   phone?: string;
   booking_count?: number;
   last_login?: string;
   registration_date?: string;
+}
+
+// Rider-specific metrics extending UserMetrics
+export interface RiderDetailMetrics {
+  // User base metrics
+  total_vehicles: number;
+  total_reservations: number;
+  wallet_balance: number;
+  total_spent: number;
+  total_earned: number;
+  wallet_currency: string;
+  login_count: number;
+  account_age_days: number;
+  days_since_last_login: number | null;
+
+  // Rider-specific booking statistics
+  total_bookings: number;
+  active_bookings: number;
+  completed_bookings: number;
+  cancelled_bookings: number;
+  booking_completion_rate: number;
+  average_booking_value: number;
+
+  // Reservation breakdown by status
+  reservation_breakdown: {
+    pending: number;
+    confirmed: number;
+    collected: number;
+    completed: number;
+    cancelled: number;
+    confirmation_by_rider: number;
+    confirmation_by_owner: number;
+    overdue: number;
+    conflict: number;
+    no_response: number;
+    maintenance: number;
+    unspecified: number;
+  };
 }
 
 export interface SystemInfo {

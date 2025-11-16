@@ -21,6 +21,9 @@ const UsersPage = lazy(() => import('./pages/UsersPage').then((m) => ({ default:
 const UserDetailPage = lazy(() =>
   import('./pages/UserDetailPage').then((m) => ({ default: m.UserDetailPage }))
 );
+const RiderDetailPage = lazy(() =>
+  import('./pages/RiderDetailPage').then((m) => ({ default: m.RiderDetailPage }))
+);
 const SystemPage = lazy(() =>
   import('./pages/SystemPage').then((m) => ({ default: m.SystemPage }))
 );
@@ -85,6 +88,7 @@ export const AppRoutes: React.FC = () => {
                         <Route path="overview" element={<DashboardPage />} />
                         <Route path="users" element={<UsersPage />} />
                         <Route path="users/:userId" element={<UserDetailPage />} />
+                        <Route path="riders/:riderId" element={<RiderDetailPage />} />
                         <Route path="activity" element={<ActivityPage />} />
                         <Route path="system" element={<SystemPage />} />
                       </Routes>
