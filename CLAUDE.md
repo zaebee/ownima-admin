@@ -71,6 +71,15 @@ Layout (persistent shell)
 3. **Data Normalization**: Transform API response to UI-compatible format in component
 4. **Form Handling**: User modals use auto-generated types to ensure API schema compliance
 
+#### Rider Management Flow
+1. **UsersPage** queries `/admin/riders` when filtering by RIDER type
+2. **Rider Navigation**: Clicking rider routes to `/dashboard/riders/:riderId` (separate from users)
+3. **RiderDetailPage** fetches data from `/admin/riders/:riderId` endpoint
+4. **Rider-Specific Fields**: bio, date_of_birth, rating (not in Owner schema)
+5. **Edit/Delete Operations**: Use dedicated rider endpoints (PATCH/DELETE `/admin/riders/:riderId`)
+6. **Metrics Integration**: Uses same `/admin/users/:userId/metrics` endpoint for statistics
+7. **Data Normalization**: Riders from `/admin/riders` don't have `role` field, automatically set to 'RIDER'
+
 #### Dashboard Metrics Flow
 1. **DashboardPage** queries `/admin/metrics/overview` for 9 key metrics
 2. **Real-time Updates**: Automatic refresh every 30-60 seconds via TanStack Query
@@ -84,7 +93,16 @@ Layout (persistent shell)
 ### Authentication & Routing
 - **Protected Routes**: `/dashboard/*` requires authentication
 - **Token Management**: JWT stored in localStorage with automatic injection
-- **Route Structure**: Nested routes under `/dashboard` (overview, users, system)
+- **Route Structure**: Nested routes under `/dashboard`:
+  - `/dashboard/overview` - Dashboard metrics and overview
+  - `/dashboard/users` - User management list (owners & riders)
+  - `/dashboard/users/:userId` - Owner detail page
+  - `/dashboard/riders/:riderId` - Rider detail page (separate from owners)
+  - `/dashboard/activity` - Activity feed
+  - `/dashboard/system` - System monitoring
+- **User Type Routing**: System automatically routes to appropriate detail page based on user_type
+  - RIDER → `/dashboard/riders/:riderId`
+  - OWNER → `/dashboard/users/:userId`
 - **Public Routes**: Landing page (`/`) and login (`/login`)
 
 ### API Response Handling
