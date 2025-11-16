@@ -2,6 +2,7 @@
 
 ## Latest Changes
 
+* chore(deps-dev): bump js-yaml from 4.1.0 to 4.1.1. PR [#11](https://github.com/Ownima/owner-admin/pull/11) by [@dependabot[bot]](https://github.com/apps/dependabot).
 * chore(deps): bump axios from 1.11.0 to 1.12.0. PR [#8](https://github.com/Ownima/owner-admin/pull/8) by [@dependabot[bot]](https://github.com/apps/dependabot).
 
 ### Internal
