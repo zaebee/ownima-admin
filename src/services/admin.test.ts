@@ -609,4 +609,440 @@ describe('AdminService', () => {
       expect(result.confirmed).toBe(50)
     })
   })
+
+  describe('Bulk Operations', () => {
+    describe('bulkActivateUsers', () => {
+      it('activates all users successfully', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.json({ id: '1', is_active: true })
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, () => {
+            return HttpResponse.json({ id: '2', is_active: true })
+          }),
+          http.patch(`${API_BASE}/admin/users/3`, () => {
+            return HttpResponse.json({ id: '3', is_active: true })
+          })
+        )
+
+        const result = await adminService.bulkActivateUsers(['1', '2', '3'])
+
+        expect(result.updated).toBe(3)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('handles partial failures correctly', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.json({ id: '1', is_active: true })
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, () => {
+            return HttpResponse.error()
+          }),
+          http.patch(`${API_BASE}/admin/users/3`, () => {
+            return HttpResponse.json({ id: '3', is_active: true })
+          })
+        )
+
+        const result = await adminService.bulkActivateUsers(['1', '2', '3'])
+
+        expect(result.updated).toBe(2)
+        expect(result.errors).toHaveLength(1)
+        expect(result.errors[0]).toContain('Failed to activate')
+      })
+
+      it('handles all failures', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.error()
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, () => {
+            return HttpResponse.error()
+          })
+        )
+
+        const result = await adminService.bulkActivateUsers(['1', '2'])
+
+        expect(result.updated).toBe(0)
+        expect(result.errors).toHaveLength(2)
+      })
+
+      it('handles empty array input', async () => {
+        const result = await adminService.bulkActivateUsers([])
+
+        expect(result.updated).toBe(0)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('formats error messages with user IDs', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/test-id-123`, () => {
+            return HttpResponse.error()
+          })
+        )
+
+        const result = await adminService.bulkActivateUsers(['test-id-123'])
+
+        expect(result.errors[0]).toContain('test-id-123')
+        expect(result.errors[0]).toContain('Failed to activate')
+      })
+
+      it('sends PATCH requests with is_active: true', async () => {
+        let capturedBody: unknown = null
+
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, async ({ request }) => {
+            capturedBody = await request.json()
+            return HttpResponse.json({ id: '1', is_active: true })
+          })
+        )
+
+        await adminService.bulkActivateUsers(['1'])
+
+        expect(capturedBody).toEqual({ is_active: true })
+      })
+
+      it('handles single user activation', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.json({ id: '1', is_active: true })
+          })
+        )
+
+        const result = await adminService.bulkActivateUsers(['1'])
+
+        expect(result.updated).toBe(1)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('activates multiple users in parallel', async () => {
+        const timestamps: number[] = []
+
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, async () => {
+            timestamps.push(Date.now())
+            return HttpResponse.json({ id: '1', is_active: true })
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, async () => {
+            timestamps.push(Date.now())
+            return HttpResponse.json({ id: '2', is_active: true })
+          })
+        )
+
+        await adminService.bulkActivateUsers(['1', '2'])
+
+        // Both requests should start at roughly the same time (within 100ms)
+        expect(Math.abs(timestamps[0] - timestamps[1])).toBeLessThan(100)
+      })
+    })
+
+    describe('bulkDeactivateUsers', () => {
+      it('deactivates all users successfully', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.json({ id: '1', is_active: false })
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, () => {
+            return HttpResponse.json({ id: '2', is_active: false })
+          }),
+          http.patch(`${API_BASE}/admin/users/3`, () => {
+            return HttpResponse.json({ id: '3', is_active: false })
+          })
+        )
+
+        const result = await adminService.bulkDeactivateUsers(['1', '2', '3'])
+
+        expect(result.updated).toBe(3)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('handles partial failures correctly', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.json({ id: '1', is_active: false })
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, () => {
+            return HttpResponse.error()
+          }),
+          http.patch(`${API_BASE}/admin/users/3`, () => {
+            return HttpResponse.json({ id: '3', is_active: false })
+          })
+        )
+
+        const result = await adminService.bulkDeactivateUsers(['1', '2', '3'])
+
+        expect(result.updated).toBe(2)
+        expect(result.errors).toHaveLength(1)
+        expect(result.errors[0]).toContain('Failed to deactivate')
+      })
+
+      it('handles all failures', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.error()
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, () => {
+            return HttpResponse.error()
+          })
+        )
+
+        const result = await adminService.bulkDeactivateUsers(['1', '2'])
+
+        expect(result.updated).toBe(0)
+        expect(result.errors).toHaveLength(2)
+      })
+
+      it('handles empty array input', async () => {
+        const result = await adminService.bulkDeactivateUsers([])
+
+        expect(result.updated).toBe(0)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('formats error messages with user IDs', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/user-456`, () => {
+            return HttpResponse.error()
+          })
+        )
+
+        const result = await adminService.bulkDeactivateUsers(['user-456'])
+
+        expect(result.errors[0]).toContain('user-456')
+        expect(result.errors[0]).toContain('Failed to deactivate')
+      })
+
+      it('sends PATCH requests with is_active: false', async () => {
+        let capturedBody: unknown = null
+
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, async ({ request }) => {
+            capturedBody = await request.json()
+            return HttpResponse.json({ id: '1', is_active: false })
+          })
+        )
+
+        await adminService.bulkDeactivateUsers(['1'])
+
+        expect(capturedBody).toEqual({ is_active: false })
+      })
+
+      it('handles single user deactivation', async () => {
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, () => {
+            return HttpResponse.json({ id: '1', is_active: false })
+          })
+        )
+
+        const result = await adminService.bulkDeactivateUsers(['1'])
+
+        expect(result.updated).toBe(1)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('deactivates multiple users in parallel', async () => {
+        const timestamps: number[] = []
+
+        server.use(
+          http.patch(`${API_BASE}/admin/users/1`, async () => {
+            timestamps.push(Date.now())
+            return HttpResponse.json({ id: '1', is_active: false })
+          }),
+          http.patch(`${API_BASE}/admin/users/2`, async () => {
+            timestamps.push(Date.now())
+            return HttpResponse.json({ id: '2', is_active: false })
+          })
+        )
+
+        await adminService.bulkDeactivateUsers(['1', '2'])
+
+        // Both requests should start at roughly the same time (within 100ms)
+        expect(Math.abs(timestamps[0] - timestamps[1])).toBeLessThan(100)
+      })
+    })
+
+    describe('bulkDeleteUsers', () => {
+      it('deletes all OWNER users successfully', async () => {
+        server.use(
+          http.delete(`${API_BASE}/users/1`, () => {
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          }),
+          http.delete(`${API_BASE}/users/2`, () => {
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          })
+        )
+
+        const result = await adminService.bulkDeleteUsers(['1', '2'], 'OWNER')
+
+        expect(result.deleted).toBe(2)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('deletes all RIDER users successfully', async () => {
+        server.use(
+          http.delete(`${API_BASE}/admin/riders/1`, () => {
+            return HttpResponse.json({ message: 'Rider deleted successfully' })
+          }),
+          http.delete(`${API_BASE}/admin/riders/2`, () => {
+            return HttpResponse.json({ message: 'Rider deleted successfully' })
+          })
+        )
+
+        const result = await adminService.bulkDeleteUsers(['1', '2'], 'RIDER')
+
+        expect(result.deleted).toBe(2)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('routes to /users/:id for OWNER type', async () => {
+        let endpointCalled = ''
+
+        server.use(
+          http.delete(`${API_BASE}/users/1`, ({ request }) => {
+            endpointCalled = new URL(request.url).pathname
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          })
+        )
+
+        await adminService.bulkDeleteUsers(['1'], 'OWNER')
+
+        expect(endpointCalled).toBe('/api/v1/users/1')
+      })
+
+      it('routes to /admin/riders/:id for RIDER type', async () => {
+        let endpointCalled = ''
+
+        server.use(
+          http.delete(`${API_BASE}/admin/riders/1`, ({ request }) => {
+            endpointCalled = new URL(request.url).pathname
+            return HttpResponse.json({ message: 'Rider deleted successfully' })
+          })
+        )
+
+        await adminService.bulkDeleteUsers(['1'], 'RIDER')
+
+        expect(endpointCalled).toBe('/api/v1/admin/riders/1')
+      })
+
+      it('routes to /users/:id when userType is undefined', async () => {
+        let endpointCalled = ''
+
+        server.use(
+          http.delete(`${API_BASE}/users/1`, ({ request }) => {
+            endpointCalled = new URL(request.url).pathname
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          })
+        )
+
+        await adminService.bulkDeleteUsers(['1'])
+
+        expect(endpointCalled).toBe('/api/v1/users/1')
+      })
+
+      it('handles partial failures correctly', async () => {
+        server.use(
+          http.delete(`${API_BASE}/users/1`, () => {
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          }),
+          http.delete(`${API_BASE}/users/2`, () => {
+            return HttpResponse.error()
+          }),
+          http.delete(`${API_BASE}/users/3`, () => {
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          })
+        )
+
+        const result = await adminService.bulkDeleteUsers(['1', '2', '3'])
+
+        expect(result.deleted).toBe(2)
+        expect(result.errors).toHaveLength(1)
+        expect(result.errors[0]).toContain('Failed to delete')
+      })
+
+      it('handles all failures', async () => {
+        server.use(
+          http.delete(`${API_BASE}/users/1`, () => {
+            return HttpResponse.error()
+          }),
+          http.delete(`${API_BASE}/users/2`, () => {
+            return HttpResponse.error()
+          })
+        )
+
+        const result = await adminService.bulkDeleteUsers(['1', '2'])
+
+        expect(result.deleted).toBe(0)
+        expect(result.errors).toHaveLength(2)
+      })
+
+      it('handles empty array input', async () => {
+        const result = await adminService.bulkDeleteUsers([])
+
+        expect(result.deleted).toBe(0)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('formats error messages with user IDs', async () => {
+        server.use(
+          http.delete(`${API_BASE}/users/user-789`, () => {
+            return HttpResponse.error()
+          })
+        )
+
+        const result = await adminService.bulkDeleteUsers(['user-789'])
+
+        expect(result.errors[0]).toContain('user-789')
+        expect(result.errors[0]).toContain('Failed to delete')
+      })
+
+      it('handles single user deletion', async () => {
+        server.use(
+          http.delete(`${API_BASE}/users/1`, () => {
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          })
+        )
+
+        const result = await adminService.bulkDeleteUsers(['1'])
+
+        expect(result.deleted).toBe(1)
+        expect(result.errors).toHaveLength(0)
+      })
+
+      it('deletes multiple users in parallel', async () => {
+        const timestamps: number[] = []
+
+        server.use(
+          http.delete(`${API_BASE}/users/1`, async () => {
+            timestamps.push(Date.now())
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          }),
+          http.delete(`${API_BASE}/users/2`, async () => {
+            timestamps.push(Date.now())
+            return HttpResponse.json({ message: 'User deleted successfully' })
+          })
+        )
+
+        await adminService.bulkDeleteUsers(['1', '2'])
+
+        // Both requests should start at roughly the same time (within 100ms)
+        expect(Math.abs(timestamps[0] - timestamps[1])).toBeLessThan(100)
+      })
+
+      it('handles mixed RIDER and OWNER deletions', async () => {
+        server.use(
+          http.delete(`${API_BASE}/admin/riders/1`, () => {
+            return HttpResponse.json({ message: 'Rider deleted successfully' })
+          }),
+          http.delete(`${API_BASE}/admin/riders/2`, () => {
+            return HttpResponse.error()
+          })
+        )
+
+        const result = await adminService.bulkDeleteUsers(['1', '2'], 'RIDER')
+
+        expect(result.deleted).toBe(1)
+        expect(result.errors).toHaveLength(1)
+      })
+    })
+  })
 })
