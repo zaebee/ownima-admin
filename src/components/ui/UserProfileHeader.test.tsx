@@ -223,8 +223,6 @@ describe('UserProfileHeader', () => {
     it('does not render additional info section when not provided', () => {
       const { container } = render(<UserProfileHeader {...defaultProps} />);
 
-      // additionalInfo wrapper should not exist
-      const additionalInfo = container.querySelector('.mt-3');
       // mt-3 is used for additionalInfo wrapper, but also other elements
       // so we just check that the component renders without error
       expect(container).toBeInTheDocument();

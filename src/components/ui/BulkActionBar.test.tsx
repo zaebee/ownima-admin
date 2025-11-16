@@ -222,7 +222,7 @@ describe('BulkActionBar', () => {
     });
 
     it('renders XMarkIcon', () => {
-      const { container } = render(
+      render(
         <BulkActionBar
           selectedCount={3}
           onClearSelection={mockOnClearSelection}
@@ -412,7 +412,7 @@ describe('BulkActionBar', () => {
     });
 
     it('applies red color styling', () => {
-      const { container } = render(
+      render(
         <BulkActionBar
           selectedCount={3}
           onClearSelection={mockOnClearSelection}

@@ -99,7 +99,7 @@ describe('RatingStars', () => {
     });
 
     it('applies gray color for no rating text', () => {
-      const { container } = render(<RatingStars rating={null} />);
+      render(<RatingStars rating={null} />);
       const noRatingText = screen.getByText('No rating yet');
       expect(noRatingText).toHaveClass('text-gray-400');
     });
