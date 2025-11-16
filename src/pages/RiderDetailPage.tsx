@@ -153,7 +153,7 @@ export const RiderDetailPage: React.FC = () => {
         isSuperuser={rider.is_superuser}
         isBetaTester={rider.is_beta_tester}
         colorScheme="green"
-        additionalInfo={<RatingStars rating={(rider as any).rating} />}
+        additionalInfo={<RatingStars rating={(rider as unknown as { rating?: number }).rating} />}
         actions={
           <>
             <Button variant="secondary" size="sm" onClick={handleEditClick}>

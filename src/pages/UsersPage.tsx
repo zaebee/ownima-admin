@@ -293,30 +293,30 @@ export const UsersPage: React.FC = () => {
       });
 
       // Apply sorting
-      const sortedUsers = [...mappedUsers].sort((a: any, b: any) => {
-        let aValue: any;
-        let bValue: any;
+      const sortedUsers = [...mappedUsers].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+        let aValue: string | number;
+        let bValue: string | number;
 
         switch (sortField) {
           case 'name':
-            aValue = (a.full_name || a.email).toLowerCase();
-            bValue = (b.full_name || b.email).toLowerCase();
+            aValue = ((a.full_name as string) || (a.email as string)).toLowerCase();
+            bValue = ((b.full_name as string) || (b.email as string)).toLowerCase();
             break;
           case 'email':
-            aValue = a.email.toLowerCase();
-            bValue = b.email.toLowerCase();
+            aValue = (a.email as string).toLowerCase();
+            bValue = (b.email as string).toLowerCase();
             break;
           case 'created_at':
-            aValue = new Date(a.created_at).getTime();
-            bValue = new Date(b.created_at).getTime();
+            aValue = new Date(a.created_at as string).getTime();
+            bValue = new Date(b.created_at as string).getTime();
             break;
           case 'login_count':
-            aValue = a.login_count || 0;
-            bValue = b.login_count || 0;
+            aValue = (a.login_count as number) || 0;
+            bValue = (b.login_count as number) || 0;
             break;
           case 'last_login':
-            aValue = a.last_login_at ? new Date(a.last_login_at).getTime() : 0;
-            bValue = b.last_login_at ? new Date(b.last_login_at).getTime() : 0;
+            aValue = a.last_login_at ? new Date(a.last_login_at as string).getTime() : 0;
+            bValue = b.last_login_at ? new Date(b.last_login_at as string).getTime() : 0;
             break;
           default:
             return 0;

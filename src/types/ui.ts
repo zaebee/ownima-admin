@@ -200,9 +200,9 @@ export interface RiderListFilters {
  */
 
 export function isRiderUserForUI(user: AdminUserForUI): user is RiderUserAdminForUI {
-  return user.user_type === 'RIDER' || (user as any).role === 'RIDER';
+  return user.user_type === 'RIDER' || (user as unknown as Record<string, unknown>).role === 'RIDER';
 }
 
 export function isOwnerUserForUI(user: AdminUserForUI): user is OwnerUserAdminForUI {
-  return user.user_type === 'OWNER' || (user as any).role === 'OWNER';
+  return user.user_type === 'OWNER' || (user as unknown as Record<string, unknown>).role === 'OWNER';
 }

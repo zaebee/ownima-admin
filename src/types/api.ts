@@ -108,9 +108,9 @@ export function isPaginatedResponse<T>(data: unknown): data is PaginatedResponse
     typeof data === 'object' &&
     data !== null &&
     'data' in data &&
-    Array.isArray((data as any).data) &&
+    Array.isArray((data as Record<string, unknown>).data) &&
     'count' in data &&
-    typeof (data as any).count === 'number'
+    typeof (data as Record<string, unknown>).count === 'number'
   );
 }
 

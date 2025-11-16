@@ -51,7 +51,7 @@ export function normalizeRiderUser(
     // Always set user_type to RIDER
     user_type: 'RIDER',
     // Rating field (currently undefined until backend adds it)
-    rating: (apiRider as any).rating ?? null,
+    rating: (apiRider as Record<string, unknown>).rating as number | null ?? null,
     // Rename fields for UI consistency
     phone: apiRider.phone_number,
     last_login: apiRider.last_login_at,
