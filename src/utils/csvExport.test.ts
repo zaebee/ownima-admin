@@ -138,7 +138,6 @@ describe('csvExport', () => {
 
   describe('downloadCSV', () => {
     let createElementSpy: ReturnType<typeof vi.spyOn>;
-    // let appendChildSpy: ReturnType<typeof vi.spyOn>;
     let removeChildSpy: ReturnType<typeof vi.spyOn>;
     let clickSpy: ReturnType<typeof vi.fn>;
 
@@ -158,7 +157,7 @@ describe('csvExport', () => {
 
       // Spy on DOM methods
       createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink);
-      appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink);
+      vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink);
       removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink);
     });
 
