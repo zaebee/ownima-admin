@@ -138,13 +138,15 @@ describe('csvExport', () => {
 
   describe('downloadCSV', () => {
     let createElementSpy: ReturnType<typeof vi.spyOn>;
-    let createObjectURLSpy: ReturnType<typeof vi.spyOn>;
-    let revokeObjectURLSpy: ReturnType<typeof vi.spyOn>;
     let appendChildSpy: ReturnType<typeof vi.spyOn>;
     let removeChildSpy: ReturnType<typeof vi.spyOn>;
     let clickSpy: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
+      // Mock URL.createObjectURL and revokeObjectURL (not available in Node)
+      global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+      global.URL.revokeObjectURL = vi.fn();
+
       // Create mock link element
       const mockLink = {
         setAttribute: vi.fn(),
@@ -158,10 +160,6 @@ describe('csvExport', () => {
       createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink);
       appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink);
       removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink);
-
-      // Spy on URL methods
-      createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
-      revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -194,7 +192,7 @@ describe('csvExport', () => {
       downloadCSV(csvContent, filename);
 
       expect(removeChildSpy).toHaveBeenCalled();
-      expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock-url');
+      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
     });
 
     it('handles special characters in filename', () => {
