@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { reportError } from '../utils/errorReporting';
 import type { components } from '../types/api-generated';
 import type {
   DashboardMetrics,
@@ -160,11 +161,19 @@ class AdminService {
     const reservationsRes =
       results[2].status === 'fulfilled' ? results[2].value : { data: [], total: 0 };
 
-    // Log any failures for debugging (but don't throw)
+    // Report any failures for debugging (but don't throw)
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
         const category = ['users', 'vehicles', 'reservations'][index];
-        console.error(`Failed to fetch ${category} activities:`, result.reason);
+        const error = result.reason instanceof Error
+          ? result.reason
+          : new Error(`Failed to fetch ${category} activities: ${String(result.reason)}`);
+        reportError(error, undefined, {
+          category,
+          context: 'getAllActivities',
+          skip,
+          limit
+        });
       }
     });
 
@@ -288,6 +297,114 @@ class AdminService {
     return await apiClient.get<components['schemas']['UserMetrics']>(
       `/admin/users/${userId}/metrics`
     );
+  }
+
+  /**
+   * Get a specific rider by ID with admin-specific information
+   */
+  async getAdminRider(
+    riderId: string
+  ): Promise<components['schemas']['RiderUserAdmin']> {
+    return await apiClient.get<components['schemas']['RiderUserAdmin']>(
+      `/admin/riders/${riderId}`
+    );
+  }
+
+  /**
+   * Update a rider by ID (admin operation)
+   */
+  async updateAdminRider(
+    riderId: string,
+    data: Partial<components['schemas']['RiderUserAdmin']>
+  ): Promise<components['schemas']['RiderUserAdmin']> {
+    return await apiClient.patch<components['schemas']['RiderUserAdmin']>(
+      `/admin/riders/${riderId}`,
+      data
+    );
+  }
+
+  /**
+   * Delete a rider by ID (admin operation)
+   */
+  async deleteAdminRider(riderId: string): Promise<{ message: string }> {
+    return await apiClient.delete<{ message: string }>(`/admin/riders/${riderId}`);
+  }
+
+  /**
+   * Bulk activate users
+   * @param userIds - Array of user IDs to activate
+   */
+  async bulkActivateUsers(userIds: string[]): Promise<{ updated: number; errors: string[] }> {
+    // Note: This endpoint may not exist yet in backend
+    // For now, we'll activate users one by one
+    const results = await Promise.allSettled(
+      userIds.map((id) =>
+        apiClient.patch(`/admin/users/${id}`, {
+          is_active: true,
+        })
+      )
+    );
+
+    const errors = results
+      .filter((r) => r.status === 'rejected')
+      .map((r, idx) => `Failed to activate user ${userIds[idx]}: ${(r as PromiseRejectedResult).reason}`);
+
+    return {
+      updated: results.filter((r) => r.status === 'fulfilled').length,
+      errors,
+    };
+  }
+
+  /**
+   * Bulk deactivate users
+   * @param userIds - Array of user IDs to deactivate
+   */
+  async bulkDeactivateUsers(userIds: string[]): Promise<{ updated: number; errors: string[] }> {
+    const results = await Promise.allSettled(
+      userIds.map((id) =>
+        apiClient.patch(`/admin/users/${id}`, {
+          is_active: false,
+        })
+      )
+    );
+
+    const errors = results
+      .filter((r) => r.status === 'rejected')
+      .map((r, idx) => `Failed to deactivate user ${userIds[idx]}: ${(r as PromiseRejectedResult).reason}`);
+
+    return {
+      updated: results.filter((r) => r.status === 'fulfilled').length,
+      errors,
+    };
+  }
+
+  /**
+   * Bulk delete users
+   * @param userIds - Array of user IDs to delete
+   * @param userType - Type of users being deleted (for endpoint selection)
+   */
+  async bulkDeleteUsers(
+    userIds: string[],
+    userType?: 'RIDER' | 'OWNER'
+  ): Promise<{ deleted: number; errors: string[] }> {
+    const results = await Promise.allSettled(
+      userIds.map((id) => {
+        // Use appropriate endpoint based on user type
+        if (userType === 'RIDER') {
+          return this.deleteAdminRider(id);
+        }
+        return this.deleteUser(id);
+      })
+    );
+
+    const errors = results
+      .filter((r) => r.status === 'rejected')
+      .map((r, idx) => `Failed to delete user ${userIds[idx]}: ${(r as PromiseRejectedResult).reason}`);
+
+    return {
+      deleted: results.filter((r) => r.status === 'fulfilled').length,
+      errors,
+    };
   }
 
   /**
