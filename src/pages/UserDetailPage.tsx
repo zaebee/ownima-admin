@@ -10,19 +10,15 @@ import { useToastContext } from '../contexts/ToastContext';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
 import { MetricCard } from '../components/ui/MetricCard';
+import { UserProfileHeader } from '../components/ui/UserProfileHeader';
 // ActivityTimeline removed - now available on dedicated Activity page
 import { UserEditModal } from '../components/modals/UserEditModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import {
   ArrowLeftIcon,
-  UserIcon,
-  EnvelopeIcon,
   PhoneIcon,
   MapPinIcon,
   CalendarIcon,
-  ShieldCheckIcon,
-  CheckCircleIcon,
-  XCircleIcon,
   TruckIcon,
   ClipboardDocumentListIcon,
   ArrowRightOnRectangleIcon,
@@ -31,7 +27,7 @@ import {
   CurrencyDollarIcon,
   GlobeAltIcon,
 } from '@heroicons/react/24/outline';
-import { format, parseISO, isValid } from 'date-fns';
+import { formatDate, formatDateTime } from '../utils/dateFormatting';
 
 export const UserDetailPage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -75,26 +71,6 @@ export const UserDetailPage: React.FC = () => {
       setShowDeleteDialog(false);
     },
   });
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = parseISO(dateString);
-      return isValid(date) ? format(date, 'MMM d, yyyy') : 'Invalid date';
-    } catch {
-      return 'Invalid date';
-    }
-  };
-
-  const formatDateTime = (dateString?: string) => {
-    if (!dateString) return 'Never';
-    try {
-      const date = parseISO(dateString);
-      return isValid(date) ? format(date, 'MMM d, yyyy HH:mm') : 'Invalid date';
-    } catch {
-      return 'Invalid date';
-    }
-  };
 
   const handleEditClick = () => {
     setShowEditModal(true);
@@ -160,99 +136,39 @@ export const UserDetailPage: React.FC = () => {
       </Button>
 
       {/* User Profile Header */}
+      <UserProfileHeader
+        name={user.full_name || user.email.split('@')[0]}
+        email={user.email}
+        avatarUrl={avatarUrl}
+        role={user.role}
+        isActive={user.is_active}
+        isSuperuser={user.is_superuser}
+        isBetaTester={user.is_beta_tester}
+        colorScheme="blue"
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={handleEditClick}>
+              <PencilIcon className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="text-red-600 hover:bg-red-50"
+              onClick={handleDeleteClick}
+            >
+              <TrashIcon className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          </>
+        }
+      />
+
+      {/* User Info Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden">
-        <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
-        <div className="relative px-8 pb-8">
-          <div className="flex items-start -mt-16 mb-6">
-            <div className="relative">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={user.full_name || user.email}
-                  className="w-32 h-32 rounded-2xl border-4 border-white shadow-lg object-cover"
-                />
-              ) : (
-                <div className="w-32 h-32 rounded-2xl border-4 border-white shadow-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                  <span className="text-white text-4xl font-bold">
-                    {(user.full_name?.[0] || user.email[0]).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              {user.is_active ? (
-                <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white"></div>
-              ) : (
-                <div className="absolute bottom-2 right-2 w-6 h-6 bg-gray-400 rounded-full border-4 border-white"></div>
-              )}
-            </div>
-
-            <div className="ml-6 flex-1 mt-16">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    {user.full_name || user.email.split('@')[0]}
-                  </h1>
-                  <div className="flex items-center space-x-3 mt-2">
-                    <span className="text-gray-600 flex items-center">
-                      <EnvelopeIcon className="w-4 h-4 mr-1" />
-                      {user.email}
-                    </span>
-                    {user.role && (
-                      <span
-                        className={clsx(
-                          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                          user.role === 'OWNER'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
-                        )}
-                      >
-                        <UserIcon className="w-3 h-3 mr-1" />
-                        {user.role}
-                      </span>
-                    )}
-                    {user.is_active ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <CheckCircleIcon className="w-3 h-3 mr-1" />
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <XCircleIcon className="w-3 h-3 mr-1" />
-                        Inactive
-                      </span>
-                    )}
-                    {user.is_superuser && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        <ShieldCheckIcon className="w-3 h-3 mr-1" />
-                        Admin
-                      </span>
-                    )}
-                    {user.is_beta_tester && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Beta Tester
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Button variant="secondary" size="sm" onClick={handleEditClick}>
-                    <PencilIcon className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="text-red-600 hover:bg-red-50"
-                    onClick={handleDeleteClick}
-                  >
-                    <TrashIcon className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-
-              {/* User info grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <div className="px-8 py-6">
+          {/* User info grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <CalendarIcon className="w-4 h-4" />
                   <span>Joined {formatDate(user.created_at)}</span>
@@ -285,8 +201,6 @@ export const UserDetailPage: React.FC = () => {
                     <span>{user.phone_number}</span>
                   </div>
                 )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
