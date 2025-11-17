@@ -70,59 +70,69 @@ RiderUserAdmin:
 
 ---
 
-### Issue #2: Missing `rating` Field in RiderUserAdmin Schema
+### Issue #2: Missing Rating & Metrics Fields in RiderUserAdmin Schema ✅ RESOLVED
 
-**Severity:** HIGH
-**Impact:** Rider rating feature non-functional, always shows "No rating yet"
+**Severity:** HIGH → **Status: RESOLVED** (as of API update)
+**Impact:** Rider rating and metrics features now fully functional
 
-**Current Situation:**
-- RiderDetailPage expects `rider.rating` field (line 246)
-- RiderUserAdmin schema does not include `rating` field
-- Frontend always renders "No rating yet" placeholder
+**Resolution:**
+The backend team has added comprehensive rating and reservation metrics to both `RiderUserAdmin` and `OwnerUserAdmin` schemas. The following fields are now available:
 
-**Current Frontend Code:**
+**Added Fields:**
+- `average_rating?: number | null` - Average rating from reviews (0-5 stars)
+- `rating_count: number` - Total number of ratings received
+- `total_reservations: number` - All-time reservation count
+- `completed_reservations: number` - Successfully completed reservations
+- `cancelled_reservations: number` - Cancelled reservation count
+- `completion_rate: number` - Percentage of completed reservations
+- `cancel_rate: number` - Percentage of cancelled reservations
+
+**Frontend Alignment:**
 ```typescript
-// src/pages/RiderDetailPage.tsx:246
-const renderRatingStars = (rating?: number) => {
-  if (rating === undefined || rating === null) {
-    return <p className="text-gray-500">No rating yet</p>;
-  }
-  // ... star rendering
-};
-
-// Line 267: Always renders "No rating yet"
-{renderRatingStars(rider?.rating)}  // ← rider.rating is always undefined
+// src/pages/RiderDetailPage.tsx now can use:
+rider.average_rating        // Instead of non-existent rider.rating
+rider.rating_count          // Show number of reviews
+rider.total_reservations    // Display total bookings
+rider.completed_reservations // Show completion stats
+rider.completion_rate       // Pre-calculated by backend
 ```
 
-**Requested Fix:**
-Add optional `rating` field to RiderUserAdmin schema:
+**Note:** The field name is `average_rating`, not `rating`. Frontend code using type casting workarounds should be updated to use the proper field (see Phase 3 of implementation plan).
 
-```python
-# Backend schema update needed
-class RiderUserAdmin(BaseModel):
-    # ... existing fields
-    rating: Optional[float] = None  # ← ADD THIS FIELD
-    # Rating from 0-5, calculated from owner reviews
-```
-
-**OpenAPI Schema Change:**
+**OpenAPI Schema (Current):**
 ```yaml
 RiderUserAdmin:
   properties:
-    rating:
+    average_rating:
       type: number
       format: float
       minimum: 0
       maximum: 5
       nullable: true
-      description: Average rating from owner reviews (0-5 stars)
+      description: Average rating from reviews
+    rating_count:
+      type: integer
+      description: Total number of ratings received
+    total_reservations:
+      type: integer
+      description: Total reservation count
+    completed_reservations:
+      type: integer
+      description: Successfully completed reservations count
+    completion_rate:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
+      description: Completion rate (0-1, e.g., 0.85 = 85%)
 ```
 
-**Calculation Logic Needed:**
-- Average of all rider reviews from owners
-- Null if no reviews exist
-- Updated when new review is submitted
-- Consider caching/pre-calculating for performance
+**Verification Status:**
+- ✅ Fields added to `RiderUserAdmin` schema
+- ✅ Fields added to `OwnerUserAdmin` schema
+- ✅ `UserMetrics` schema includes all reservation metrics
+- ⚠️ Frontend needs update to use `average_rating` instead of type casting
+- ✅ RiderDetailPage metrics display already uses correct field names
 
 ---
 
@@ -201,8 +211,14 @@ class PaginatedResponse(BaseModel, Generic[T]):
 | `created_at` | ✅ Required | ✅ Required | ✅ Consistent | ISO datetime |
 | `last_login_at` | ✅ Optional | ✅ Optional | ✅ Consistent | ISO datetime |
 | `login_count` | ✅ Required | ✅ Required | ✅ Consistent | Integer |
-| **Rider-Specific** |
-| `rating` | ❌ Not in schema | ❌ **MISSING** | 🚨 **FIX NEEDED** | Should be float 0-5 |
+| **Metrics & Ratings** (✅ Added in Recent API Update) |
+| `average_rating` | ✅ Optional | ✅ Optional | ✅ Consistent | Float 0-5, nullable |
+| `rating_count` | ✅ Required | ✅ Required | ✅ Consistent | Integer |
+| `total_reservations` | ✅ Required | ✅ Required | ✅ Consistent | Integer |
+| `completed_reservations` | ✅ Required | ✅ Required | ✅ Consistent | Integer |
+| `cancelled_reservations` | ✅ Required | ✅ Required | ✅ Consistent | Integer |
+| `completion_rate` | ✅ Required | ✅ Required | ✅ Consistent | Float 0-1 |
+| `cancel_rate` | ✅ Required | ✅ Required | ✅ Consistent | Float 0-1 |
 
 ### Frontend Field Name Mapping
 
@@ -465,6 +481,344 @@ class Language(str, Enum):
 - Optimized for rider analytics
 - Includes completion rate calculation
 - Provides business intelligence metrics
+
+---
+
+### 4. Per-User Activity Feed (HIGH PRIORITY)
+
+**Endpoints:**
+- `GET /admin/riders/{rider_id}/activities`
+- `GET /admin/users/{user_id}/activities`
+
+**Priority:** HIGH
+**Status:** ⏳ NOT IMPLEMENTED (Requested)
+
+**Purpose:** Enable per-user activity filtering in detail pages
+
+**Current Situation:**
+- System-wide activity feed exists and works well (`ActivityTimeline` component)
+- 14 activity types supported (user_registered, vehicle_created, reservation_created, etc.)
+- RiderDetailPage shows placeholder: "Per-rider activity filtering will be available in a future update" (line 549)
+- UserDetailPage lacks activity section entirely
+- Users must navigate to system-wide activity page and manually find relevant items
+
+**Requested Implementation:**
+
+#### Endpoint: GET /admin/riders/{rider_id}/activities
+
+**Query Parameters:**
+```typescript
+{
+  category?: 'all' | 'reservations' | 'ratings' | 'auth';
+  skip?: number;       // Default: 0
+  limit?: number;      // Default: 20
+}
+```
+
+**Response Format:**
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "type": "RESERVATION_CREATED",
+      "user_type": "rider",
+      "user_id": "uuid",
+      "user_email": "rider@example.com",
+      "description": "Rider created reservation #RES-12345",
+      "timestamp": "2025-11-17T10:30:00Z",
+      "metadata": {
+        "reservation_id": "uuid",
+        "vehicle_id": "uuid",
+        "owner_id": "uuid"
+      }
+    },
+    {
+      "id": "uuid",
+      "type": "USER_LOGIN",
+      "user_type": "rider",
+      "user_id": "uuid",
+      "user_email": "rider@example.com",
+      "description": "Rider logged in",
+      "timestamp": "2025-11-16T14:20:00Z",
+      "metadata": {}
+    }
+  ],
+  "count": 127,
+  "page": 1,
+  "size": 20
+}
+```
+
+#### Endpoint: GET /admin/users/{user_id}/activities
+
+Same structure as rider endpoint, but filters for owner-specific activities:
+- `VEHICLE_CREATED`, `VEHICLE_UPDATED`, `VEHICLE_PUBLISHED`
+- `RESERVATION_CREATED` (from owner's perspective)
+- `USER_LOGIN`, `USER_REGISTERED`
+- Rating activities related to this owner
+
+**Activity Type Categories:**
+
+| Category | Activity Types |
+|----------|---------------|
+| `reservations` | RESERVATION_CREATED, RESERVATION_STATUS_UPDATED_* |
+| `ratings` | RATING_SUBMITTED, RATING_RECEIVED |
+| `auth` | USER_LOGIN, RIDER_LOGIN, USER_REGISTERED, RIDER_REGISTERED |
+| `all` | All activity types for this user |
+
+**Frontend Integration:**
+
+The frontend will use these endpoints in:
+
+1. **RiderDetailPage.tsx** (line 543-556)
+   - Replace placeholder with `<UserActivityTimeline userId={riderId} userType="RIDER" />`
+   - Show last 10 activities with "Load More" button
+   - Category filtering dropdown (All, Reservations, Ratings, Auth)
+
+2. **UserDetailPage.tsx** (new section)
+   - Add activity section similar to RiderDetailPage
+   - Show owner-specific activities
+   - Link to related entities (vehicles, reservations)
+
+**Implementation Requirements:**
+
+1. **Backend Filtering Logic:**
+   - Filter activities WHERE user_id = {rider_id} OR metadata contains user reference
+   - Example: Show reservation activities where rider is the renter
+   - Example: Show rating activities where rider is rater or rated
+   - Order by timestamp DESC
+
+2. **Performance Considerations:**
+   - Add database index on `user_id` in activities table
+   - Add composite index on (`user_id`, `timestamp`)
+   - Consider pagination with cursor-based approach for large datasets
+   - Cache frequently accessed user activities (Redis)
+
+3. **Response Consistency:**
+   - Match existing ActivityTimeline component expectations
+   - Include same metadata fields as system-wide activities
+   - Support same timestamp format (ISO 8601)
+   - Normalize activity type to UPPERCASE
+
+**Example Use Cases:**
+
+1. **Support Investigation:**
+   - Admin views rider's activity to diagnose account issues
+   - Track when rider last logged in, created bookings
+   - Identify patterns in cancelled reservations
+
+2. **User Behavior Analysis:**
+   - See rider's booking frequency and patterns
+   - Track rating submission behavior
+   - Monitor login activity for dormant accounts
+
+3. **Audit Trail:**
+   - Complete history of user actions
+   - Useful for dispute resolution
+   - Compliance and data access requests
+
+**Frontend Component Structure:**
+```typescript
+// New component: UserActivityTimeline
+<UserActivityTimeline
+  userId={riderId}
+  userType="RIDER"  // or "OWNER"
+  initialLimit={10}
+  showCategories={true}
+  onActivityClick={(activity) => navigateToEntity(activity)}
+/>
+```
+
+**Testing Requirements:**
+
+```python
+def test_get_rider_activities_filters_correctly():
+    """Ensure only rider's activities are returned"""
+    response = client.get(f"/admin/riders/{rider_id}/activities")
+    assert response.status_code == 200
+    data = response.json()
+
+    for activity in data['data']:
+        assert activity['user_id'] == rider_id
+        # or activity references rider in metadata
+
+def test_get_rider_activities_category_filter():
+    """Test category filtering works"""
+    response = client.get(
+        f"/admin/riders/{rider_id}/activities?category=reservations"
+    )
+    data = response.json()
+
+    for activity in data['data']:
+        assert activity['type'].startswith('RESERVATION_')
+```
+
+**Priority Justification:**
+- HIGH: Enhances admin efficiency significantly
+- Reduces time to investigate user issues
+- Improves user support quality
+- Relatively straightforward to implement (filter existing activities)
+- Frontend already built (waiting for backend endpoint)
+
+---
+
+## ⭐ New Feature: Complete Ratings System
+
+**Added:** Recent API update
+**Status:** ✅ Fully Implemented
+
+The backend has implemented a comprehensive bidirectional ratings system for the platform. This enables riders to rate owners and vehicles, owners to rate riders, and provides platform-wide rating analytics.
+
+### Rating Schemas
+
+#### 1. RatingResponse
+Individual rating details returned from the API:
+
+```typescript
+interface RatingResponse {
+  id: string;              // UUID
+  rater_id: string;        // User who gave the rating
+  rated_id: string;        // User/vehicle being rated
+  score: number;           // 1-5 star rating
+  feedback?: string;       // Optional text review
+  rating_type: 'RIDER' | 'OWNER' | 'VEHICLE';
+  rating_phase: 'COLLECT' | 'COMPLETE';
+  reservation_id: string;  // Linked reservation
+  created_at: string;      // ISO datetime
+  updated_at: string;      // ISO datetime
+}
+```
+
+#### 2. RatingStatistics
+Platform-wide rating metrics for admin dashboard:
+
+```typescript
+interface RatingStatistics {
+  total_ratings: number;
+  avg_score: number;       // Overall platform average
+  score_distribution: {    // Star breakdown
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
+  by_type: {
+    RIDER: { total: number; avg: number };
+    OWNER: { total: number; avg: number };
+    VEHICLE: { total: number; avg: number };
+  };
+}
+```
+
+#### 3. RatingStats
+Entity-specific rating statistics (for individual users/vehicles):
+
+```typescript
+interface RatingStats {
+  average_rating: number;
+  rating_count: number;
+  five_star: number;
+  four_star: number;
+  three_star: number;
+  two_star: number;
+  one_star: number;
+  last_updated: string;    // ISO datetime
+}
+```
+
+### Rating Endpoints
+
+| Endpoint | Method | Purpose | Status |
+|----------|--------|---------|--------|
+| `/api/v1/ratings` | GET | List ratings with filters | ✅ Available |
+| `/api/v1/ratings/{rating_id}` | GET | Get single rating | ✅ Available |
+| `/api/v1/ratings` | POST | Create new rating | ✅ Available |
+| `/api/v1/ratings/{rating_id}` | PUT | Update rating | ✅ Available |
+| `/api/v1/ratings/{rating_id}` | DELETE | Soft delete rating | ✅ Available |
+| `/api/v1/admin/metrics/ratings` | GET | Platform rating statistics | ✅ Available |
+
+### Query Parameters for GET /api/v1/ratings
+
+```typescript
+{
+  rater_id?: string;       // Filter by who gave the rating
+  rated_id?: string;       // Filter by who/what was rated
+  rating_type?: 'RIDER' | 'OWNER' | 'VEHICLE';
+  rating_phase?: 'COLLECT' | 'COMPLETE';
+  reservation_id?: string;
+  min_score?: number;      // Filter ratings >= this score
+  max_score?: number;      // Filter ratings <= this score
+  skip?: number;           // Pagination offset
+  limit?: number;          // Pagination limit
+}
+```
+
+### Bidirectional Rating Flow
+
+The system supports three rating types:
+
+1. **Owner → Rider**: Owner rates rider's behavior after rental
+2. **Rider → Owner**: Rider rates owner's service/responsiveness
+3. **Rider → Vehicle**: Rider rates vehicle condition/quality
+
+Each rating is linked to a specific reservation and goes through phases:
+- `COLLECT`: Rating submitted during collection
+- `COMPLETE`: Rating submitted after completion
+
+### Frontend Integration Points
+
+**Admin Dashboard Metrics** (Future Enhancement):
+- Platform-wide rating trends
+- Rating distribution charts
+- Flagged/disputed ratings review
+- Average ratings by user type
+
+**Rider Detail Page** (Current):
+- Display `average_rating` from RiderUserAdmin schema
+- Show `rating_count` next to stars
+- Future: Show detailed rating breakdown
+
+**Owner Detail Page** (Future):
+- Similar rating display as riders
+- Response time correlation with ratings
+- Rating impact on booking success rate
+
+### Rating Calculation Logic
+
+**Average Rating Calculation:**
+```python
+# Backend automatically calculates and stores in user schemas
+average_rating = sum(all_ratings.score) / len(all_ratings)
+```
+
+**Integration with User Schemas:**
+- `RiderUserAdmin.average_rating` - Pre-calculated rider rating
+- `RiderUserAdmin.rating_count` - Total ratings received
+- `OwnerUserAdmin.average_rating` - Pre-calculated owner rating
+- `OwnerUserAdmin.rating_count` - Total ratings received
+
+**Performance Optimization:**
+- Ratings are pre-calculated and cached in user schemas
+- No need for real-time aggregation on user detail pages
+- Updated via background job or trigger when new rating submitted
+
+### Admin Moderation Capabilities
+
+**Future Enhancement Request:**
+```
+GET /admin/riders/{rider_id}/ratings
+- View all ratings for specific rider
+- Flag inappropriate reviews
+- Manually adjust ratings with audit trail
+```
+
+**Recommended Admin Features:**
+- Filter flagged/disputed ratings
+- Rating appeal workflow
+- Fraud detection (rating manipulation)
+- Automated flagging of extreme outliers
 
 ---
 
@@ -747,20 +1101,24 @@ PaginatedRiderResponse:
 
 ## 🎯 Priority Matrix
 
-| Issue | Severity | Implementation Effort | Frontend Impact | Priority |
-|-------|----------|----------------------|-----------------|----------|
-| Add `role` field to RiderUserAdmin | HIGH | Low (1 line) | High - eliminates workaround | **P0** |
-| Add `rating` field to RiderUserAdmin | HIGH | Medium (calc logic) | High - enables feature | **P0** |
-| Standardize pagination format | MEDIUM | Medium (all endpoints) | Medium - simplifies code | **P1** |
-| Add rider activities endpoint | MEDIUM | Medium (new endpoint) | Medium - enables tab | **P1** |
-| Add rider reviews endpoint | LOW | High (new feature) | Low - future feature | **P2** |
-| Field naming consistency | LOW | Low (rename fields) | Low - minor improvement | **P3** |
+| Issue | Severity | Implementation Effort | Frontend Impact | Status | Priority |
+|-------|----------|----------------------|-----------------|--------|----------|
+| ~~Add `rating` field to RiderUserAdmin~~ | ~~HIGH~~ | ~~Medium~~ | ~~High~~ | ✅ **RESOLVED** | ~~P0~~ |
+| Add `role` field to RiderUserAdmin | HIGH | Low (1 line) | High - eliminates workaround | ⏳ Open | **P0** |
+| Per-user activity feed endpoints | HIGH | Medium (2 endpoints) | High - enables feature | ⏳ Open | **P0** |
+| Standardize pagination format | MEDIUM | Medium (all endpoints) | Medium - simplifies code | ⏳ Open | **P1** |
+| Rider/owner rating details endpoint | MEDIUM | Medium (new endpoint) | Medium - future analytics | ⏳ Open | **P2** |
+| Field naming consistency | LOW | Low (rename fields) | Low - minor improvement | ⏳ Open | **P3** |
+
+**Recent Completions:**
+- ✅ **Rating & Metrics Fields**: Added `average_rating`, `rating_count`, `total_reservations`, `completed_reservations`, `cancel_rate`, `completion_rate` to user schemas
+- ✅ **Ratings System**: Complete bidirectional ratings implementation with 5 endpoints
 
 **Recommended Implementation Order:**
-1. **Sprint 1 (1-2 days):** Add `role` and `rating` fields to existing schema
-2. **Sprint 2 (2-3 days):** Standardize pagination across all admin endpoints
-3. **Sprint 3 (3-5 days):** Implement rider activities endpoint
-4. **Sprint 4 (1 week):** Implement reviews/rating management endpoints
+1. **Sprint 1 (1 day):** Add `role` field to RiderUserAdmin schema (quick win)
+2. **Sprint 2 (2-3 days):** Implement per-user activity feed endpoints (`/admin/riders/{id}/activities`, `/admin/users/{id}/activities`)
+3. **Sprint 3 (3-4 days):** Standardize pagination across all admin endpoints
+4. **Sprint 4 (1-2 weeks):** Rating moderation features (rating details, admin adjustment, flagging)
 
 ---
 
