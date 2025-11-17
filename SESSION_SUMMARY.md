@@ -98,7 +98,10 @@ src/utils/
 src/services/
   - admin.test.ts (extended with 27 new tests)
 
-TESTING_PLAN.md
+docs/
+  - TESTING_BEST_PRACTICES.md (new - extracted from this summary)
+  - TESTING_TROUBLESHOOTING.md (new - extracted from this summary)
+
 SESSION_SUMMARY.md (this file)
 ```
 
@@ -115,8 +118,8 @@ SESSION_SUMMARY.md (this file)
 
 **Git Status:**
 - Branch: `feat/riders`
-- Latest Phase 3 work: Not yet committed
-- Ready for commit and PR review
+- All work committed and pushed
+- PR #10 merged to main
 
 **Coverage Improvement:**
 - Before: 29.74% patch coverage
@@ -320,7 +323,8 @@ const icons = container.querySelectorAll('svg');
 ## 📞 Contact Points
 
 **Related Files:**
-- Implementation Plan: `TESTING_PLAN.md`
+- Testing Best Practices: `docs/TESTING_BEST_PRACTICES.md`
+- Testing Troubleshooting: `docs/TESTING_TROUBLESHOOTING.md`
 - Project Context: `CLAUDE.md`
 - Backend Integration: `docs/BACKEND_INTEGRATION.md`
 
