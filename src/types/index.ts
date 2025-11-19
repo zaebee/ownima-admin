@@ -292,7 +292,9 @@ export type ReservationActivityType =
   | 'reservation_status_updated_completed'
   | 'reservation_status_updated_cancelled';
 
-export type ActivityType = UserActivityType | VehicleActivityType | ReservationActivityType;
+export type RatingActivityType = 'rating_submitted' | 'rating_received';
+
+export type ActivityType = UserActivityType | VehicleActivityType | ReservationActivityType | RatingActivityType;
 
 // Activity details interfaces for different activity types
 export interface UserActivityDetails {
@@ -340,7 +342,18 @@ export interface ReservationActivityDetails {
   };
 }
 
-export type ActivityDetails = UserActivityDetails | VehicleActivityDetails | ReservationActivityDetails;
+export interface RatingActivityDetails {
+  event_type: string;
+  score: number;
+  rated_user_id: string;
+  rated_user_name: string;
+  from_user_id: string;
+  from_user_name: string;
+  entity_id: string;
+  user_id: string;
+}
+
+export type ActivityDetails = UserActivityDetails | VehicleActivityDetails | ReservationActivityDetails | RatingActivityDetails;
 
 // Main Activity interface matching backend specification
 export interface Activity {
