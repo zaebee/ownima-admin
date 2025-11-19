@@ -12,6 +12,7 @@ import { Button } from '../components/ui/Button';
 import { MetricCard } from '../components/ui/MetricCard';
 import { UserProfileHeader } from '../components/ui/UserProfileHeader';
 // ActivityTimeline removed - now available on dedicated Activity page
+import { UserActivityTimeline } from '../components/UserActivityTimeline';
 import { UserEditModal } from '../components/modals/UserEditModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import {
@@ -440,17 +441,7 @@ export const UserDetailPage: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Activity</h3>
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="text-center py-8">
-                      <p className="text-sm text-gray-500 mb-4">
-                        Per-user activity filtering will be available in a future update.
-                      </p>
-                      <a
-                        href="/dashboard/activity"
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-                      >
-                        View All Activities
-                      </a>
-                    </div>
+                    {userId && <UserActivityTimeline userId={userId} userType="OWNER" />}
                   </div>
                 </div>
               </div>
