@@ -14,6 +14,7 @@ import { RatingStars } from '../components/ui/RatingStars';
 import { UserProfileHeader } from '../components/ui/UserProfileHeader';
 import { RiderEditModal } from '../components/modals/RiderEditModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { UserActivityTimeline } from '../components/UserActivityTimeline';
 import {
   ArrowLeftIcon,
   PhoneIcon,
@@ -153,7 +154,14 @@ export const RiderDetailPage: React.FC = () => {
         isSuperuser={rider.is_superuser}
         isBetaTester={rider.is_beta_tester}
         colorScheme="green"
-        additionalInfo={<RatingStars rating={(rider as unknown as { rating?: number }).rating} />}
+        additionalInfo={
+          <div className="flex items-center space-x-2">
+            <RatingStars rating={rider.average_rating ?? undefined} />
+            {rider.rating_count > 0 && (
+              <span className="text-sm text-gray-500">({rider.rating_count} reviews)</span>
+            )}
+          </div>
+        }
         actions={
           <>
             <Button variant="secondary" size="sm" onClick={handleEditClick}>
@@ -541,19 +549,7 @@ export const RiderDetailPage: React.FC = () => {
 
             {/* Activity Tab */}
             <Tab.Panel>
-              <div className="text-center py-12">
-                <ArrowRightOnRectangleIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">Activity Timeline</h3>
-                <p className="mt-1 text-sm text-gray-500 mb-4">
-                  Per-rider activity filtering will be available in a future update.
-                </p>
-                <a
-                  href="/dashboard/activity"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-                >
-                  View All Activities
-                </a>
-              </div>
+              {riderId && <UserActivityTimeline userId={riderId} userType="RIDER" />}
             </Tab.Panel>
           </Tab.Panels>
         </Tab.Group>

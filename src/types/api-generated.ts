@@ -183,6 +183,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/username/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check Username Availability
+         * @description Check if username is available for registration.
+         *
+         *     Args:
+         *         username: Username to check (case-insensitive, 3-50 characters)
+         *         session: Database session
+         *
+         *     Returns:
+         *         {"available": true} if username is available
+         *         {"available": false} if username is taken
+         *
+         *     Raises:
+         *         HTTP 400: If username format is invalid or reserved
+         *
+         *     Example:
+         *         GET /api/v1/auth/username/available?username=johndoe
+         *         Response: {"available": true}
+         */
+        get: operations["Auth-check_username_availability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/account-request-deletion": {
         parameters: {
             query?: never;
@@ -536,7 +571,7 @@ export interface paths {
         };
         /**
          * Get Reservation
-         * @description Get a specific reservation.
+         * @description Get a specific reservation (rider endpoint).
          */
         get: operations["Rider-get_reservation"];
         put?: never;
@@ -561,6 +596,26 @@ export interface paths {
          * @description Cancel a reservation.
          */
         post: operations["Rider-cancel_reservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/{reservation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update an existing reservation
+         * @description Update an existing reservation specified by its ID.
+         */
+        put: operations["Rider-update_reservation"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -961,7 +1016,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Reservation */
+        /**
+         * Get Reservation
+         * @description Get reservation detail (owner endpoint).
+         */
         get: operations["Reservation-get_reservation"];
         /**
          * Update an existing reservation
@@ -1256,6 +1314,85 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/finance/invoice/{reservation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Create Invoice
+         * @description Generate PDF invoice for a reservation with aggregated pricing.
+         */
+        get: operations["Finance-create_invoice"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Ratings
+         * @description List ratings with optional filters.
+         *
+         *     Returns ratings visible to the current user based on their role:
+         *     - Owners can see ratings they gave and ratings they received
+         *     - Riders can see ratings they gave and ratings they received
+         *     - Admins can see all ratings
+         */
+        get: operations["Ratings-list_ratings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ratings/{rating_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Rating
+         * @description Get a single rating by ID.
+         *
+         *     Only the rater, the rated user, or admins can view a rating.
+         */
+        get: operations["Ratings-get_rating"];
+        /**
+         * Update Rating
+         * @description Update an existing rating.
+         *
+         *     Only the original rater can update their rating.
+         */
+        put: operations["Ratings-update_rating"];
+        post?: never;
+        /**
+         * Delete Rating
+         * @description Soft delete a rating.
+         *
+         *     Only the original rater or admins can delete a rating.
+         */
+        delete: operations["Ratings-delete_rating"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1646,6 +1783,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/metrics/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Rating Statistics
+         * @description Get platform-wide rating statistics.
+         *
+         *     Returns statistics for all ratings in the system:
+         *     - Total count of ratings (excluding soft-deleted)
+         *     - Platform average rating score
+         *     - Distribution of scores (1-5 stars)
+         *
+         *     This endpoint provides insights into the overall platform rating quality
+         *     and user satisfaction metrics.
+         */
+        get: operations["Admin-get_rating_statistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -1662,6 +1827,8 @@ export interface paths {
          *     - Registration date range
          *     - Inactive users (not logged in for X days)
          *     - Search by email or name
+         *
+         *     Returns standardized paginated response with page, size, and total_pages metadata.
          */
         get: operations["Admin-get_admin_users"];
         put?: never;
@@ -1732,6 +1899,8 @@ export interface paths {
         /**
          * Get Recent User Activities
          * @description Get recent user activities (logins, registrations) for admin monitoring.
+         *
+         *     Returns standardized paginated response with page, size, and total_pages metadata.
          */
         get: operations["Admin-get_recent_user_activities"];
         put?: never;
@@ -1752,6 +1921,8 @@ export interface paths {
         /**
          * Get Recent Vehicle Activities
          * @description Get recent vehicle activities for admin monitoring.
+         *
+         *     Returns standardized paginated response with page, size, and total_pages metadata.
          */
         get: operations["Admin-get_recent_vehicle_activities"];
         put?: never;
@@ -1772,6 +1943,8 @@ export interface paths {
         /**
          * Get Recent Reservation Activities
          * @description Get recent reservation activities for admin monitoring.
+         *
+         *     Returns standardized paginated response with page, size, and total_pages metadata.
          */
         get: operations["Admin-get_recent_reservation_activities"];
         put?: never;
@@ -1828,6 +2001,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/users/{user_id}/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Activities Endpoint
+         * @description Get activity timeline for a specific user/owner.
+         *
+         *     Returns paginated activities filtered by user ID with optional category filtering.
+         *     Useful for investigating owner behavior, troubleshooting issues, and audit trails.
+         *
+         *     **Category Options:**
+         *     - `reservations`: Reservation-related activities (from owner's perspective)
+         *     - `ratings`: Rating and review activities
+         *     - `auth`: Authentication activities (logins, registrations)
+         *     - `all` or None: All activity types
+         *
+         *     **Use Cases:**
+         *     - Support investigation: Track owner's recent actions
+         *     - Dispute resolution: View complete activity history
+         *     - Performance analysis: Understand vehicle management patterns
+         */
+        get: operations["Admin-get_user_activities_endpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/riders": {
         parameters: {
             query?: never;
@@ -1843,6 +2050,8 @@ export interface paths {
          *     - Registration date range
          *     - Inactive riders (not logged in for X days)
          *     - Search by email or name
+         *
+         *     Returns standardized paginated response with page, size, and total_pages metadata.
          */
         get: operations["Admin-get_admin_riders"];
         put?: never;
@@ -1879,6 +2088,40 @@ export interface paths {
          * @description Update rider profile (admin only).
          */
         patch: operations["Admin-update_admin_rider"];
+        trace?: never;
+    };
+    "/api/v1/admin/riders/{rider_id}/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Rider Activities
+         * @description Get activity timeline for a specific rider.
+         *
+         *     Returns paginated activities filtered by rider ID with optional category filtering.
+         *     Useful for investigating rider behavior, troubleshooting issues, and audit trails.
+         *
+         *     **Category Options:**
+         *     - `reservations`: Reservation-related activities (bookings, cancellations)
+         *     - `ratings`: Rating and review activities
+         *     - `auth`: Authentication activities (logins, registrations)
+         *     - `all` or None: All activity types
+         *
+         *     **Use Cases:**
+         *     - Support investigation: Track rider's recent actions
+         *     - Dispute resolution: View complete activity history
+         *     - Behavior analysis: Understand booking patterns
+         */
+        get: operations["Admin-get_rider_activities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/metrics": {
@@ -1981,6 +2224,16 @@ export interface components {
              */
             county?: string | null;
             /**
+             * Latitude
+             * @description Latitude coordinate
+             */
+            latitude?: number | null;
+            /**
+             * Longitude
+             * @description Longitude coordinate
+             */
+            longitude?: number | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -2023,6 +2276,16 @@ export interface components {
              * @description County
              */
             county?: string | null;
+            /**
+             * Latitude
+             * @description Latitude coordinate
+             */
+            latitude?: number | null;
+            /**
+             * Longitude
+             * @description Longitude coordinate
+             */
+            longitude?: number | null;
         };
         /**
          * AdminDashboardMetrics
@@ -2078,8 +2341,10 @@ export interface components {
         AvailableHour: {
             /** Name */
             name?: string;
-            /** Available */
-            available?: boolean;
+            /** Pick Up Available */
+            pick_up_available?: boolean;
+            /** Drop Off Available */
+            drop_off_available?: boolean;
         };
         /** BalanceResponse */
         BalanceResponse: {
@@ -2116,7 +2381,10 @@ export interface components {
             grant_type?: string | null;
             /** Username */
             username: string;
-            /** Password */
+            /**
+             * Password
+             * Format: password
+             */
             password: string;
             /**
              * Scope
@@ -2125,7 +2393,10 @@ export interface components {
             scope: string;
             /** Client Id */
             client_id?: string | null;
-            /** Client Secret */
+            /**
+             * Client Secret
+             * Format: password
+             */
             client_secret?: string | null;
         };
         /** Body_Storage-create_entity_photos */
@@ -2193,12 +2464,6 @@ export interface components {
              * Format: date-time
              */
             confirmation_date?: string;
-            /** By Rider */
-            by_rider?: boolean;
-            /** By Owner */
-            by_owner?: boolean;
-            /** Auto */
-            auto?: boolean;
             /** Confirmation Note */
             confirmation_note?: string;
             status?: components["schemas"]["ReservationStatus"];
@@ -2213,6 +2478,7 @@ export interface components {
             other?: {
                 [key: string]: components["schemas"]["Any"];
             };
+            meta?: components["schemas"]["ConfirmationMeta"];
         };
         /** ConfirmationHistory */
         ConfirmationHistory: {
@@ -2220,6 +2486,28 @@ export interface components {
             reservation_id?: string;
             /** Confirmations */
             confirmations?: components["schemas"]["Confirmation"][];
+        };
+        /** ConfirmationMeta */
+        ConfirmationMeta: {
+            /** Awaiting Party */
+            awaiting_party?: string;
+            /** Confirmed By */
+            confirmed_by?: string;
+            /** Stage */
+            stage?: string;
+            /** Policy */
+            policy?: string;
+            /** Attempts */
+            attempts?: number;
+            /** Escalated */
+            escalated?: boolean;
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at?: string;
+            /** Reason Hint */
+            reason_hint?: string;
         };
         /** ConfirmationReservationResponse */
         ConfirmationReservationResponse: {
@@ -2416,7 +2704,7 @@ export interface components {
          * @description Describes base User currencies.
          * @enum {string}
          */
-        CurrencyEnum: "USD" | "EUR" | "RUB" | "THB" | "VND" | "IDR";
+        CurrencyEnum: "USD" | "EUR" | "GBP" | "RUB" | "THB" | "VND" | "IDR";
         /**
          * CustomerSource
          * @description CustomerSource specifies the source of the customer.
@@ -2581,6 +2869,7 @@ export interface components {
             reservation?: components["schemas"]["Reservation"];
             /** Error */
             error?: string;
+            confirmation?: components["schemas"]["Confirmation"];
         };
         /** GetVehicleResponse */
         GetVehicleResponse: {
@@ -2772,6 +3061,31 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** NoResponseMeta */
+        NoResponseMeta: {
+            /** From Party */
+            from_party?: string;
+            /** Stage */
+            stage?: string;
+            /** Policy */
+            policy?: string;
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at?: string;
+            /** Attempts */
+            attempts?: number;
+            /** Escalated */
+            escalated?: boolean;
+            /** Reason Hint */
+            reason_hint?: string;
+            /**
+             * Expired At
+             * Format: date-time
+             */
+            expired_at?: string;
+        };
         /**
          * OccupancyEnum
          * @description Describes Time Slot occupancy type for reservation.
@@ -2841,6 +3155,11 @@ export interface components {
              */
             id: string;
             /**
+             * Username
+             * @description Unique username/slug for profile URL
+             */
+            username?: string | null;
+            /**
              * Name
              * @description Display name (business name or full name)
              */
@@ -2880,14 +3199,115 @@ export interface components {
             coords?: components["schemas"]["Coordinates"] | null;
         };
         /**
-         * PaginatedActivityResponse
-         * @description Paginated response for activity events.
+         * PaginatedResponse[Activity]
+         * @example {
+         *       "count": 127,
+         *       "data": [],
+         *       "page": 1,
+         *       "size": 50,
+         *       "total_pages": 3
+         *     }
          */
-        PaginatedActivityResponse: {
-            /** Data */
+        PaginatedResponse_Activity_: {
+            /**
+             * Data
+             * @description List of items for the current page
+             */
             data: components["schemas"]["Activity"][];
-            /** Total */
-            total: number;
+            /**
+             * Count
+             * @description Total number of items across all pages
+             */
+            count: number;
+            /**
+             * Page
+             * @description Current page number (1-indexed)
+             */
+            page: number;
+            /**
+             * Size
+             * @description Number of items per page
+             */
+            size: number;
+            /**
+             * Total Pages
+             * @description Total number of pages available
+             */
+            total_pages: number;
+        };
+        /**
+         * PaginatedResponse[RiderUserAdmin]
+         * @example {
+         *       "count": 127,
+         *       "data": [],
+         *       "page": 1,
+         *       "size": 50,
+         *       "total_pages": 3
+         *     }
+         */
+        PaginatedResponse_RiderUserAdmin_: {
+            /**
+             * Data
+             * @description List of items for the current page
+             */
+            data: components["schemas"]["RiderUserAdmin"][];
+            /**
+             * Count
+             * @description Total number of items across all pages
+             */
+            count: number;
+            /**
+             * Page
+             * @description Current page number (1-indexed)
+             */
+            page: number;
+            /**
+             * Size
+             * @description Number of items per page
+             */
+            size: number;
+            /**
+             * Total Pages
+             * @description Total number of pages available
+             */
+            total_pages: number;
+        };
+        /**
+         * PaginatedResponse[UserAdmin]
+         * @example {
+         *       "count": 127,
+         *       "data": [],
+         *       "page": 1,
+         *       "size": 50,
+         *       "total_pages": 3
+         *     }
+         */
+        PaginatedResponse_UserAdmin_: {
+            /**
+             * Data
+             * @description List of items for the current page
+             */
+            data: components["schemas"]["UserAdmin"][];
+            /**
+             * Count
+             * @description Total number of items across all pages
+             */
+            count: number;
+            /**
+             * Page
+             * @description Current page number (1-indexed)
+             */
+            page: number;
+            /**
+             * Size
+             * @description Number of items per page
+             */
+            size: number;
+            /**
+             * Total Pages
+             * @description Total number of pages available
+             */
+            total_pages: number;
         };
         /** Pagination */
         Pagination: {
@@ -3074,6 +3494,225 @@ export interface components {
             /** Name */
             name?: string;
         };
+        /** Rating */
+        Rating: {
+            /** Score */
+            score?: number;
+            /** Feedback */
+            feedback?: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+        };
+        /**
+         * RatingDeleteResponse
+         * @description Schema for rating deletion confirmation.
+         */
+        RatingDeleteResponse: {
+            /**
+             * Id
+             * Format: uuid
+             * @description UUID of deleted rating
+             */
+            id: string;
+            /**
+             * Message
+             * @description Confirmation message
+             */
+            message: string;
+        };
+        /**
+         * RatingInput
+         * @description Schema for submitting a rating during reservation completion.
+         *
+         *     Used for bidirectional ratings:
+         *     - Owner → Rider
+         *     - Rider → Owner
+         *     - Rider → Vehicle
+         */
+        RatingInput: {
+            /**
+             * Score
+             * @description Rating score from 1-5 stars
+             */
+            score: number;
+            /**
+             * Feedback
+             * @description Optional feedback text
+             * @default
+             */
+            feedback: string;
+        };
+        /**
+         * RatingListResponse
+         * @description Schema for paginated rating list response.
+         */
+        RatingListResponse: {
+            /**
+             * Data
+             * @description List of ratings
+             */
+            data: components["schemas"]["RatingResponse"][];
+            /**
+             * Total
+             * @description Total count of ratings
+             */
+            total: number;
+            /**
+             * Skip
+             * @description Number of records skipped
+             */
+            skip: number;
+            /**
+             * Limit
+             * @description Maximum number of records returned
+             */
+            limit: number;
+        };
+        /**
+         * RatingPhaseEnum
+         * @description Phases when ratings are captured.
+         * @enum {string}
+         */
+        RatingPhaseEnum: "COLLECT" | "COMPLETE";
+        /**
+         * RatingResponse
+         * @description Schema for rating response.
+         */
+        RatingResponse: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Rating UUID
+             */
+            id: string;
+            /**
+             * Rater Id
+             * Format: uuid
+             * @description UUID of user who gave the rating
+             */
+            rater_id: string;
+            /** @description Role of the rater (OWNER or RIDER) */
+            rater_role: components["schemas"]["RoleEnum"];
+            /** @description Type of rating (OWNER, RIDER, or VEHICLE) */
+            rating_type: components["schemas"]["RatingTypeEnum"];
+            /**
+             * Rated Id
+             * @description ID of entity being rated (owner UUID, rider UUID, or vehicle ID)
+             */
+            rated_id: string;
+            /**
+             * Score
+             * @description Rating score (1-5 stars)
+             */
+            score: number;
+            /**
+             * Feedback
+             * @description Optional feedback text
+             */
+            feedback?: string | null;
+            /**
+             * Reservation Id
+             * @description Associated reservation ID
+             */
+            reservation_id: string;
+            /** @description Phase when rating was given (MID_RENTAL or COMPLETE) */
+            rating_phase: components["schemas"]["RatingPhaseEnum"];
+            /**
+             * Created At
+             * Format: date-time
+             * @description When rating was created
+             */
+            created_at: string;
+            /**
+             * Is Deleted
+             * @description Whether rating is soft-deleted
+             */
+            is_deleted: boolean;
+        };
+        /**
+         * RatingStatistics
+         * @description Platform-wide rating statistics for admin dashboard.
+         */
+        RatingStatistics: {
+            /**
+             * Total Ratings
+             * @description Total count of ratings (excluding deleted)
+             * @default 0
+             */
+            total_ratings: number;
+            /**
+             * Avg Score
+             * @description Platform average rating score (0.0-5.0)
+             * @default 0
+             */
+            avg_score: number;
+            /**
+             * Min Score
+             * @description Minimum possible score
+             * @default 1
+             */
+            min_score: number;
+            /**
+             * Max Score
+             * @description Maximum possible score
+             * @default 5
+             */
+            max_score: number;
+            /**
+             * Score Distribution
+             * @description Distribution of scores: {1: count, 2: count, 3: count, 4: count, 5: count}
+             */
+            score_distribution?: {
+                [key: string]: number;
+            };
+        };
+        /** RatingStats */
+        RatingStats: {
+            /** Average Rating */
+            average_rating?: number;
+            /** Rating Count */
+            rating_count?: number;
+            /** Five Star */
+            five_star?: number;
+            /** Four Star */
+            four_star?: number;
+            /** Three Star */
+            three_star?: number;
+            /** Two Star */
+            two_star?: number;
+            /** One Star */
+            one_star?: number;
+            /**
+             * Last Updated
+             * Format: date-time
+             */
+            last_updated?: string;
+        };
+        /**
+         * RatingTypeEnum
+         * @description Types of entities that can be rated.
+         * @enum {string}
+         */
+        RatingTypeEnum: "RIDER" | "OWNER" | "VEHICLE";
+        /**
+         * RatingUpdateRequest
+         * @description Schema for updating an existing rating.
+         */
+        RatingUpdateRequest: {
+            /**
+             * Score
+             * @description New rating score (1-5 stars)
+             */
+            score?: number | null;
+            /**
+             * Feedback
+             * @description New feedback text
+             */
+            feedback?: string | null;
+        };
         /**
          * RecentActivity
          * @description Container model for recent activities.
@@ -3090,6 +3729,29 @@ export interface components {
         RefreshTokenRequest: {
             /** Refresh Token */
             refresh_token: string;
+        };
+        /** ReputationScore */
+        ReputationScore: {
+            rating_stats?: components["schemas"]["RatingStats"];
+            /** Completion Rate */
+            completion_rate?: number;
+            /** Cancel Rate */
+            cancel_rate?: number;
+            /** Total Reservations */
+            total_reservations?: number;
+            /** Completed Reservations */
+            completed_reservations?: number;
+            /** Cancelled Reservations */
+            cancelled_reservations?: number;
+            /** Badges */
+            badges?: string[];
+            /** Avg Response Time Seconds */
+            avg_response_time_seconds?: number;
+            /**
+             * Last Updated
+             * Format: date-time
+             */
+            last_updated?: string;
         };
         /** Reservation */
         Reservation: {
@@ -3112,7 +3774,7 @@ export interface components {
             currency?: string;
             /** Is Paid */
             is_paid?: boolean;
-            rider?: components["schemas"]["Rider"];
+            rider?: components["schemas"]["Rider-Output"];
             vehicle?: components["schemas"]["Vehicle-Output"];
             /** Extras */
             extras?: {
@@ -3140,8 +3802,10 @@ export interface components {
             utm?: string;
             /** Deposit */
             deposit?: number;
-            /** Note */
-            note?: string;
+            /** Notes */
+            notes?: {
+                [key: string]: string;
+            };
             /** Other Details */
             other_details?: {
                 [key: string]: components["schemas"]["Any"];
@@ -3162,6 +3826,11 @@ export interface components {
             allowed_to_collect?: boolean;
             /** Owner Phone */
             owner_phone?: string;
+            /** Price Conversions */
+            price_conversions?: {
+                [key: string]: components["schemas"]["PriceConversion"];
+            };
+            no_response_meta?: components["schemas"]["NoResponseMeta"];
         };
         /**
          * ReservationActivity
@@ -3263,6 +3932,8 @@ export interface components {
         /**
          * ReservationCollect
          * @description Schema for collecting a reservation.
+         *
+         *     Supports both new nested rating format and legacy flat fields for backward compatibility.
          */
         ReservationCollect: {
             /**
@@ -3280,13 +3951,21 @@ export interface components {
              * @default 0
              */
             fuel_level: number;
+            /** @description Owner's rating of the rider */
+            owner_rates_rider?: components["schemas"]["RatingInput"] | null;
+            /** @description Rider's rating of the owner */
+            rider_rates_owner?: components["schemas"]["RatingInput"] | null;
+            /** @description Rider's rating of the vehicle */
+            rider_rates_vehicle?: components["schemas"]["RatingInput"] | null;
             /**
              * Rider Rate
+             * @deprecated
              * @default 1
              */
             rider_rate: number;
             /**
              * Feedback
+             * @deprecated
              * @default
              */
             feedback: string;
@@ -3333,13 +4012,21 @@ export interface components {
              * @default 0
              */
             fuel_level: number;
+            /** @description Owner's rating of the rider */
+            owner_rates_rider?: components["schemas"]["RatingInput"] | null;
+            /** @description Rider's rating of the owner */
+            rider_rates_owner?: components["schemas"]["RatingInput"] | null;
+            /** @description Rider's rating of the vehicle */
+            rider_rates_vehicle?: components["schemas"]["RatingInput"] | null;
             /**
              * Rider Rate
+             * @deprecated
              * @default 1
              */
             rider_rate: number;
             /**
              * Feedback
+             * @deprecated
              * @default
              */
             feedback: string;
@@ -3351,7 +4038,7 @@ export interface components {
         ReservationCreate: {
             /** Vehicle Id */
             vehicle_id: string;
-            rider: components["schemas"]["Rider"];
+            rider: components["schemas"]["Rider-Input"];
             /**
              * Date From
              * Format: date-time
@@ -3408,6 +4095,9 @@ export interface components {
             rider_rate?: number;
             /** Feedback */
             feedback?: string;
+            owner_rates_rider?: components["schemas"]["Rating"];
+            rider_rates_owner?: components["schemas"]["Rating"];
+            rider_rates_vehicle?: components["schemas"]["Rating"];
         };
         /**
          * ReservationStatus
@@ -3426,7 +4116,6 @@ export interface components {
          * @description Schema for updating an existing reservation.
          */
         ReservationUpdate: {
-            rider?: components["schemas"]["Rider"] | null;
             /**
              * Note
              * @default
@@ -3434,7 +4123,7 @@ export interface components {
             note: string;
         };
         /** Rider */
-        Rider: {
+        "Rider-Input": {
             /** Id */
             id?: string;
             /** Name */
@@ -3451,6 +4140,27 @@ export interface components {
             rating?: number;
             /** Avatar */
             avatar?: string;
+            reputation?: components["schemas"]["ReputationScore"];
+        };
+        /** Rider */
+        "Rider-Output": {
+            /** Id */
+            id?: string;
+            /** Name */
+            name?: string;
+            /** Phone */
+            phone?: string;
+            /** Email */
+            email?: string;
+            /** Ip */
+            ip?: string;
+            /** User Agent */
+            user_agent?: string;
+            /** Rating */
+            rating?: number;
+            /** Avatar */
+            avatar?: string;
+            reputation?: components["schemas"]["ReputationScore"];
         };
         /**
          * RiderMetrics
@@ -3620,6 +4330,43 @@ export interface components {
              * @default 0
              */
             login_count: number;
+            /**
+             * Role
+             * @default RIDER
+             */
+            role: string;
+            /** Average Rating */
+            average_rating?: number | null;
+            /**
+             * Rating Count
+             * @default 0
+             */
+            rating_count: number;
+            /**
+             * Total Reservations
+             * @default 0
+             */
+            total_reservations: number;
+            /**
+             * Completed Reservations
+             * @default 0
+             */
+            completed_reservations: number;
+            /**
+             * Cancelled Reservations
+             * @default 0
+             */
+            cancelled_reservations: number;
+            /**
+             * Cancel Rate
+             * @default 0
+             */
+            cancel_rate: number;
+            /**
+             * Completion Rate
+             * @default 0
+             */
+            completion_rate: number;
         };
         /** RiderUserRegister */
         RiderUserRegister: {
@@ -3743,16 +4490,6 @@ export interface components {
              * @default bearer
              */
             token_type: string;
-        };
-        /**
-         * RiderUsersAdmin
-         * @description Paginated admin response for riders.
-         */
-        RiderUsersAdmin: {
-            /** Data */
-            data: components["schemas"]["RiderUserAdmin"][];
-            /** Count */
-            count: number;
         };
         /**
          * RoleEnum
@@ -4245,6 +4982,11 @@ export interface components {
              */
             bio?: string | null;
             /**
+             * Username
+             * @description Unique username for business slug
+             */
+            username?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -4262,6 +5004,40 @@ export interface components {
              * @default 0
              */
             login_count: number;
+            /** Average Rating */
+            average_rating?: number | null;
+            /**
+             * Rating Count
+             * @default 0
+             */
+            rating_count: number;
+            /**
+             * Total Reservations
+             * @default 0
+             */
+            total_reservations: number;
+            /**
+             * Completed Reservations
+             * @default 0
+             */
+            completed_reservations: number;
+            /**
+             * Cancelled Reservations
+             * @default 0
+             */
+            cancelled_reservations: number;
+            /**
+             * Cancel Rate
+             * @default 0
+             */
+            cancel_rate: number;
+            /**
+             * Completion Rate
+             * @default 0
+             */
+            completion_rate: number;
+            /** Avg Response Time Seconds */
+            avg_response_time_seconds?: number | null;
         };
         /**
          * UserBlockMetrics
@@ -4330,6 +5106,11 @@ export interface components {
              * @description Profile biography
              */
             bio?: string | null;
+            /**
+             * Username
+             * @description Unique username for business slug
+             */
+            username?: string | null;
             /** Password */
             password: string;
         };
@@ -4475,6 +5256,11 @@ export interface components {
              */
             bio?: string | null;
             /**
+             * Username
+             * @description Unique username for business slug
+             */
+            username?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -4497,6 +5283,8 @@ export interface components {
             password: string;
             /** Full Name */
             full_name?: string | null;
+            /** Username */
+            username?: string | null;
             /** @default OWNER */
             role: components["schemas"]["RoleEnum"];
         };
@@ -4551,6 +5339,11 @@ export interface components {
              * @description Profile biography
              */
             bio?: string | null;
+            /**
+             * Username
+             * @description Unique username for business slug
+             */
+            username?: string | null;
             /** Password */
             password?: string | null;
         };
@@ -4642,6 +5435,11 @@ export interface components {
              */
             bio?: string | null;
             /**
+             * Username
+             * @description Unique username for business slug
+             */
+            username?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -4653,13 +5451,6 @@ export interface components {
             created_at: string;
             address?: components["schemas"]["AddressPublic"] | null;
             token?: components["schemas"]["Token"] | null;
-        };
-        /** UsersAdmin */
-        UsersAdmin: {
-            /** Data */
-            data: components["schemas"]["UserAdmin"][];
-            /** Count */
-            count: number;
         };
         /** UsersPublic */
         UsersPublic: {
@@ -4763,6 +5554,13 @@ export interface components {
             };
             /** Currency */
             currency?: string;
+            /** Minimal Price */
+            minimal_price?: number;
+            /** Minimal Price Conversions */
+            minimal_price_conversions?: {
+                [key: string]: components["schemas"]["PriceConversion"];
+            };
+            rating_stats?: components["schemas"]["RatingStats"];
         };
         /** Vehicle */
         "Vehicle-Output": {
@@ -4806,6 +5604,13 @@ export interface components {
             };
             /** Currency */
             currency?: string;
+            /** Minimal Price */
+            minimal_price?: number;
+            /** Minimal Price Conversions */
+            minimal_price_conversions?: {
+                [key: string]: components["schemas"]["PriceConversion"];
+            };
+            rating_stats?: components["schemas"]["RatingStats"];
         };
         /**
          * VehicleActivity
@@ -5423,6 +6228,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Auth-check_username_availability": {
+        parameters: {
+            query: {
+                username: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
                 };
             };
             /** @description Unauthorized */
@@ -6506,6 +7371,7 @@ export interface operations {
             };
             header?: never;
             path: {
+                /** @description Owner UUID or username */
                 owner_id: string;
             };
             cookie?: never;
@@ -6569,8 +7435,9 @@ export interface operations {
             };
             header?: never;
             path: {
-                owner_id: string;
                 vehicle_id: string;
+                /** @description Owner UUID or username */
+                owner_id: string;
             };
             cookie?: never;
         };
@@ -6691,8 +7558,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                owner_id: string;
                 vehicle_id: string;
+                /** @description Owner UUID or username */
+                owner_id: string;
             };
             cookie?: never;
         };
@@ -6947,6 +7815,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-update_reservation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReservationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetReservationResponse"];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -9571,6 +10501,315 @@ export interface operations {
             };
         };
     };
+    "Finance-create_invoice": {
+        parameters: {
+            query?: {
+                output?: string;
+            };
+            header?: never;
+            path: {
+                reservation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Ratings-list_ratings": {
+        parameters: {
+            query?: {
+                /** @description Filter by user ID (rated user) */
+                user_id?: string | null;
+                /** @description Filter by rater ID (who gave rating) */
+                rater_id?: string | null;
+                /** @description Filter by vehicle ID */
+                vehicle_id?: string | null;
+                /** @description Filter by rating type */
+                rating_type?: components["schemas"]["RatingTypeEnum"] | null;
+                /** @description Number of records to skip */
+                skip?: number;
+                /** @description Maximum records to return */
+                limit?: number;
+                /** @description Include soft-deleted ratings */
+                include_deleted?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Ratings-get_rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rating_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Ratings-update_rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rating_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RatingUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Ratings-delete_rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rating_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingDeleteResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "Storage-unzip_entity_photo": {
         parameters: {
             query?: never;
@@ -10924,6 +12163,53 @@ export interface operations {
             };
         };
     };
+    "Admin-get_rating_statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingStatistics"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
     "Admin-get_admin_users": {
         parameters: {
             query?: {
@@ -10954,7 +12240,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UsersAdmin"];
+                    "application/json": components["schemas"]["PaginatedResponse_UserAdmin_"];
                 };
             };
             /** @description Unauthorized */
@@ -11125,7 +12411,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedActivityResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
                 };
             };
             /** @description Unauthorized */
@@ -11186,7 +12472,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedActivityResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
                 };
             };
             /** @description Unauthorized */
@@ -11247,7 +12533,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedActivityResponse"];
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
                 };
             };
             /** @description Unauthorized */
@@ -11407,6 +12693,71 @@ export interface operations {
             };
         };
     };
+    "Admin-get_user_activities_endpoint": {
+        parameters: {
+            query?: {
+                /** @description Filter by category: 'reservations', 'ratings', 'auth', or 'all' */
+                category?: string | null;
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "Admin-get_admin_riders": {
         parameters: {
             query?: {
@@ -11435,7 +12786,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RiderUsersAdmin"];
+                    "application/json": components["schemas"]["PaginatedResponse_RiderUserAdmin_"];
                 };
             };
             /** @description Unauthorized */
@@ -11616,6 +12967,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RiderUserAdmin"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_rider_activities": {
+        parameters: {
+            query?: {
+                /** @description Filter by category: 'reservations', 'ratings', 'auth', or 'all' */
+                category?: string | null;
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                rider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
                 };
             };
             /** @description Unauthorized */

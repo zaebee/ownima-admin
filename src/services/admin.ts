@@ -189,6 +189,46 @@ class AdminService {
   }
 
   /**
+   * Get activities for a specific rider
+   * @param riderId - Rider UUID
+   * @param skip - Number of activities to skip for pagination
+   * @param limit - Number of activities to return (default: 10, max: 100)
+   * @param category - Filter by category: 'all' | 'reservations' | 'ratings' | 'auth'
+   */
+  async getRiderActivities(
+    riderId: string,
+    skip: number = 0,
+    limit: number = 10,
+    category: 'all' | 'reservations' | 'ratings' | 'auth' = 'all'
+  ): Promise<PaginatedActivityResponse> {
+    return await apiClient.get<PaginatedActivityResponse>(`/admin/riders/${riderId}/activities`, {
+      skip,
+      limit,
+      category,
+    });
+  }
+
+  /**
+   * Get activities for a specific user (owner)
+   * @param userId - User UUID
+   * @param skip - Number of activities to skip for pagination
+   * @param limit - Number of activities to return (default: 10, max: 100)
+   * @param category - Filter by category: 'all' | 'reservations' | 'ratings' | 'auth' | 'vehicles'
+   */
+  async getUserActivities(
+    userId: string,
+    skip: number = 0,
+    limit: number = 10,
+    category: 'all' | 'reservations' | 'ratings' | 'auth' | 'vehicles' = 'all'
+  ): Promise<PaginatedActivityResponse> {
+    return await apiClient.get<PaginatedActivityResponse>(`/admin/users/${userId}/activities`, {
+      skip,
+      limit,
+      category,
+    });
+  }
+
+  /**
    * Get user statistics by type
    * @deprecated Use getBlockMetrics() instead. Individual stats endpoints were removed from backend.
    */
