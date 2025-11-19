@@ -111,38 +111,118 @@ function formatActivityMessage(activity: Activity): string {
   const { activity_type, details } = activity;
   const userName = getUserDisplayName(activity);
 
+  // Type guard helper functions
+  const hasUserDetails = (d: typeof details): boolean => {
+    return 'user_name' in d && 'user_role' in d;
+  };
+
+  const hasVehicleDetails = (d: typeof details): boolean => {
+    return 'event_type' in d;
+  };
+
+  const hasReservationDetails = (d: typeof details): boolean => {
+    return 'reservation_id' in d;
+  };
+
+  const hasRatingDetails = (d: typeof details): boolean => {
+    return 'score' in d;
+  };
+
   switch (activity_type) {
+    // User activities
     case 'user_registered':
-      return `${userName} registered as an owner`;
+      return hasUserDetails(details)
+        ? `${userName} registered as ${getDetailsProp(details, 'user_role', '')}`
+        : 'User registered';
+    case 'user_login': {
+      const loginCount = getDetailsProp(details, 'login_count', 0);
+      return hasUserDetails(details)
+        ? `${userName} logged in${loginCount ? ` (${loginCount} logins)` : ''}`
+        : 'User logged in';
+    }
     case 'rider_registered':
-      return `${userName} registered as a rider`;
-    case 'user_login':
-    case 'rider_login':
-      return `${userName} logged in`;
-    case 'vehicle_created':
-      return `Created vehicle "${getDetailsProp(details, 'vehicle_name', 'Unknown')}"`;
-    case 'vehicle_updated':
-      return `Updated vehicle "${getDetailsProp(details, 'vehicle_name', 'Unknown')}"`;
-    case 'vehicle_published':
-      return `Published vehicle "${getDetailsProp(details, 'vehicle_name', 'Unknown')}"`;
-    case 'vehicle_archived':
-      return `Archived vehicle "${getDetailsProp(details, 'vehicle_name', 'Unknown')}"`;
-    case 'vehicle_deleted':
-      return `Deleted vehicle "${getDetailsProp(details, 'vehicle_name', 'Unknown')}"`;
-    case 'reservation_created':
-      return `Created reservation #${getDetailsProp(details, 'reservation_id', 'Unknown')}`;
-    case 'reservation_status_updated_collected':
-      return `Collected reservation #${getDetailsProp(details, 'reservation_id', 'Unknown')}`;
-    case 'reservation_status_updated_completed':
-      return `Completed reservation #${getDetailsProp(details, 'reservation_id', 'Unknown')}`;
-    case 'reservation_status_updated_cancelled':
-      return `Cancelled reservation #${getDetailsProp(details, 'reservation_id', 'Unknown')}`;
-    default:
-      // Handle future activity types like ratings
-      if (activity_type.includes('rating')) {
-        return `Rating activity (${getDetailsProp(details, 'score', 0)} stars)`;
+      return `${userName} registered as Rider`;
+    case 'rider_login': {
+      const loginCount = getDetailsProp(details, 'login_count', 0);
+      return hasUserDetails(details)
+        ? `${userName} logged in${loginCount ? ` (${loginCount} logins)` : ''}`
+        : 'Rider logged in';
+    }
+
+    // Vehicle activities
+    case 'vehicle_created': {
+      const name = getDetailsProp(details, 'name', '');
+      return hasVehicleDetails(details) && name ? `${name} created by owner` : 'Vehicle created';
+    }
+    case 'vehicle_updated': {
+      const name = getDetailsProp(details, 'name', '');
+      if (hasVehicleDetails(details) && name) {
+        const changesObj = getDetailsProp(details, 'changes', {});
+        const changes = changesObj ? Object.keys(changesObj).join(', ') : '';
+        return `${name} updated${changes ? ` (${changes})` : ''}`;
       }
-      return `${activity_type.replace(/_/g, ' ')}`;
+      return 'Vehicle updated';
+    }
+    case 'vehicle_published': {
+      const name = getDetailsProp(details, 'name', '');
+      return hasVehicleDetails(details) && name
+        ? `${name} published and available for booking`
+        : 'Vehicle published';
+    }
+    case 'vehicle_archived': {
+      const name = getDetailsProp(details, 'name', '');
+      return hasVehicleDetails(details) && name ? `${name} archived` : 'Vehicle archived';
+    }
+    case 'vehicle_deleted': {
+      const name = getDetailsProp(details, 'name', '');
+      return hasVehicleDetails(details) && name ? `${name} deleted` : 'Vehicle deleted';
+    }
+    case 'vehicle_drafts_deleted': {
+      const deletedCount = getDetailsProp(details, 'deleted_count', 0);
+      return hasVehicleDetails(details) && deletedCount
+        ? `${deletedCount} draft vehicles deleted`
+        : 'Draft vehicles deleted';
+    }
+
+    // Reservation activities
+    case 'reservation_created': {
+      const totalPrice = getDetailsProp(details, 'total_price', 0);
+      return hasReservationDetails(details) ? `New booking for €${totalPrice}` : 'New booking created';
+    }
+    case 'reservation_status_updated_collected': {
+      const reservationId = getDetailsProp(details, 'reservation_id', '');
+      return hasReservationDetails(details)
+        ? `Vehicle picked up for reservation ${reservationId.slice(0, 8)}`
+        : 'Vehicle picked up';
+    }
+    case 'reservation_status_updated_completed': {
+      const totalPrice = getDetailsProp(details, 'total_price', 0);
+      return hasReservationDetails(details) ? `Rental completed (€${totalPrice})` : 'Rental completed';
+    }
+    case 'reservation_status_updated_cancelled': {
+      const totalPrice = getDetailsProp(details, 'total_price', 0);
+      return hasReservationDetails(details) ? `Booking cancelled (€${totalPrice})` : 'Booking cancelled';
+    }
+
+    // Rating activities
+    case 'rating_submitted': {
+      const score = getDetailsProp(details, 'score', 0);
+      const ratedUserName = getDetailsProp(details, 'rated_user_name', 'user');
+      return hasRatingDetails(details)
+        ? `Submitted a ${score}-star rating for ${ratedUserName}`
+        : 'Rating submitted';
+    }
+    case 'rating_received': {
+      const score = getDetailsProp(details, 'score', 0);
+      const fromUserName = getDetailsProp(details, 'from_user_name', 'user');
+      return hasRatingDetails(details)
+        ? `Received a ${score}-star rating from ${fromUserName}`
+        : 'Rating received';
+    }
+
+    // Fallback
+    default:
+      return String(activity_type).replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
   }
 }
 
@@ -394,39 +474,63 @@ export const UserActivityTimeline: React.FC<UserActivityTimelineProps> = ({
               const colorClasses = getActivityColor(activity.activity_type);
               const message = formatActivityMessage(activity);
               const timeAgo = formatTimestamp(activity.timestamp);
-              const entityUrl = getEntityUrl(activity);
+
+              // Check if activity has changes field
+              const changes = getDetailsProp(activity.details, 'changes', null);
+              const hasChanges = changes && typeof changes === 'object';
 
               return (
                 <li key={`${activity.activity_type}-${activity.id}-${activityIdx}`}>
                   <div className="relative pb-8">
                     {activityIdx !== activities.length - 1 ? (
                       <span
-                        className="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200"
+                        className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
                         aria-hidden="true"
                       />
                     ) : null}
-                    <div className="relative flex items-start space-x-3">
-                      <div className="relative">
-                        <div
-                          className={`h-10 w-10 rounded-full ${colorClasses} flex items-center justify-center ring-8 ring-white`}
+                    <div className="relative flex space-x-3">
+                      <div>
+                        <span
+                          className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white ${colorClasses}`}
                         >
                           <Icon className="h-5 w-5" aria-hidden="true" />
-                        </div>
+                        </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div>
-                          {entityUrl ? (
-                            <Link
-                              to={entityUrl}
-                              className="text-sm font-medium text-gray-900 hover:text-primary-600"
-                            >
-                              {message}
-                            </Link>
-                          ) : (
-                            <p className="text-sm font-medium text-gray-900">{message}</p>
+                      <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">{message}</p>
+
+                          {/* Show changes if available */}
+                          {hasChanges && changes && (
+                            <div className="mt-1 space-y-0.5">
+                              {Object.entries(changes).map(([field, change]) => {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                const changeObj = change as { from: any; to: any };
+                                return (
+                                  <div key={field} className="text-xs text-gray-500">
+                                    <span className="font-medium">{field}:</span>{' '}
+                                    <span className="line-through">{String(changeObj.from)}</span> →{' '}
+                                    <span className="font-medium text-gray-700">
+                                      {String(changeObj.to)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           )}
+
+                          <div className="mt-1 flex items-center gap-3">
+                            <p className="text-xs text-gray-500">{timeAgo}</p>
+                            {getEntityUrl(activity) && (
+                              <Link
+                                to={getEntityUrl(activity)!}
+                                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                              >
+                                View Details →
+                              </Link>
+                            )}
+                          </div>
                         </div>
-                        <p className="mt-0.5 text-xs text-gray-500">{timeAgo}</p>
                       </div>
                     </div>
                   </div>
