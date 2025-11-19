@@ -2,6 +2,7 @@
 
 ## Latest Changes
 
+* feat: Implemented owner/rider activity details.. PR [#13](https://github.com/Ownima/owner-admin/pull/13) by [@zaebee](https://github.com/zaebee).
 * Chore/review. PR [#12](https://github.com/Ownima/owner-admin/pull/12) by [@zaebee](https://github.com/zaebee).
 * Feat/riders. PR [#10](https://github.com/Ownima/owner-admin/pull/10) by [@zaebee](https://github.com/zaebee).
 * chore(deps-dev): bump js-yaml from 4.1.0 to 4.1.1. PR [#11](https://github.com/Ownima/owner-admin/pull/11) by [@dependabot[bot]](https://github.com/apps/dependabot).
