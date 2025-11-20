@@ -178,7 +178,7 @@ describe('environment', () => {
     it('constructs production URL', () => {
       vi.stubEnv('VITE_ENVIRONMENT', 'production');
       const url = getAvatarUrl('/media/avatars/user123.jpg');
-      expect(url).toBe('https://ownima.com/media/avatars/user123.jpg');
+      expect(url).toBe('https://beta.ownima.com/media/avatars/user123.jpg');
     });
 
     it('handles path without leading slash', () => {
