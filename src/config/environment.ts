@@ -105,7 +105,7 @@ export function getAvatarUrl(avatarPath?: string | null): string | undefined {
       baseUrl = 'https://beta.ownima.com';
       break;
     case 'production':
-      baseUrl = 'https://ownima.com';
+      baseUrl = 'https://beta.ownima.com';
       break;
     case 'development':
     default:
