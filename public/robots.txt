@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /
+
+# Complete lockdown for admin dashboard
+# No pages should be indexed or crawled
