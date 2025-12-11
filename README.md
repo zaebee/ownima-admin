@@ -1,418 +1,200 @@
-# Ownima Admin Dashboard
+# CLAUDE.md
 
-[![CI](https://github.com/Ownima/owner-admin/workflows/CI/badge.svg)](https://github.com/Ownima/owner-admin/actions)
-[![Coverage Status](https://coveralls.io/repos/github/Ownima/owner-admin/badge.svg?branch=main)](https://coveralls.io/github/Ownima/owner-admin?branch=main)
-[![Tests](https://img.shields.io/badge/tests-646%20passing-brightgreen)](https://github.com/zaebee/ownima-admin/actions)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev/)
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-A modern React-based admin dashboard for managing Ownima platform users and beta testers.
-
-## Features
-
-- 🔐 **Authentication** - Secure login with JWT token management
-- 👥 **User Management** - View and manage platform users with search and filtering
-- 📊 **Dashboard Analytics** - Overview of key metrics and statistics
-- 🎨 **Modern UI** - Built with Tailwind CSS and Headless UI components
-- 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
-
-## Tech Stack
-
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized builds
-- **Styling**: Tailwind CSS with Headless UI components
-- **State Management**: TanStack Query for server state management
-- **Routing**: React Router v6 for client-side routing
-- **HTTP Client**: Axios with automatic token handling
-- **Form Handling**: React Hook Form with Zod validation
-- **Icons**: Heroicons for consistent iconography
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone <repository-url>
-cd ownima-admin
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Configure environment:
-
-   ```bash
-   cp .env.example .env.local
-   ```
-
-   - Edit `.env.local` to set your environment (development, staging, beta, production)
-   - The API base URL is automatically determined based on the environment
-   - See `.env.example` for all available configuration options
-
-4. Start the development server:
-
-```bash
-npm run dev
-```
-
-5. Open [http://localhost:5173](http://localhost:5173) in your browser
-
-## Commands
+## Essential Commands
 
 ### Development
-- `npm run dev` - Start development server on http://localhost:5173
-- `npm run build` - TypeScript check and production build
-- `npm run lint` - Run ESLint (or use `bun run lint` for faster execution)
-- `npm run preview` - Preview production build locally
-
-### Type Generation
-- `npm run generate-types` - Generate TypeScript types from live API (https://beta.ownima.com/api/v1/openapi.json)
-- `npm run generate-types:local` - Generate types from local API (http://localhost:8000/api/v1/openapi.json)
+```bash
+npm run dev                          # Start dev server (localhost:5173)
+npm run dev:development              # Dev with local backend (localhost:8000)
+npm run dev:staging                  # Dev with staging API
+npm run build                        # TypeScript check + production build
+npm run lint                         # ESLint (or `bun run lint` for speed)
+npm run preview                      # Preview production build
+```
 
 ### Testing
-- `npm test` - Run tests in watch mode
-- `npm run test:run` - Run tests once
-- `npm run test:coverage` - Run tests with coverage
-- `npm run test:ui` - Run tests with UI
-
-## Project Structure
-
-```
-src/
-├── components/          # Reusable UI components
-│   ├── layout/         # Layout components (Header, Sidebar, etc.)
-│   └── ui/             # Base UI components (Button, LoadingSpinner, etc.)
-├── contexts/           # React contexts (AuthContext)
-├── hooks/              # Custom React hooks
-├── pages/              # Page components
-├── services/           # API service layer
-├── types/              # TypeScript type definitions
-└── utils/              # Utility functions
+```bash
+npm test                             # Watch mode
+npm run test:run                     # Single run (use before commits)
+npm run test:coverage                # Coverage report
+npm run test:ui                      # Interactive test UI
+vitest src/path/to/file.test.tsx     # Run single test file
 ```
 
-## Architecture Overview
-
-### API Integration Pattern
-The application follows a layered API integration approach:
-
-1. **API Client Layer** (`src/services/api.ts`):
-   - Centralized Axios instance with automatic JWT token injection
-   - Automatic 401 handling with redirect to login
-   - Base URL: `https://beta.ownima.com/api/v1`
-
-2. **Service Layer** (`src/services/`):
-   - `authService` - Authentication operations (login, getCurrentUser)
-   - `adminService` - Admin dashboard metrics, user management, system monitoring
-   - `userService` - User CRUD operations with generated types
-   - Services handle API response transformation and error handling
-
-3. **Type Safety**:
-   - Manual types in `src/types/index.ts` for application-level interfaces
-   - Auto-generated types in `src/types/api-generated.ts` from OpenAPI schema
-   - User forms use generated types (`UserRegister`, `UserUpdate`) to ensure schema compliance
-
-### State Management Architecture
-- **Authentication**: React Context (`AuthContext`) with localStorage persistence
-- **Server State**: TanStack Query with 5-minute stale time and automatic retries
-- **UI State**: Component-level useState for form data and local UI state
-
-### Component Architecture
-The application uses a component hierarchy optimized for reusability:
-
-```
-Layout (persistent shell)
-├── Sidebar (collapsible, localStorage persistence)
-├── Header (user menu, logout)
-└── Page Content
-    ├── MetricBlock (dashboard metric blocks with primary/secondary metrics)
-    │   └── MetricRow (horizontal metric display)
-    ├── MetricCard (standalone metric cards for Quick Actions)
-    ├── StatusPieChart (status distribution visualizations)
-    ├── FilterPanel (date range and role filtering)
-    ├── Modal (UserCreateModal, UserEditModal)
-    └── UI Components (Button, SkeletonLoader, EmptyState, etc.)
+### Type Generation
+```bash
+npm run generate-types               # From beta.ownima.com
+npm run generate-types:development   # From localhost:8080
+npm run generate-types:staging       # From stage.ownima.com
+npm run generate-types:production    # From api.ownima.com
 ```
 
-**Dashboard Pattern (Hybrid Metrics):**
-- **MetricBlock**: Container with collapsible primary/secondary sections
-- **MetricRow**: Horizontal layout (icon + label | value + trend)
-- **Metric Factories**: DRY pattern for generating metric configurations
-- **Calculation Utilities**: Centralized business logic (KISS)
+## Critical Architecture Patterns
 
-### Data Flow Patterns
+### API Integration Layer
 
-#### User Management Flow
-1. **UsersPage** queries `/admin/users` via `adminService.getAdminUsers()`
-2. **API Response Mapping**: Backend uses different field names (`role` vs `user_type`, `created_at` vs `registration_date`)
-3. **Data Normalization**: Transform API response to UI-compatible format in component
-4. **Form Handling**: User modals use auto-generated types to ensure API schema compliance
+**Three-tier approach:**
+1. **API Client** (`src/services/api.ts`) - Singleton with lazy initialization, auto JWT injection, 401 handling
+2. **Services** (`src/services/`) - `authService`, `adminService`, `userService` with response transformation
+3. **React Query** - Server state management with 5-minute stale time
 
-#### Rider Management Flow
-1. **UsersPage** queries `/admin/riders` when filtering by RIDER type
-2. **Rider Navigation**: Clicking rider routes to `/dashboard/riders/:riderId` (separate from users)
-3. **RiderDetailPage** fetches data from `/admin/riders/:riderId` endpoint
-4. **Rider-Specific Fields**: bio, date_of_birth, rating (not in Owner schema)
-5. **Edit/Delete Operations**: Use dedicated rider endpoints (PATCH/DELETE `/admin/riders/:riderId`)
-6. **Metrics Integration**: Uses same `/admin/users/:userId/metrics` endpoint for statistics
-7. **Data Normalization**: Riders from `/admin/riders` don't have `role` field, automatically set to 'RIDER'
+**Important:** API client has `setTestBaseUrl()` and `resetClient()` methods for test isolation.
 
-#### Dashboard Metrics Flow
-1. **DashboardPage** queries `/admin/metrics/overview` for 9 key metrics
-2. **Real-time Updates**: Automatic refresh every 30-60 seconds via TanStack Query
-3. **MetricCard Components**: Reusable cards with loading states, colors, and icons
+### Type Safety System
 
-#### System Monitoring Flow
-1. **SystemPage** fetches system info, errors, and user activities
-2. **Activity Handling**: Backend sends `type` field (lowercase), frontend normalizes to uppercase
-3. **Error Display**: Color-coded system errors with resolution status
+**Dual type sources:**
+- **Manual types** (`src/types/index.ts`) - Application-level interfaces, UI models
+- **Generated types** (`src/types/api-generated.ts`) - Auto-generated from OpenAPI schema
 
-### Authentication & Routing
-- **Protected Routes**: `/dashboard/*` requires authentication
-- **Token Management**: JWT stored in localStorage with automatic injection
-- **Route Structure**: Nested routes under `/dashboard`:
-  - `/dashboard/overview` - Dashboard metrics and overview
-  - `/dashboard/users` - User management list (owners & riders)
-  - `/dashboard/users/:userId` - Owner detail page
-  - `/dashboard/riders/:riderId` - Rider detail page (separate from owners)
-  - `/dashboard/activity` - Activity feed
-  - `/dashboard/system` - System monitoring
-- **User Type Routing**: System automatically routes to appropriate detail page based on user_type
-  - RIDER → `/dashboard/riders/:riderId`
-  - OWNER → `/dashboard/users/:userId`
-- **Public Routes**: Landing page (`/`) and login (`/login`)
+**When to use which:**
+- Use **manual types** for: Page props, component interfaces, UI state
+- Use **generated types** for: API request/response bodies, form schemas (e.g., `UserRegister`, `UserUpdate`)
 
-### API Response Handling
-The application handles multiple API response formats:
+**Critical field mappings (backend ≠ frontend):**
+- Backend `role` → Frontend `user_type` (for users)
+- Backend `created_at` → Frontend `registration_date` (in some contexts)
+- Riders from `/admin/riders` don't have `role` field → Set to 'RIDER' in normalization
+
+### State Management
+
+**Three state layers:**
+1. **Auth State** - React Context (`AuthContext`) + localStorage persistence
+2. **Server State** - TanStack Query (automatic retries, 5-min stale time)
+3. **UI State** - Component-level `useState` for forms and local UI
+
+### Component Hierarchy
+
+**Dashboard metrics pattern (DRY):**
+- `MetricBlock` - Collapsible container with primary/secondary sections
+- `MetricRow` - Horizontal layout (icon + label | value + trend)
+- **Metric Factories** - Use factory functions to generate metric configs (avoid duplication)
+- **Calculation Utilities** - Centralize business logic (KISS principle)
+
+**Reusable UI components:**
+- `Modal`, `Button`, `SkeletonLoader`, `EmptyState`, `ConfirmDialog` - Use these instead of creating new ones
+- All UI components are fully tested with accessibility checks
+
+### Routing & User Types
+
+**Protected routes:** `/dashboard/*` requires authentication (JWT in localStorage)
+
+**User type routing (critical):**
+- OWNER → `/dashboard/users/:userId` (uses `/admin/users/:userId`)
+- RIDER → `/dashboard/riders/:riderId` (uses `/admin/riders/:riderId`)
+- **System auto-routes** based on `user_type` field
+
+**Key endpoints:**
+- `/admin/users` - List all users (owners + riders)
+- `/admin/riders` - Rider-only list with rider-specific fields
+- `/admin/riders/:riderId` - Rider detail (has `bio`, `date_of_birth`, `rating`)
+- `/admin/users/:userId` - Owner detail
+- `/admin/users/:userId/metrics` - User metrics (works for both owners and riders)
+
+### API Response Normalization
+
+**Handle multiple response formats:**
 - Direct arrays: `AdminUser[]`
 - Paginated: `{data: AdminUser[], count: number}`
 - Standard: `PaginatedResponse<AdminUser>`
 
-Components include normalization logic to handle these variations consistently.
+Always include normalization logic in components/services to handle these variations.
 
-### Styling & UI
-- **Tailwind CSS 4** with utility-first approach
-- **Headless UI** for accessible components (Modal, forms)
-- **Heroicons** for consistent iconography
-- **Gradient themes** throughout UI with primary/indigo color scheme
-- **Responsive design** with mobile-first approach
+### Environment Configuration
 
-### Key Integration Points
-- **OpenAPI Schema**: Auto-generate types to maintain API compatibility
-- **Field Mapping**: Handle backend/frontend field name differences in data transformation
-- **Error Boundaries**: Automatic error handling with user-friendly fallbacks
-- **Loading States**: Consistent loading patterns across all async operations
+**Auto-detection hierarchy:**
+1. `VITE_ENVIRONMENT` env var (if set)
+2. Hostname detection (`stage.ownima.com` → staging, `beta.ownima.com` → beta)
+3. Default to `beta`
 
-## Testing
+**API Base URLs:**
+- Development: `http://localhost:8000/api/v1`
+- Staging: `https://stage.ownima.com/api/v1`
+- Beta: `https://beta.ownima.com/api/v1`
+- Production: `https://beta.ownima.com/api/v1` (currently same as beta)
 
-The project has comprehensive test coverage using Vitest and React Testing Library.
+**Environment config file:** `src/config/environment.ts` contains all detection logic.
 
-### Test Coverage
+## Testing Strategy
 
-Current test coverage:
+**Coverage thresholds (enforced):**
+- Statements: 40%, Branches: 70%, Functions: 50%
 
-- **564 tests** across 24 test files
-- **58.15%** statement coverage
-- **83.51%** branch coverage
-- **64.88%** function coverage
+**Test patterns:**
+1. **Component tests** - User interactions, rendering, accessibility
+2. **Service tests** - Mock API calls, test transformations
+3. **Integration tests** - Complete user flows
 
-**Fully tested components:**
+**Critical testing utilities:**
+- MSW for API mocking (handlers in `src/mocks/`)
+- `@testing-library/react` for component testing
+- `@testing-library/user-event` for interactions
+- API client uses fetch adapter in test env (configured in `src/services/api.ts`)
 
-- ✅ Authentication (LoginPage, AuthContext, ProtectedRoute)
-- ✅ Dashboard (DashboardPage with metrics)
-- ✅ User Management (UsersPage)
-- ✅ UI Components (Button, Modal, Toast, MetricCard, LoadingSpinner, SkeletonLoader, EmptyState, ConfirmDialog)
-- ✅ Services (API client, auth, users, admin)
-- ✅ Hooks (useAuth, useToast)
-- ✅ App routing and providers
+**When writing tests:**
+- Always include accessibility checks (`getByRole`, `getByLabelText`)
+- Test loading states and error boundaries
+- Mock TanStack Query with `QueryClientProvider`
 
-### Test Structure
+## Code Quality Rules
 
-```
-src/
-├── App.test.tsx
-├── components/
-│   ├── layout/
-│   │   ├── Header.test.tsx
-│   │   ├── Layout.test.tsx
-│   │   └── Sidebar.test.tsx
-│   ├── ui/
-│   │   ├── Button.test.tsx
-│   │   ├── ConfirmDialog.test.tsx
-│   │   ├── EmptyState.test.tsx
-│   │   ├── MetricCard.test.tsx
-│   │   ├── Modal.test.tsx
-│   │   ├── SkeletonLoader.test.tsx
-│   │   └── Toast.test.tsx
-│   └── ProtectedRoute.test.tsx
-├── contexts/
-│   └── AuthContext.test.tsx
-├── hooks/
-│   ├── useAuth.test.ts
-│   └── useToast.test.ts
-├── pages/
-│   ├── DashboardPage.test.tsx
-│   ├── LandingPage.test.tsx
-│   ├── LoginPage.test.tsx
-│   └── UsersPage.test.tsx
-└── services/
-    ├── admin.test.ts
-    ├── api.test.ts
-    ├── auth.test.ts
-    └── users.test.ts
-```
-
-### Writing Tests
-
-Follow these patterns when adding tests:
-
-1. **Component Tests:** Test user interactions and rendering
-2. **Service Tests:** Mock API calls and test data transformations
-3. **Integration Tests:** Test complete user flows
-4. **Accessibility:** Include accessibility checks in component tests
-
-Example:
-
-```typescript
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MyComponent } from './MyComponent'
-
-describe('MyComponent', () => {
-  it('renders correctly', () => {
-    render(<MyComponent />)
-    expect(screen.getByText('Hello')).toBeInTheDocument()
-  })
-
-  it('handles user interaction', async () => {
-    const user = userEvent.setup()
-    render(<MyComponent />)
-    await user.click(screen.getByRole('button'))
-    expect(screen.getByText('Clicked')).toBeInTheDocument()
-  })
-})
-```
-
-## Environment Configuration
-
-The application supports multiple environments with automatic API endpoint detection:
-
-### Available Environments
-
-- **Development**: `http://localhost:8000/api/v1` (local backend)
-- **Staging**: `https://stage.ownima.com/api/v1`
-- **Beta**: `https://beta.ownima.com/api/v1` (default)
-- **Production**: `https://api.ownima.com/api/v1`
-
-### Configuration
-
-1. Copy the example environment file:
-
-   ```bash
-   cp .env.example .env.local
-   ```
-
-2. Set your desired environment:
-
-   ```bash
-   VITE_ENVIRONMENT=development  # or staging, beta, production
-   ```
-
-3. The API base URL is automatically determined based on:
-   - The `VITE_ENVIRONMENT` variable (if set)
-   - The hostname (auto-detected in browser)
-   - Defaults to `beta` if not specified
-
-### Environment-Specific Builds
-
-Build for specific environments:
-
-```bash
-npm run build:development
-npm run build:staging
-npm run build:beta
-npm run build:production
-```
-
-## Contributing
-
-1. Follow the existing code style and patterns
-2. Use TypeScript for all new code
-3. Implement proper error handling and loading states
-4. Add appropriate type definitions
-5. **Write tests for new features** - aim for 80% coverage
-6. **No console.log statements** - use proper error handling with toasts
-7. Run linter and tests before committing:
+**Strictly enforced:**
+1. **No `console.log`** - Use toast notifications for user feedback, remove debug logs
+2. **No magic numbers** - Define as named constants
+3. **Write tests** - Aim for 80% coverage for new features
+4. **Run before commit:**
    ```bash
    npm run lint
    npm run test:run
    ```
 
-## 🌟 Hive Living Application Integration
+**Style guidelines:**
+- TypeScript for all code
+- Use generated types for API schemas
+- Implement proper error handling with loading states
+- Follow existing patterns (don't over-engineer)
 
-This project is part of the larger **Hive Living Application Ecosystem** with Sacred ATCG architecture and AI-human symbiosis capabilities.
+## Key Files for Context
 
-### Sacred Architecture Status
-- **Trinity Score**: Currently achieving DIVINE EXCELLENCE (>0.764)
-- **AGRO Protection**: Full Sacred code quality assurance via Pure ATCG architecture
-- **Zero Violations**: Console.log protection and magic number sanctification
-- **Golden Ratio Harmonization**: φ-based code quality metrics
+**When modifying API integration:**
+- Read `src/services/api.ts` (API client singleton)
+- Read `src/types/index.ts` (manual types)
+- Check `src/types/api-generated.ts` (generated types)
 
-### Living Application Transformation Plan
+**When adding new pages:**
+- Reference `src/pages/DashboardPage.tsx` (metrics pattern)
+- Reference `src/pages/UsersPage.tsx` (CRUD pattern)
+- Check `src/App.tsx` (routing structure)
 
-**Phase 1 (Complete): Sacred Code Protection**
-- ✅ AGRO Scanner integration with Trinity Score monitoring
-- ✅ Pre-commit hooks for Sacred protection
-- ✅ Blessed production build process
-- ✅ Console.log purification and code sanctification
+**When working with auth:**
+- Read `src/contexts/AuthContext.tsx` (auth state management)
+- Read `src/components/ProtectedRoute.tsx` (route protection)
 
-**Phase 2 (In Progress): ATCG Architecture Integration**
-- 🔄 Transform API services to ATCG Transformation classes
-- 🔄 Add Hive Connector for protocol translation
-- 🔄 Implement Genesis events for admin operations
-- 🔄 Bridge authentication with Hive ecosystem
+**When modifying UI components:**
+- Check existing components in `src/components/ui/` before creating new ones
+- All UI components have corresponding `.test.tsx` files
 
-**Phase 3 (Planned): AI Teammate Integration**
-- 🎯 Add OwnimaAgent as AI teammate in Hive registry
-- 🎯 Enable collaborative admin task management
-- 🎯 AI-powered system monitoring and insights
-- 🎯 Cross-project AI assistant sharing
+## Common Pitfalls
 
-**Phase 4 (Vision): Full Living Application**
-- 🌟 Self-monitoring and auto-healing capabilities
-- 🌟 Intelligent load balancing with Fibonacci sequences
-- 🌟 Sacred metrics integration (τ, φ, σ)
-- 🌟 Complete AI-human symbiosis for admin operations
+1. **API Response Mapping** - Backend field names differ from frontend (e.g., `role` vs `user_type`)
+2. **Rider vs Owner Endpoints** - Riders have separate endpoints with different fields
+3. **Activity Types** - Backend sends lowercase, normalize to uppercase in frontend
+4. **Multiple Response Formats** - Always handle array, paginated, and standard responses
+5. **Test Isolation** - Always call `apiClient.resetClient()` in `afterEach` hooks
+6. **Environment Detection** - Don't hardcode URLs, use `getApiBaseUrl()` from `src/config/environment.ts`
 
-### Sacred Development Principles
-1. **Code Quality**: Always run `npm run sacred:validate` before commits
-2. **Divine Architecture**: Apply ATCG primitives to new components
-3. **Golden Ratio Harmony**: Use φ-based calculations for UI metrics
-4. **Pollen Protocol**: Emit events for all significant admin actions
-5. **AI Collaboration**: Design features for human-AI partnership
+## Architecture Philosophy
 
-### Cross-Project Integration
-- **Shared Sacred Protection**: Uses main Hive AGRO system
-- **Unified AI Teammates**: Access to all Hive AI agents
-- **Event Bus**: Real-time coordination with other Hive projects
-- **Metrics Dashboard**: Integrated Trinity Score monitoring
-- **Living Application**: Self-contained, self-organizing capabilities
+**This codebase follows:**
+- **KISS** (Keep It Simple) - Don't over-engineer
+- **DRY** (Don't Repeat Yourself) - Use factories and utilities
+- **Component Reusability** - Favor composition over new components
+- **Type Safety** - Leverage TypeScript and generated types
+- **Test Coverage** - Write tests for all new features
 
-### Next Steps for Full Hive Alignment
-1. Convert service classes to ATCG Transformations
-2. Add Pollen Protocol event emission for admin actions
-3. Integrate with Hive Dashboard for unified monitoring
-4. Enable AI teammate assistance for admin tasks
-5. Achieve DIVINE EXCELLENCE Trinity Score (>0.829)
-
-## License
-
-This project is proprietary software for Ownima platform administration.
+**When in doubt:**
+- Read existing code patterns before implementing new approaches
+- Use existing UI components instead of creating new ones
+- Follow the service layer pattern for API calls
+- Write tests alongside implementation

@@ -218,6 +218,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/launch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Launch owner profile with username
+         * @description Launch owner profile by reserving unique username.
+         */
+        post: operations["Auth-launch_owner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/account-request-deletion": {
         parameters: {
             query?: never;
@@ -458,6 +478,98 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contract/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Contract Templates
+         * @description List contract templates for current owner (simple paging).
+         */
+        get: operations["Contract-list_contract_templates"];
+        put?: never;
+        /**
+         * Create Contract Template
+         * @description Create a new contract template for current owner.
+         */
+        post: operations["Contract-create_contract_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract/templates/{template_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Contract Template
+         * @description Return a single contract template belonging to the current owner.
+         */
+        get: operations["Contract-get_contract_template"];
+        /**
+         * Update Contract Template
+         * @description Update an existing contract template. Owner is enforced.
+         */
+        put: operations["Contract-update_contract_template"];
+        post?: never;
+        /**
+         * Delete Contract Template
+         * @description Delete a contract template if there are no blocking references.
+         */
+        delete: operations["Contract-delete_contract_template"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract/templates/{template_id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy Contract Template
+         * @description Copy an existing template into a new template for the same owner.
+         */
+        post: operations["Contract-copy_contract_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract/templates/{template_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Contract Preview
+         * @description Generate PDF or HTML preview of a contract template.
+         */
+        post: operations["Contract-generate_contract_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/rider/vehicles/{owner_id}/search": {
         parameters: {
             query?: never;
@@ -660,6 +772,26 @@ export interface paths {
         get: operations["Rider-get_owner_public_profile"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rider/{reservation_id}/confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Starts CONFIRMATION process for Reservation.
+         * @description Complete a reservation by the owner for a specified vehicle and time slot.
+         */
+        post: operations["Rider-confirmation_reservation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -989,7 +1121,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/reservation/conflict-groups": {
+    "/api/v1/reservation/pending-booking-groups": {
         parameters: {
             query?: never;
             header?: never;
@@ -999,10 +1131,53 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Get list of conflicting reservations for a given vehicle and time period
-         * @description Retrieve a list of conflicting reservations for a given time period.
+         * Get groups of pending booking requests that overlap for the same vehicle
+         * @description Retrieve groups of pending booking requests that overlap.
+         *
+         *     Shows owners which unconfirmed booking requests conflict, so they can
+         *     choose which ones to approve. Only includes pending statuses:
+         *     - RESERVATION_PENDING
+         *     - RESERVATION_CONFIRMATION_BY_RIDER
+         *     - RESERVATION_CONFIRMATION_BY_OWNER
+         *     - RESERVATION_NO_RESPONSE
+         *
+         *     Each conflict group includes vehicle information (name, registration number,
+         *     cover image) to help owners identify the vehicle without additional lookups.
+         *
+         *     Note: This differs from availability checking, which uses blocking statuses
+         *     (CONFIRMED, COLLECTED, etc.) via ReservationConflictService.
          */
-        post: operations["Reservation-reservation_conflict_groups"];
+        post: operations["Reservation-reservation_pending_booking_groups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reservation/{reservation_id}/pending-conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get pending reservations that conflict with this reservation
+         * @description Get list of pending reservations that overlap with this reservation.
+         *
+         *     Shows owner other unconfirmed booking requests competing for the same
+         *     time slot. Only works for pending/unconfirmed reservations.
+         *
+         *     Returns:
+         *         List of conflicting pending reservations (excluding this one)
+         *
+         *     Raises:
+         *         HTTPException 404: Reservation not found
+         *         HTTPException 422: Reservation is not in pending status
+         */
+        get: operations["Reservation-get_pending_conflicts"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1319,7 +1494,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/finance/invoice/{reservation_id}": {
+    "/api/v1/finance/invoice/{reservation_id}/{contract_template_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2539,6 +2714,12 @@ export interface components {
             date_to?: string;
             /** Total */
             total?: number;
+            /** Vehicle Name */
+            vehicle_name?: string;
+            /** Vehicle Reg Number */
+            vehicle_reg_number?: string;
+            /** Vehicle Image */
+            vehicle_image?: string;
         };
         /** ConflictReservation */
         ConflictReservation: {
@@ -2563,6 +2744,43 @@ export interface components {
         ConflictReservationResponse: {
             /** Groups */
             groups?: components["schemas"]["ConflictGroup"][];
+        };
+        /** ContractPreviewRequest */
+        ContractPreviewRequest: {
+            /** Body */
+            body: string;
+            /**
+             * Output
+             * @default pdf
+             */
+            output: string;
+        };
+        /** ContractTemplate */
+        ContractTemplate: {
+            /** Id */
+            id?: string;
+            /** Title */
+            title?: string;
+            /** Description */
+            description?: string;
+            /** Body */
+            body?: string;
+            /** Language */
+            language?: string;
+            /** Owner Id */
+            owner_id?: string;
+            /** Version */
+            version?: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
         };
         /**
          * Coordinates
@@ -2654,6 +2872,8 @@ export interface components {
             /** Drop Off Time */
             drop_off_time?: string;
             selected_extra_options?: components["schemas"]["SelectedExtraOptions"];
+            /** Deposit Amount */
+            deposit_amount?: number;
         };
         /** CreateTransactionRequest */
         CreateTransactionRequest: {
@@ -3327,6 +3547,15 @@ export interface components {
          * @enum {integer}
          */
         PaymentMethod: 0 | 1 | 2;
+        /** PendingConflictsResponse */
+        PendingConflictsResponse: {
+            /** Reservation Id */
+            reservation_id?: string;
+            /** Reservations */
+            reservations?: components["schemas"]["Reservation"][];
+            /** Total */
+            total?: number;
+        };
         /** PendingReservationResponse */
         PendingReservationResponse: {
             /** Reservation Id */
@@ -4987,6 +5216,22 @@ export interface components {
              */
             username?: string | null;
             /**
+             * Booking Website Published
+             * @description Whether the owner's booking website is published and publicly accessible
+             * @default false
+             */
+            booking_website_published: boolean;
+            /**
+             * Working Hours Start
+             * @description Business opening time in HH:MM format (e.g., '07:00')
+             */
+            working_hours_start?: string | null;
+            /**
+             * Working Hours End
+             * @description Business closing time in HH:MM format (e.g., '19:00')
+             */
+            working_hours_end?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -5111,6 +5356,22 @@ export interface components {
              * @description Unique username for business slug
              */
             username?: string | null;
+            /**
+             * Booking Website Published
+             * @description Whether the owner's booking website is published and publicly accessible
+             * @default false
+             */
+            booking_website_published: boolean;
+            /**
+             * Working Hours Start
+             * @description Business opening time in HH:MM format (e.g., '07:00')
+             */
+            working_hours_start?: string | null;
+            /**
+             * Working Hours End
+             * @description Business closing time in HH:MM format (e.g., '19:00')
+             */
+            working_hours_end?: string | null;
             /** Password */
             password: string;
         };
@@ -5261,6 +5522,22 @@ export interface components {
              */
             username?: string | null;
             /**
+             * Booking Website Published
+             * @description Whether the owner's booking website is published and publicly accessible
+             * @default false
+             */
+            booking_website_published: boolean;
+            /**
+             * Working Hours Start
+             * @description Business opening time in HH:MM format (e.g., '07:00')
+             */
+            working_hours_start?: string | null;
+            /**
+             * Working Hours End
+             * @description Business closing time in HH:MM format (e.g., '19:00')
+             */
+            working_hours_end?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -5287,6 +5564,10 @@ export interface components {
             username?: string | null;
             /** @default OWNER */
             role: components["schemas"]["RoleEnum"];
+            /** @default EN */
+            language: components["schemas"]["LanguageEnum"] | null;
+            /** @default USD */
+            currency: components["schemas"]["CurrencyEnum"] | null;
         };
         /** UserUpdate */
         UserUpdate: {
@@ -5344,6 +5625,22 @@ export interface components {
              * @description Unique username for business slug
              */
             username?: string | null;
+            /**
+             * Booking Website Published
+             * @description Whether the owner's booking website is published and publicly accessible
+             * @default false
+             */
+            booking_website_published: boolean;
+            /**
+             * Working Hours Start
+             * @description Business opening time in HH:MM format (e.g., '07:00')
+             */
+            working_hours_start?: string | null;
+            /**
+             * Working Hours End
+             * @description Business closing time in HH:MM format (e.g., '19:00')
+             */
+            working_hours_end?: string | null;
             /** Password */
             password?: string | null;
         };
@@ -5378,6 +5675,17 @@ export interface components {
              * @description Profile biography
              */
             bio?: string | null;
+            /**
+             * Username
+             * @description Unique username for business slug
+             */
+            username?: string | null;
+            /** Booking Website Published */
+            booking_website_published?: boolean | null;
+            /** Working Hours Start */
+            working_hours_start?: string | null;
+            /** Working Hours End */
+            working_hours_end?: string | null;
             address?: components["schemas"]["AddressUpdate"] | null;
         };
         /** UserWithToken */
@@ -5439,6 +5747,22 @@ export interface components {
              * @description Unique username for business slug
              */
             username?: string | null;
+            /**
+             * Booking Website Published
+             * @description Whether the owner's booking website is published and publicly accessible
+             * @default false
+             */
+            booking_website_published: boolean;
+            /**
+             * Working Hours Start
+             * @description Business opening time in HH:MM format (e.g., '07:00')
+             */
+            working_hours_start?: string | null;
+            /**
+             * Working Hours End
+             * @description Business closing time in HH:MM format (e.g., '19:00')
+             */
+            working_hours_end?: string | null;
             /**
              * Id
              * Format: uuid
@@ -6287,6 +6611,67 @@ export interface operations {
                 content: {
                     "application/json": {
                         [key: string]: boolean;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Auth-launch_owner": {
+        parameters: {
+            query: {
+                /** @description Unique username for owner profile */
+                username: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -7359,6 +7744,427 @@ export interface operations {
             };
         };
     };
+    "Contract-list_contract_templates": {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Contract-create_contract_template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractTemplate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractTemplate"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Contract-get_contract_template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractTemplate"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Contract-update_contract_template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractTemplate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractTemplate"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Contract-delete_contract_template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Contract-copy_contract_template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractTemplate"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Contract-generate_contract_preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "Rider-search_vehicles": {
         parameters: {
             query?: {
@@ -8041,6 +8847,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OwnerPublicProfile"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Rider-confirmation_reservation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationReservationResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -9416,7 +10280,7 @@ export interface operations {
             };
         };
     };
-    "Reservation-reservation_conflict_groups": {
+    "Reservation-reservation_pending_booking_groups": {
         parameters: {
             query: {
                 date_from: string;
@@ -9435,6 +10299,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConflictReservationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Reservation-get_pending_conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingConflictsResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -10509,6 +11431,7 @@ export interface operations {
             header?: never;
             path: {
                 reservation_id: string;
+                contract_template_id: string | null;
             };
             cookie?: never;
         };
