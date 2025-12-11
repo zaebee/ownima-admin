@@ -505,6 +505,362 @@ export const handlers = [
     })
   }),
 
+  // Owner Vehicles endpoint
+  http.get(`${API_BASE}/admin/users/:userId/vehicles`, ({ params, request }) => {
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    const search = url.searchParams.get('search')?.toLowerCase()
+
+    // Mock vehicles for owner
+    const mockVehicles = [
+      {
+        id: 'vehicle-uuid-1',
+        owner_id: params.userId,
+        name: 'Tesla Model 3',
+        status: 2, // FREE
+        type: 0, // CAR
+        sub_type: 1, // SEDAN
+        picture: {
+          url: 'https://beta.ownima.com/media/vehicles/tesla.jpg',
+          thumbnail: 'https://beta.ownima.com/media/vehicles/tesla-thumb.jpg',
+        },
+        price: 75.00,
+        currency: 'USD',
+        minimal_price: 75.00,
+        created_at: '2024-01-15T10:30:00Z',
+        updated_at: '2024-03-20T14:45:00Z',
+        general_info: {
+          year: 2023,
+          seats: 5,
+          doors: 4,
+        },
+        rating_stats: {
+          average: 4.5,
+          count: 12,
+        },
+      },
+      {
+        id: 'vehicle-uuid-2',
+        owner_id: params.userId,
+        name: 'BMW X5',
+        status: 4, // COLLECTED
+        type: 0, // CAR
+        sub_type: 2, // SUV
+        picture: {
+          url: 'https://beta.ownima.com/media/vehicles/bmw.jpg',
+          thumbnail: 'https://beta.ownima.com/media/vehicles/bmw-thumb.jpg',
+        },
+        price: 120.00,
+        currency: 'USD',
+        minimal_price: 120.00,
+        created_at: '2024-02-01T08:15:00Z',
+        updated_at: '2024-03-15T16:20:00Z',
+        general_info: {
+          year: 2024,
+          seats: 7,
+          doors: 5,
+        },
+        rating_stats: {
+          average: 4.8,
+          count: 8,
+        },
+      },
+      {
+        id: 'vehicle-uuid-3',
+        owner_id: params.userId,
+        name: 'Honda Civic Draft',
+        status: 1, // DRAFT
+        type: 0, // CAR
+        sub_type: 1, // SEDAN
+        price: 50.00,
+        currency: 'USD',
+        minimal_price: 50.00,
+        created_at: '2024-03-10T12:00:00Z',
+        updated_at: '2024-03-10T12:00:00Z',
+        general_info: {
+          year: 2023,
+          seats: 5,
+          doors: 4,
+        },
+      },
+      {
+        id: 'vehicle-uuid-4',
+        owner_id: params.userId,
+        name: 'Mercedes-Benz C-Class',
+        status: 5, // ARCHIVED
+        type: 0, // CAR
+        sub_type: 1, // SEDAN
+        price: 95.00,
+        currency: 'USD',
+        minimal_price: 95.00,
+        created_at: '2023-12-01T09:30:00Z',
+        updated_at: '2024-02-28T11:45:00Z',
+        general_info: {
+          year: 2022,
+          seats: 5,
+          doors: 4,
+        },
+        rating_stats: {
+          average: 4.3,
+          count: 15,
+        },
+      },
+    ]
+
+    let filteredVehicles = mockVehicles
+
+    // Apply status filter
+    if (status) {
+      filteredVehicles = filteredVehicles.filter(v => v.status === parseInt(status))
+    }
+
+    // Apply search filter
+    if (search) {
+      filteredVehicles = filteredVehicles.filter(v =>
+        v.name.toLowerCase().includes(search)
+      )
+    }
+
+    return HttpResponse.json(filteredVehicles)
+  }),
+
+  // Owner Reservations endpoint
+  http.get(`${API_BASE}/admin/users/:userId/reservations`, ({ params, request }) => {
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    const dateFrom = url.searchParams.get('date_from')
+    const dateTo = url.searchParams.get('date_to')
+    const search = url.searchParams.get('search')?.toLowerCase()
+
+    // Mock reservations for owner's vehicles
+    const mockReservations = [
+      {
+        id: 'reservation-uuid-1',
+        status: 4, // CONFIRMED
+        date_from: '2024-04-20T10:00:00Z',
+        date_to: '2024-04-25T10:00:00Z',
+        total_price: 375.00,
+        currency: 'USD',
+        is_paid: true,
+        rider: {
+          id: 'rider-uuid-1',
+          full_name: 'John Rider',
+          email: 'john.rider@example.com',
+          phone_number: '+1234567890',
+          avatar: 'https://beta.ownima.com/media/avatars/john.jpg',
+        },
+        vehicle: {
+          id: 'vehicle-uuid-1',
+          name: 'Tesla Model 3',
+          type: 0,
+          status: 2,
+          picture: {
+            url: 'https://beta.ownima.com/media/vehicles/tesla.jpg',
+          },
+        },
+        owner_id: params.userId,
+        created_date: '2024-04-15T14:30:00Z',
+        last_updated_date: '2024-04-18T09:15:00Z',
+        pick_up: {
+          location: '123 Main St, San Francisco, CA',
+          date: '2024-04-20T10:00:00Z',
+        },
+        drop_off: {
+          location: '123 Main St, San Francisco, CA',
+          date: '2024-04-25T10:00:00Z',
+        },
+        duration: {
+          days: 5,
+          hours: 0,
+        },
+      },
+      {
+        id: 'reservation-uuid-2',
+        status: 1, // PENDING
+        date_from: '2024-05-01T12:00:00Z',
+        date_to: '2024-05-03T12:00:00Z',
+        total_price: 240.00,
+        currency: 'USD',
+        is_paid: false,
+        rider: {
+          id: 'rider-uuid-2',
+          full_name: 'Jane Smith',
+          email: 'jane.smith@example.com',
+          phone_number: '+1987654321',
+        },
+        vehicle: {
+          id: 'vehicle-uuid-2',
+          name: 'BMW X5',
+          type: 0,
+          status: 2,
+          picture: {
+            url: 'https://beta.ownima.com/media/vehicles/bmw.jpg',
+          },
+        },
+        owner_id: params.userId,
+        created_date: '2024-04-28T16:45:00Z',
+        last_updated_date: '2024-04-28T16:45:00Z',
+        pick_up: {
+          location: '456 Oak Ave, Oakland, CA',
+          date: '2024-05-01T12:00:00Z',
+        },
+        drop_off: {
+          location: '456 Oak Ave, Oakland, CA',
+          date: '2024-05-03T12:00:00Z',
+        },
+        duration: {
+          days: 2,
+          hours: 0,
+        },
+      },
+      {
+        id: 'reservation-uuid-3',
+        status: 7, // COMPLETED
+        date_from: '2024-03-10T09:00:00Z',
+        date_to: '2024-03-15T09:00:00Z',
+        total_price: 375.00,
+        currency: 'USD',
+        is_paid: true,
+        rider: {
+          id: 'rider-uuid-3',
+          full_name: 'Bob Wilson',
+          email: 'bob.wilson@example.com',
+          phone_number: '+1555666777',
+          avatar: 'https://beta.ownima.com/media/avatars/bob.jpg',
+        },
+        vehicle: {
+          id: 'vehicle-uuid-1',
+          name: 'Tesla Model 3',
+          type: 0,
+          status: 2,
+          picture: {
+            url: 'https://beta.ownima.com/media/vehicles/tesla.jpg',
+          },
+        },
+        owner_id: params.userId,
+        created_date: '2024-03-05T10:20:00Z',
+        last_updated_date: '2024-03-15T09:30:00Z',
+        pick_up: {
+          location: '789 Pine St, Berkeley, CA',
+          date: '2024-03-10T09:00:00Z',
+        },
+        drop_off: {
+          location: '789 Pine St, Berkeley, CA',
+          date: '2024-03-15T09:00:00Z',
+        },
+        duration: {
+          days: 5,
+          hours: 0,
+        },
+      },
+      {
+        id: 'reservation-uuid-4',
+        status: 8, // CANCELLED
+        date_from: '2024-04-05T14:00:00Z',
+        date_to: '2024-04-07T14:00:00Z',
+        total_price: 150.00,
+        currency: 'USD',
+        is_paid: false,
+        rider: {
+          id: 'rider-uuid-4',
+          full_name: 'Alice Johnson',
+          email: 'alice.j@example.com',
+          phone_number: '+1444555666',
+        },
+        vehicle: {
+          id: 'vehicle-uuid-2',
+          name: 'BMW X5',
+          type: 0,
+          status: 2,
+        },
+        owner_id: params.userId,
+        created_date: '2024-04-01T11:00:00Z',
+        last_updated_date: '2024-04-03T15:30:00Z',
+        pick_up: {
+          location: '321 Elm St, San Jose, CA',
+          date: '2024-04-05T14:00:00Z',
+        },
+        drop_off: {
+          location: '321 Elm St, San Jose, CA',
+          date: '2024-04-07T14:00:00Z',
+        },
+        duration: {
+          days: 2,
+          hours: 0,
+        },
+      },
+      {
+        id: 'reservation-uuid-5',
+        status: 5, // COLLECTED
+        date_from: '2024-04-30T08:00:00Z',
+        date_to: '2024-05-05T08:00:00Z',
+        total_price: 600.00,
+        currency: 'USD',
+        is_paid: true,
+        rider: {
+          id: 'rider-uuid-5',
+          full_name: 'Charlie Brown',
+          email: 'charlie@example.com',
+          phone_number: '+1222333444',
+          avatar: 'https://beta.ownima.com/media/avatars/charlie.jpg',
+        },
+        vehicle: {
+          id: 'vehicle-uuid-2',
+          name: 'BMW X5',
+          type: 0,
+          status: 4, // Collected
+          picture: {
+            url: 'https://beta.ownima.com/media/vehicles/bmw.jpg',
+          },
+        },
+        owner_id: params.userId,
+        created_date: '2024-04-25T13:15:00Z',
+        last_updated_date: '2024-04-30T08:10:00Z',
+        pick_up: {
+          location: '555 Market St, San Francisco, CA',
+          date: '2024-04-30T08:00:00Z',
+        },
+        drop_off: {
+          location: '555 Market St, San Francisco, CA',
+          date: '2024-05-05T08:00:00Z',
+        },
+        duration: {
+          days: 5,
+          hours: 0,
+        },
+      },
+    ]
+
+    let filteredReservations = mockReservations
+
+    // Apply status filter
+    if (status) {
+      filteredReservations = filteredReservations.filter(r => r.status === parseInt(status))
+    }
+
+    // Apply date range filter
+    if (dateFrom) {
+      filteredReservations = filteredReservations.filter(r =>
+        new Date(r.date_from) >= new Date(dateFrom)
+      )
+    }
+    if (dateTo) {
+      filteredReservations = filteredReservations.filter(r =>
+        new Date(r.date_to) <= new Date(dateTo)
+      )
+    }
+
+    // Apply search filter (rider name or reservation ID)
+    if (search) {
+      filteredReservations = filteredReservations.filter(r =>
+        r.rider.full_name.toLowerCase().includes(search) ||
+        r.id.toLowerCase().includes(search)
+      )
+    }
+
+    return HttpResponse.json(filteredReservations)
+  }),
+
   // User CRUD endpoints
   http.get(`${API_BASE}/users`, () => {
     return HttpResponse.json({

@@ -387,3 +387,138 @@ export interface UserStats {
   new_today: number;
   logins_today: number;
 }
+
+// ============================================================================
+// Vehicle & Reservation Lists - Status Mappings and Filters
+// ============================================================================
+
+/**
+ * Vehicle status enum values matching backend VehicleStatus
+ * From api-generated.ts: VehicleStatus = 0 | 1 | 2 | 3 | 4 | 5
+ */
+export const VehicleStatusEnum = {
+  UNSPECIFIED: 0,
+  DRAFT: 1,
+  FREE: 2,
+  MAINTENANCE: 3,
+  COLLECTED: 4,
+  ARCHIVED: 5,
+} as const;
+
+/**
+ * Human-readable labels for vehicle status values
+ */
+export const VehicleStatusLabels: Record<number, string> = {
+  0: 'Unspecified',
+  1: 'Draft',
+  2: 'Free',
+  3: 'Maintenance',
+  4: 'Collected',
+  5: 'Archived',
+};
+
+/**
+ * Color themes for vehicle status badges
+ */
+export const VehicleStatusColors: Record<number, 'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'> = {
+  0: 'gray',      // Unspecified
+  1: 'yellow',    // Draft
+  2: 'green',     // Free (available)
+  3: 'blue',      // Maintenance
+  4: 'purple',    // Collected (in use)
+  5: 'red',       // Archived
+};
+
+/**
+ * Reservation status enum values matching backend ReservationStatus
+ * Based on ReservationBlockMetrics structure
+ */
+export const ReservationStatusEnum = {
+  UNSPECIFIED: 0,
+  PENDING: 1,
+  CONFIRMATION_BY_RIDER: 2,
+  CONFIRMATION_BY_OWNER: 3,
+  CONFIRMED: 4,
+  COLLECTED: 5,
+  MAINTENANCE: 6,
+  COMPLETED: 7,
+  CANCELLED: 8,
+  NO_RESPONSE: 9,
+  OVERDUE: 10,
+  CONFLICT: 11,
+} as const;
+
+/**
+ * Human-readable labels for reservation status values
+ */
+export const ReservationStatusLabels: Record<number, string> = {
+  0: 'Unspecified',
+  1: 'Pending',
+  2: 'Awaiting Rider',
+  3: 'Awaiting Owner',
+  4: 'Confirmed',
+  5: 'Collected',
+  6: 'Maintenance',
+  7: 'Completed',
+  8: 'Cancelled',
+  9: 'No Response',
+  10: 'Overdue',
+  11: 'Conflict',
+};
+
+/**
+ * Color themes for reservation status badges
+ */
+export const ReservationStatusColors: Record<number, 'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'> = {
+  0: 'gray',      // Unspecified
+  1: 'yellow',    // Pending
+  2: 'yellow',    // Awaiting Rider
+  3: 'yellow',    // Awaiting Owner
+  4: 'green',     // Confirmed
+  5: 'blue',      // Collected
+  6: 'blue',      // Maintenance
+  7: 'green',     // Completed
+  8: 'red',       // Cancelled
+  9: 'red',       // No Response
+  10: 'red',      // Overdue
+  11: 'red',      // Conflict
+};
+
+/**
+ * Filter state for vehicle lists
+ */
+export interface VehicleFilters {
+  status?: number;
+  search?: string;
+}
+
+/**
+ * Filter state for reservation lists
+ */
+export interface ReservationFilters {
+  status?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+}
+
+/**
+ * Sort direction
+ */
+export type SortDirection = 'asc' | 'desc';
+
+/**
+ * Sort configuration for vehicle tables
+ */
+export interface VehicleSort {
+  field: 'name' | 'status' | 'created_at' | 'updated_at';
+  direction: SortDirection;
+}
+
+/**
+ * Sort configuration for reservation tables
+ */
+export interface ReservationSort {
+  field: 'date_from' | 'date_to' | 'status' | 'total_price' | 'created_date';
+  direction: SortDirection;
+}

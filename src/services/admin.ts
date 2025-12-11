@@ -448,6 +448,68 @@ class AdminService {
   }
 
   /**
+   * Get vehicles owned by a specific user
+   * @param userId - Owner user ID
+   * @param params - Optional query parameters (status filter, search, pagination)
+   * @returns Promise resolving to array of vehicles
+   */
+  async getOwnerVehicles(
+    userId: string,
+    params?: {
+      skip?: number;
+      limit?: number;
+      status?: number;
+      search?: string;
+    }
+  ): Promise<components['schemas']['Vehicle-Output'][]> {
+    try {
+      return await apiClient.get<components['schemas']['Vehicle-Output'][]>(
+        `/admin/users/${userId}/vehicles`,
+        params
+      );
+    } catch (error) {
+      reportError(
+        error instanceof Error ? error : new Error(String(error)),
+        undefined,
+        { context: 'Failed to fetch owner vehicles', userId }
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get reservations for a specific owner's vehicles
+   * @param userId - Owner user ID
+   * @param params - Optional query parameters (status filter, date range, search, pagination)
+   * @returns Promise resolving to array of reservations
+   */
+  async getOwnerReservations(
+    userId: string,
+    params?: {
+      skip?: number;
+      limit?: number;
+      status?: number;
+      date_from?: string;
+      date_to?: string;
+      search?: string;
+    }
+  ): Promise<components['schemas']['Reservation'][]> {
+    try {
+      return await apiClient.get<components['schemas']['Reservation'][]>(
+        `/admin/users/${userId}/reservations`,
+        params
+      );
+    } catch (error) {
+      reportError(
+        error instanceof Error ? error : new Error(String(error)),
+        undefined,
+        { context: 'Failed to fetch owner reservations', userId }
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Build filter parameters for API requests
    */
   private buildFilterParams(filters?: FilterParams): Record<string, unknown> {
