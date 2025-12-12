@@ -393,6 +393,58 @@ export interface UserStats {
 // ============================================================================
 
 /**
+ * Customer source enum values matching backend CustomerSource proto
+ * Specifies where the customer originated from
+ */
+export const CustomerSourceEnum = {
+  UNSPECIFIED: 0,
+  ONLINE_RIDER_APP: 1,
+  ONLINE_BOOKING_WEB: 2,
+  OFFLINE_WALK_IN: 3,
+} as const;
+
+/**
+ * Human-readable labels for customer source values
+ */
+export const CustomerSourceLabels: Record<number, string> = {
+  0: 'Unspecified',
+  1: 'Rider App',
+  2: 'Booking Website',
+  3: 'Walk-in',
+};
+
+/**
+ * Reservation type enum values matching backend ReservationType proto
+ * Specifies the category of reservation
+ */
+export const ReservationTypeEnum = {
+  UNSPECIFIED: 0,
+  ONLINE: 1,
+  OFFLINE: 2,
+  MAINTENANCE: 3,
+} as const;
+
+/**
+ * Human-readable labels for reservation type values
+ */
+export const ReservationTypeLabels: Record<number, string> = {
+  0: 'Unspecified',
+  1: 'Online',
+  2: 'Offline',
+  3: 'Maintenance',
+};
+
+/**
+ * Color themes for reservation type badges
+ */
+export const ReservationTypeColors: Record<number, 'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'> = {
+  0: 'gray',      // Unspecified
+  1: 'green',     // Online
+  2: 'blue',      // Offline
+  3: 'yellow',    // Maintenance
+};
+
+/**
  * Vehicle status enum values matching backend VehicleStatus
  * From api-generated.ts: VehicleStatus = 0 | 1 | 2 | 3 | 4 | 5
  */
@@ -446,58 +498,62 @@ export const VehicleTypeLabels: Record<number, string> = {
 };
 
 /**
- * Reservation status enum values matching backend ReservationStatus
- * Based on ReservationBlockMetrics structure
+ * Reservation status enum values matching backend ReservationStatus proto
+ * IMPORTANT: These values must match exactly with backend proto definitions
+ * Note: Value 9 (RESERVATION_CONFIRMATION) is deprecated and should not be used
  */
 export const ReservationStatusEnum = {
-  UNSPECIFIED: 0,
-  PENDING: 1,
-  CONFIRMATION_BY_RIDER: 2,
-  CONFIRMATION_BY_OWNER: 3,
-  CONFIRMED: 4,
-  COLLECTED: 5,
-  MAINTENANCE: 6,
-  COMPLETED: 7,
-  CANCELLED: 8,
-  NO_RESPONSE: 9,
-  OVERDUE: 10,
-  CONFLICT: 11,
+  PENDING: 0,
+  CONFIRMATION_BY_RIDER: 1,
+  CONFIRMED: 2,
+  COLLECTED: 3,
+  MAINTENANCE: 4,
+  COMPLETED: 5,
+  CANCELLED: 6,
+  OVERDUE: 7,
+  CONFLICT: 8,
+  // 9 = RESERVATION_CONFIRMATION (deprecated, skip this value)
+  CONFIRMATION_BY_OWNER: 10,
+  NO_RESPONSE: 11,
+  UNSPECIFIED: 12,
 } as const;
 
 /**
  * Human-readable labels for reservation status values
  */
 export const ReservationStatusLabels: Record<number, string> = {
-  0: 'Unspecified',
-  1: 'Pending',
-  2: 'Awaiting Rider',
-  3: 'Awaiting Owner',
-  4: 'Confirmed',
-  5: 'Collected',
-  6: 'Maintenance',
-  7: 'Completed',
-  8: 'Cancelled',
-  9: 'No Response',
-  10: 'Overdue',
-  11: 'Conflict',
+  0: 'Pending',
+  1: 'Awaiting Rider',
+  2: 'Confirmed',
+  3: 'Collected',
+  4: 'Maintenance',
+  5: 'Completed',
+  6: 'Cancelled',
+  7: 'Overdue',
+  8: 'Conflict',
+  9: 'Confirmation', // Deprecated
+  10: 'Awaiting Owner',
+  11: 'No Response',
+  12: 'Unspecified',
 };
 
 /**
  * Color themes for reservation status badges
  */
 export const ReservationStatusColors: Record<number, 'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'> = {
-  0: 'gray',      // Unspecified
-  1: 'yellow',    // Pending
-  2: 'yellow',    // Awaiting Rider
-  3: 'yellow',    // Awaiting Owner
-  4: 'green',     // Confirmed
-  5: 'blue',      // Collected
-  6: 'blue',      // Maintenance
-  7: 'green',     // Completed
-  8: 'red',       // Cancelled
-  9: 'red',       // No Response
-  10: 'red',      // Overdue
-  11: 'red',      // Conflict
+  0: 'yellow',    // Pending
+  1: 'yellow',    // Awaiting Rider
+  2: 'green',     // Confirmed
+  3: 'blue',      // Collected
+  4: 'blue',      // Maintenance
+  5: 'green',     // Completed
+  6: 'red',       // Cancelled
+  7: 'red',       // Overdue
+  8: 'red',       // Conflict
+  9: 'gray',      // Confirmation (deprecated)
+  10: 'yellow',   // Awaiting Owner
+  11: 'red',      // No Response
+  12: 'gray',     // Unspecified
 };
 
 /**

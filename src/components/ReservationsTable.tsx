@@ -60,8 +60,8 @@ export const ReservationsTable: React.FC<ReservationsTableProps> = ({
 
   const getChatUrl = (reservationId: string) => {
     const domain = environment === 'production'
-      ? 'chat.ownima.com'
-      : 'chat-stage.ownima.com';
+      ? 'beta.ownima.com'
+      : 'stage.ownima.com';
     return `https://${domain}/chat/${reservationId}`;
   };
 
@@ -205,7 +205,7 @@ export const ReservationsTable: React.FC<ReservationsTableProps> = ({
                   reservation.status ?? 0
                 )}`}
               >
-                {ReservationStatusLabels[reservation.status ?? 0] || 'Unknown'}
+                {ReservationStatusLabels[reservation.status ?? 0] || 'Pending'}
               </span>
             </div>
 
