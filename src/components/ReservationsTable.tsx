@@ -12,6 +12,7 @@ import {
   CalendarIcon,
   ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
+import { getVehicleImageUrl, getAvatarUrl } from '../config/environment';
 
 interface ReservationsTableProps {
   reservations: components['schemas']['Reservation'][];
@@ -165,7 +166,7 @@ export const ReservationsTable: React.FC<ReservationsTableProps> = ({
               <div className="flex items-center space-x-2">
                 {reservation.rider?.avatar && (
                   <img
-                    src={reservation.rider.avatar}
+                    src={getAvatarUrl(reservation.rider.avatar)}
                     alt={reservation.rider.name || 'Rider'}
                     className="w-8 h-8 rounded-full object-cover border border-gray-200"
                   />
@@ -186,7 +187,7 @@ export const ReservationsTable: React.FC<ReservationsTableProps> = ({
               <div className="flex items-center space-x-2">
                 {reservation.vehicle?.picture?.cover && (
                   <img
-                    src={reservation.vehicle.picture.cover}
+                    src={getVehicleImageUrl(reservation.vehicle.picture.cover)}
                     alt={reservation.vehicle.name || 'Vehicle'}
                     className="w-10 h-10 rounded-lg object-cover border border-gray-200"
                   />

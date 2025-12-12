@@ -13,6 +13,7 @@ import {
   TruckIcon,
   EyeIcon,
 } from '@heroicons/react/24/outline';
+import { getVehicleImageUrl } from '../config/environment';
 
 interface VehiclesTableProps {
   vehicles: components['schemas']['Vehicle-Output'][];
@@ -144,7 +145,7 @@ export const VehiclesTable: React.FC<VehiclesTableProps> = ({
               <div className="flex items-center space-x-3">
                 {vehicle.picture?.cover && (
                   <img
-                    src={vehicle.picture.cover}
+                    src={getVehicleImageUrl(vehicle.picture.cover)}
                     alt={vehicle.name}
                     className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                   />

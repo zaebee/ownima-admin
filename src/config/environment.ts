@@ -81,6 +81,27 @@ export function getApiBaseUrl(env?: Environment): string {
 }
 
 /**
+ * Get the base domain URL for the current environment (without /api/v1 suffix)
+ * @param env - Optional environment override
+ * @returns Base domain URL
+ */
+function getBaseDomainUrl(env?: Environment): string {
+  const environment = env || getCurrentEnvironment();
+
+  switch (environment) {
+    case 'staging':
+      return 'https://stage.ownima.com';
+    case 'beta':
+      return 'https://beta.ownima.com';
+    case 'production':
+      return 'https://beta.ownima.com';
+    case 'development':
+    default:
+      return 'http://localhost:8000';
+  }
+}
+
+/**
  * Get the full avatar URL with the correct base URL for the current environment
  * @param avatarPath - Relative avatar path from the API (e.g., "/media/avatars/user123.jpg")
  * @returns Full avatar URL with environment-specific base URL
@@ -93,28 +114,31 @@ export function getAvatarUrl(avatarPath?: string | null): string | undefined {
     return avatarPath;
   }
 
-  const env = getCurrentEnvironment();
-
-  // Get base domain URL (without /api/v1 suffix)
-  let baseUrl: string;
-  switch (env) {
-    case 'staging':
-      baseUrl = 'https://stage.ownima.com';
-      break;
-    case 'beta':
-      baseUrl = 'https://beta.ownima.com';
-      break;
-    case 'production':
-      baseUrl = 'https://beta.ownima.com';
-      break;
-    case 'development':
-    default:
-      baseUrl = 'http://localhost:8000';
-      break;
-  }
+  const baseUrl = getBaseDomainUrl();
 
   // Remove leading slash if present to avoid double slashes
   const cleanPath = avatarPath.startsWith('/') ? avatarPath : `/${avatarPath}`;
+
+  return `${baseUrl}${cleanPath}`;
+}
+
+/**
+ * Get the full vehicle image URL with the correct base URL for the current environment
+ * @param imagePath - Relative image path from the API (e.g., "/vehicles/{id}/{photo}.jpg")
+ * @returns Full image URL with environment-specific base URL
+ */
+export function getVehicleImageUrl(imagePath?: string | null): string | undefined {
+  if (!imagePath) return undefined;
+
+  // If it's already a full URL, return as-is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+
+  const baseUrl = getBaseDomainUrl();
+
+  // Remove leading slash if present to avoid double slashes
+  const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
 
   return `${baseUrl}${cleanPath}`;
 }

@@ -463,10 +463,18 @@ class AdminService {
     }
   ): Promise<components['schemas']['Vehicle-Output'][]> {
     try {
-      return await apiClient.get<components['schemas']['Vehicle-Output'][]>(
-        `/admin/users/${userId}/vehicles`,
-        params
-      );
+      const response = await apiClient.get<
+        | components['schemas']['Vehicle-Output'][]
+        | { data: components['schemas']['Vehicle-Output'][]; count?: number; page?: number; size?: number; total_pages?: number }
+      >(`/admin/users/${userId}/vehicles`, params);
+
+      // Handle paginated response format { data: [], count, page, size, total_pages }
+      if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      // Handle direct array response (backward compatibility)
+      return Array.isArray(response) ? response : [];
     } catch (error) {
       reportError(
         error instanceof Error ? error : new Error(String(error)),
@@ -495,10 +503,18 @@ class AdminService {
     }
   ): Promise<components['schemas']['Reservation'][]> {
     try {
-      return await apiClient.get<components['schemas']['Reservation'][]>(
-        `/admin/users/${userId}/reservations`,
-        params
-      );
+      const response = await apiClient.get<
+        | components['schemas']['Reservation'][]
+        | { data: components['schemas']['Reservation'][]; count?: number; page?: number; size?: number; total_pages?: number }
+      >(`/admin/users/${userId}/reservations`, params);
+
+      // Handle paginated response format { data: [], count, page, size, total_pages }
+      if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      // Handle direct array response (backward compatibility)
+      return Array.isArray(response) ? response : [];
     } catch (error) {
       reportError(
         error instanceof Error ? error : new Error(String(error)),
