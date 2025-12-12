@@ -1,20 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tab } from '@headlessui/react';
 import clsx from 'clsx';
 import { userService } from '../services/users';
 import { adminService } from '../services/admin';
-import { getAvatarUrl } from '../config/environment';
+import { getAvatarUrl, getCurrentEnvironment } from '../config/environment';
 import { useToastContext } from '../contexts/ToastContext';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
 import { MetricCard } from '../components/ui/MetricCard';
 import { UserProfileHeader } from '../components/ui/UserProfileHeader';
+import { EmptyState } from '../components/ui/EmptyState';
+import { SkeletonTable } from '../components/ui/SkeletonLoader';
 // ActivityTimeline removed - now available on dedicated Activity page
 import { UserActivityTimeline } from '../components/UserActivityTimeline';
 import { UserEditModal } from '../components/modals/UserEditModal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { VehiclesTable } from '../components/VehiclesTable';
+import { ReservationsTable } from '../components/ReservationsTable';
+import { VehicleFilters } from '../components/VehicleFilters';
+import { ReservationFilters } from '../components/ReservationFilters';
+import type {
+  VehicleFilters as VehicleFiltersType,
+  ReservationFilters as ReservationFiltersType,
+  VehicleSort,
+  ReservationSort,
+} from '../types';
 import {
   ArrowLeftIcon,
   PhoneIcon,
@@ -39,6 +51,22 @@ export const UserDetailPage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  // Vehicle filters and sorting
+  const [vehicleFilters, setVehicleFilters] = useState<VehicleFiltersType>({});
+  const [vehicleSort, setVehicleSort] = useState<VehicleSort>({
+    field: 'created_at',
+    direction: 'desc',
+  });
+
+  // Reservation filters and sorting
+  const [reservationFilters, setReservationFilters] = useState<ReservationFiltersType>({});
+  const [reservationSort, setReservationSort] = useState<ReservationSort>({
+    field: 'date_from',
+    direction: 'desc',
+  });
+
+  const currentEnvironment = getCurrentEnvironment();
+
   // Fetch user details
   const {
     data: user,
@@ -55,6 +83,28 @@ export const UserDetailPage: React.FC = () => {
     queryKey: ['user-metrics', userId],
     queryFn: () => adminService.getUserMetrics(userId!),
     enabled: !!userId,
+  });
+
+  // Fetch owner vehicles (only when Vehicles tab is active and user is an owner)
+  const {
+    data: vehicles,
+    isLoading: vehiclesLoading,
+    error: vehiclesError,
+  } = useQuery({
+    queryKey: ['user-vehicles', userId, vehicleFilters],
+    queryFn: () => adminService.getOwnerVehicles(userId!, vehicleFilters),
+    enabled: !!userId && selectedTab === 1 && user?.role === 'OWNER',
+  });
+
+  // Fetch owner reservations (only when Reservations tab is active)
+  const {
+    data: reservations,
+    isLoading: reservationsLoading,
+    error: reservationsError,
+  } = useQuery({
+    queryKey: ['user-reservations', userId, reservationFilters],
+    queryFn: () => adminService.getOwnerReservations(userId!, reservationFilters),
+    enabled: !!userId && selectedTab === 2,
   });
 
   // Activity feed moved to dedicated ActivityPage
@@ -91,6 +141,67 @@ export const UserDetailPage: React.FC = () => {
     setShowEditModal(false);
     // Invalidate queries to refresh user data after edit
     queryClient.invalidateQueries({ queryKey: ['user', userId] });
+  };
+
+  // Client-side sorting for vehicles
+  const sortedVehicles = useMemo(() => {
+    if (!vehicles) return [];
+    const sorted = [...vehicles].sort((a, b) => {
+      const field = vehicleSort.field;
+      const direction = vehicleSort.direction === 'asc' ? 1 : -1;
+
+      if (field === 'name') {
+        return (a.name || '').localeCompare(b.name || '') * direction;
+      }
+      if (field === 'status') {
+        return ((a.status ?? 0) - (b.status ?? 0)) * direction;
+      }
+      if (field === 'created_at' || field === 'updated_at') {
+        const dateA = new Date(a[field] || 0).getTime();
+        const dateB = new Date(b[field] || 0).getTime();
+        return (dateA - dateB) * direction;
+      }
+      return 0;
+    });
+    return sorted;
+  }, [vehicles, vehicleSort]);
+
+  // Client-side sorting for reservations
+  const sortedReservations = useMemo(() => {
+    if (!reservations) return [];
+    const sorted = [...reservations].sort((a, b) => {
+      const field = reservationSort.field;
+      const direction = reservationSort.direction === 'asc' ? 1 : -1;
+
+      if (field === 'date_from' || field === 'date_to' || field === 'created_date') {
+        const dateA = new Date(a[field] || 0).getTime();
+        const dateB = new Date(b[field] || 0).getTime();
+        return (dateA - dateB) * direction;
+      }
+      if (field === 'status') {
+        return ((a.status ?? 0) - (b.status ?? 0)) * direction;
+      }
+      if (field === 'total_price') {
+        return ((a.total_price ?? 0) - (b.total_price ?? 0)) * direction;
+      }
+      return 0;
+    });
+    return sorted;
+  }, [reservations, reservationSort]);
+
+  // Sort handlers
+  const handleVehicleSort = (field: VehicleSort['field']) => {
+    setVehicleSort((prev) => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  const handleReservationSort = (field: ReservationSort['field']) => {
+    setReservationSort((prev) => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
   };
 
   if (isLoading) {
@@ -449,25 +560,91 @@ export const UserDetailPage: React.FC = () => {
 
             {/* Vehicles Tab */}
             <Tab.Panel>
-              <div className="text-center py-12">
-                <TruckIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No vehicles found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {user.role === 'OWNER'
-                    ? 'This owner has not created any vehicles yet.'
-                    : 'Only owners can have vehicles.'}
-                </p>
-              </div>
+              {user.role !== 'OWNER' ? (
+                <EmptyState
+                  icon={TruckIcon}
+                  title="Not applicable"
+                  description="Only owners can have vehicles."
+                />
+              ) : (
+                <div className="space-y-4">
+                  <VehicleFilters
+                    filters={vehicleFilters}
+                    onFiltersChange={setVehicleFilters}
+                    onClearFilters={() => setVehicleFilters({})}
+                  />
+
+                  {vehiclesLoading ? (
+                    <SkeletonTable rows={3} />
+                  ) : vehiclesError ? (
+                    <EmptyState
+                      icon={TruckIcon}
+                      title="Failed to load vehicles"
+                      description="Unable to fetch vehicle data. Please try again later."
+                    />
+                  ) : sortedVehicles.length === 0 ? (
+                    <EmptyState
+                      icon={TruckIcon}
+                      title={
+                        vehicleFilters.status !== undefined || vehicleFilters.search
+                          ? 'No matching vehicles'
+                          : 'No vehicles found'
+                      }
+                      description="This owner has not created any vehicles yet."
+                    />
+                  ) : (
+                    <VehiclesTable
+                      vehicles={sortedVehicles}
+                      isLoading={vehiclesLoading}
+                      sortField={vehicleSort.field}
+                      sortDirection={vehicleSort.direction}
+                      onSort={handleVehicleSort}
+                    />
+                  )}
+                </div>
+              )}
             </Tab.Panel>
 
             {/* Reservations Tab */}
             <Tab.Panel>
-              <div className="text-center py-12">
-                <ClipboardDocumentListIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No reservations found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  This user has not made any reservations yet.
-                </p>
+              <div className="space-y-4">
+                <ReservationFilters
+                  filters={reservationFilters}
+                  onFiltersChange={setReservationFilters}
+                  onClearFilters={() => setReservationFilters({})}
+                />
+
+                {reservationsLoading ? (
+                  <SkeletonTable rows={3} />
+                ) : reservationsError ? (
+                  <EmptyState
+                    icon={ClipboardDocumentListIcon}
+                    title="Failed to load reservations"
+                    description="Unable to fetch reservation data. Please try again later."
+                  />
+                ) : sortedReservations.length === 0 ? (
+                  <EmptyState
+                    icon={ClipboardDocumentListIcon}
+                    title={
+                      reservationFilters.status !== undefined ||
+                      reservationFilters.dateFrom ||
+                      reservationFilters.dateTo ||
+                      reservationFilters.search
+                        ? 'No matching reservations'
+                        : 'No reservations found'
+                    }
+                    description="This user has not made any reservations yet."
+                  />
+                ) : (
+                  <ReservationsTable
+                    reservations={sortedReservations}
+                    isLoading={reservationsLoading}
+                    sortField={reservationSort.field}
+                    sortDirection={reservationSort.direction}
+                    onSort={handleReservationSort}
+                    environment={currentEnvironment}
+                  />
+                )}
               </div>
             </Tab.Panel>
           </Tab.Panels>

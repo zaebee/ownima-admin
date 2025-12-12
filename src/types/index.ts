@@ -430,6 +430,22 @@ export const VehicleStatusColors: Record<number, 'gray' | 'yellow' | 'green' | '
 };
 
 /**
+ * Vehicle type labels
+ * Based on backend VehicleType enum
+ */
+export const VehicleTypeLabels: Record<number, string> = {
+  0: 'Car',
+  1: 'Motorcycle',
+  2: 'Bicycle',
+  3: 'Scooter',
+  4: 'Truck',
+  5: 'Van',
+  6: 'RV',
+  7: 'Boat',
+  8: 'Other',
+};
+
+/**
  * Reservation status enum values matching backend ReservationStatus
  * Based on ReservationBlockMetrics structure
  */
