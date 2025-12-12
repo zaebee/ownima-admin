@@ -34,6 +34,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, u
     currency: null,
     language: null,
     location: null,
+    booking_website_published: false,
   });
   const [errors, setErrors] = useState<Partial<UpdateUserData>>({});
 
@@ -67,6 +68,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, u
         currency: user.currency as components['schemas']['CurrencyEnum'] | null,
         language: user.language as components['schemas']['LanguageEnum'] | null,
         location: user.location || null,
+        booking_website_published: false,
       });
       setErrors({});
     }

@@ -30,6 +30,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({ isOpen, onClos
     password: '',
     full_name: '',
     role: 'RIDER',
+    language: null,
+    currency: null,
     is_active: true,
     is_superuser: false,
   });
@@ -55,6 +57,8 @@ export const UserCreateModal: React.FC<UserCreateModalProps> = ({ isOpen, onClos
       password: '',
       full_name: '',
       role: 'RIDER',
+      language: null,
+      currency: null,
       is_active: true,
       is_superuser: false,
     });
