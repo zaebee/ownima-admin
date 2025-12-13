@@ -7,7 +7,7 @@ import type { components } from '../types/api-generated';
 const mockReservations: components['schemas']['Reservation'][] = [
   {
     id: 'reservation-1',
-    status: 4, // CONFIRMED
+    status: 2, // CONFIRMED
     date_from: '2024-01-20T10:00:00Z',
     date_to: '2024-01-25T10:00:00Z',
     total_price: 375.0,
@@ -47,7 +47,7 @@ const mockReservations: components['schemas']['Reservation'][] = [
   },
   {
     id: 'reservation-2',
-    status: 1, // PENDING
+    status: 0, // PENDING
     date_from: '2024-02-01T09:00:00Z',
     date_to: '2024-02-03T18:00:00Z',
     total_price: 150.0,
@@ -87,7 +87,7 @@ const mockReservations: components['schemas']['Reservation'][] = [
   },
   {
     id: 'reservation-3',
-    status: 8, // CANCELLED
+    status: 6, // CANCELLED
     date_from: '2024-03-10T12:00:00Z',
     date_to: '2024-03-15T12:00:00Z',
     total_price: 250.0,
@@ -241,7 +241,7 @@ describe('ReservationsTable', () => {
     await user.click(chatButtons[0]);
 
     expect(mockWindowOpen).toHaveBeenCalledWith(
-      'https://chat-stage.ownima.com/chat/reservation-1',
+      'https://stage.ownima.com/chat/reservation-1',
       '_blank',
       'noopener,noreferrer'
     );
@@ -255,7 +255,7 @@ describe('ReservationsTable', () => {
     await user.click(chatButtons[0]);
 
     expect(mockWindowOpen).toHaveBeenCalledWith(
-      'https://chat.ownima.com/chat/reservation-1',
+      'https://beta.ownima.com/chat/reservation-1',
       '_blank',
       'noopener,noreferrer'
     );
@@ -398,7 +398,7 @@ describe('ReservationsTable', () => {
 
     render(<ReservationsTable {...defaultProps} reservations={reservationsWithUnknownStatus} />);
 
-    expect(screen.getByText('Unknown')).toBeInTheDocument();
+    expect(screen.getByText('Pending')).toBeInTheDocument();
   });
 
   it('renders all table headers correctly', () => {
