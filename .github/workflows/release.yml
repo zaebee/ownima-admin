@@ -62,6 +62,10 @@ jobs:
                 include: # Use include for more complex matrix configurations
                     - environment: production
                       domain: admin.ownima.com
+                      name: admin
+                    - environment: staging
+                      domain: admin-stage.ownima.com
+                      name: admin-stage
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -94,17 +98,17 @@ jobs:
                   VITE_APP_DOMAIN: https://${{ matrix.domain }}
                   VITE_APP_VERSION: ${{ github.ref_name }}
 
-            - name: Compress build output for ${{ matrix.environment }}
+            - name: Compress build output for ${{ matrix.name }}
               run: |
-                  ARTIFACT_NAME="build-${{ matrix.environment }}-${{ github.ref_name }}.tar.gz"
+                  ARTIFACT_NAME="build-${{ matrix.name }}-${{ github.ref_name }}.tar.gz"
                   tar -czf $ARTIFACT_NAME dist
                   echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
                   rm -rf dist # Clean up dist for the next matrix run or if other steps follow
 
-            - name: Upload compressed artifact for ${{ matrix.environment }}
+            - name: Upload compressed artifact for ${{ matrix.name }}
               uses: actions/upload-artifact@v4
               with:
-                  name: build-archive-${{ matrix.environment }}
+                  name: build-archive-${{ matrix.name }}
                   path: ${{ env.ARTIFACT_NAME }}
     release:
         needs: [build] # This correctly waits for all matrix jobs in 'build' to complete
@@ -121,11 +125,15 @@ jobs:
                   app-id: ${{ secrets.OWNIMA_BOT_APP_ID }}
                   private-key: ${{ secrets.OWNIMA_BOT_PRIVATE_KEY }}
 
-            - name: Download production build artifact
+            - name: Download admin build artifact
               uses: actions/download-artifact@v4
               with:
-                  name: build-archive-production
-                  # No path specified, defaults to current directory. Files will be build-production-TAG.tar.gz
+                  name: build-archive-admin
+
+            - name: Download admin-stage build artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-archive-admin-stage
 
             - name: Publish Release Draft
               id: publish_release
@@ -138,4 +146,5 @@ jobs:
                   prerelease: false
                   generate_release_notes: true
                   files: |
-                      build-production-${{ github.ref_name }}.tar.gz
+                      build-admin-${{ github.ref_name }}.tar.gz
+                      build-admin-stage-${{ github.ref_name }}.tar.gz
