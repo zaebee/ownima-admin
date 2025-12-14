@@ -7,6 +7,9 @@ import { UserEditModal } from './UserEditModal'
 import { userService } from '../../services/users'
 import { ToastProvider } from '../../contexts/ToastContext'
 import type { User } from '../../types'
+import type { components } from '../../types/api-generated'
+
+type UserResponse = components['schemas']['User-Output']
 
 // Mock user service
 vi.mock('../../services/users', () => ({
@@ -113,7 +116,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -136,7 +139,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -159,7 +162,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       const superUser = { ...mockUser, is_superuser: true }
       renderModal({ isOpen: true, onClose: mockOnClose, user: superUser })
@@ -183,7 +186,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -251,7 +254,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -280,7 +283,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -354,7 +357,7 @@ describe('UserEditModal', () => {
         id: '123',
         email: 'updated@example.com',
         full_name: 'Updated Name',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -390,7 +393,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -412,7 +415,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -429,7 +432,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 
@@ -478,7 +481,7 @@ describe('UserEditModal', () => {
       const user = userEvent.setup()
       const mockUpdateUser = vi.mocked(userService.updateUser)
       mockUpdateUser.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: '123' } as any), 100))
+        () => new Promise<UserResponse>((resolve) => setTimeout(() => resolve({ id: '123' } as UserResponse), 100))
       )
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
@@ -500,7 +503,7 @@ describe('UserEditModal', () => {
       const user = userEvent.setup()
       const mockUpdateUser = vi.mocked(userService.updateUser)
       mockUpdateUser.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: '123' } as any), 100))
+        () => new Promise<UserResponse>((resolve) => setTimeout(() => resolve({ id: '123' } as UserResponse), 100))
       )
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
@@ -523,7 +526,7 @@ describe('UserEditModal', () => {
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
 

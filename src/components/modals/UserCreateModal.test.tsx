@@ -5,6 +5,9 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { UserCreateModal } from './UserCreateModal'
 import { userService } from '../../services/users'
+import type { components } from '../../types/api-generated'
+
+type UserResponse = components['schemas']['User-Output']
 
 // Mock user service
 vi.mock('../../services/users', () => ({
@@ -98,7 +101,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -123,7 +126,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -148,7 +151,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -225,7 +228,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -256,7 +259,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -349,7 +352,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -379,7 +382,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -404,7 +407,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -424,7 +427,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -470,7 +473,7 @@ describe('UserCreateModal', () => {
         id: '1',
         email: 'test@example.com',
         role: 'RIDER',
-      } as any)
+      } as UserResponse)
 
       renderModal({ isOpen: true, onClose: mockOnClose })
 
@@ -521,7 +524,7 @@ describe('UserCreateModal', () => {
       const user = userEvent.setup()
       const mockCreateUser = vi.mocked(userService.createUser)
       mockCreateUser.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: '1' } as any), 100))
+        () => new Promise<UserResponse>((resolve) => setTimeout(() => resolve({ id: '1' } as UserResponse), 100))
       )
 
       renderModal({ isOpen: true, onClose: mockOnClose })
