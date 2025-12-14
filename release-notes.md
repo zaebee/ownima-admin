@@ -12,6 +12,7 @@
 
 ### Internal
 
+* Chore/devops. PR [#19](https://github.com/Ownima/owner-admin/pull/19) by [@zaebee](https://github.com/zaebee).
 * chore: Optimize CI/CD workflows for 76% faster builds. PR [#18](https://github.com/Ownima/owner-admin/pull/18) by [@zaebee](https://github.com/zaebee).
 * Chore/cleanup. PR [#17](https://github.com/Ownima/owner-admin/pull/17) by [@zaebee](https://github.com/zaebee).
 * chore: fix avatar url for beta env.. PR [#14](https://github.com/Ownima/owner-admin/pull/14) by [@zaebee](https://github.com/zaebee).
