@@ -61,4 +61,4 @@ jobs:
                   cd ansible &&
                   ansible-playbook -i inventories/production playbooks/deploy-frontend.yml \
                     --diff \
-                    --extra-vars github_api_token=${{ steps.app-token.outputs.token }} app=${{ env.APP_NAME }}
+                    --extra-vars="github_api_token=${{ steps.app-token.outputs.token }} app=${{ env.APP_NAME }}"
