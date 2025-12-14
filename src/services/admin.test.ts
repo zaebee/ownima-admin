@@ -1045,4 +1045,233 @@ describe('AdminService', () => {
       })
     })
   })
+
+  describe('getOwnerVehicles', () => {
+    it('fetches owner vehicles successfully', async () => {
+      const result = await adminService.getOwnerVehicles('user-123')
+
+      expect(Array.isArray(result)).toBe(true)
+      expect(result.length).toBeGreaterThan(0)
+      expect(result[0]).toHaveProperty('id')
+      expect(result[0]).toHaveProperty('owner_id')
+      expect(result[0]).toHaveProperty('name')
+      expect(result[0]).toHaveProperty('status')
+    })
+
+    it('includes pagination parameters (skip, limit)', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/vehicles`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerVehicles('user-123', {
+        skip: 10,
+        limit: 20,
+      })
+
+      expect(searchParams?.get('skip')).toBe('10')
+      expect(searchParams?.get('limit')).toBe('20')
+    })
+
+    it('includes status filter parameter', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/vehicles`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerVehicles('user-123', {
+        status: 2,
+      })
+
+      expect(searchParams?.get('status')).toBe('2')
+    })
+
+    it('includes search parameter', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/vehicles`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerVehicles('user-123', {
+        search: 'tesla',
+      })
+
+      expect(searchParams?.get('search')).toBe('tesla')
+    })
+
+    it('includes all parameters together', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/vehicles`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerVehicles('user-123', {
+        skip: 5,
+        limit: 15,
+        status: 4,
+        search: 'bmw',
+      })
+
+      expect(searchParams?.get('skip')).toBe('5')
+      expect(searchParams?.get('limit')).toBe('15')
+      expect(searchParams?.get('status')).toBe('4')
+      expect(searchParams?.get('search')).toBe('bmw')
+    })
+
+    it('handles errors and throws', async () => {
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/vehicles`, () => {
+          return HttpResponse.json(
+            { detail: 'Internal server error' },
+            { status: 500 }
+          )
+        })
+      )
+
+      await expect(adminService.getOwnerVehicles('user-123')).rejects.toThrow()
+    })
+  })
+
+  describe('getOwnerReservations', () => {
+    it('fetches owner reservations successfully', async () => {
+      const result = await adminService.getOwnerReservations('user-123')
+
+      expect(Array.isArray(result)).toBe(true)
+      expect(result.length).toBeGreaterThan(0)
+      expect(result[0]).toHaveProperty('id')
+      expect(result[0]).toHaveProperty('vehicle')
+      expect(result[0]).toHaveProperty('rider')
+      expect(result[0]).toHaveProperty('status')
+      expect(result[0]).toHaveProperty('date_from')
+      expect(result[0]).toHaveProperty('date_to')
+    })
+
+    it('includes pagination parameters (skip, limit)', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/reservations`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerReservations('user-123', {
+        skip: 10,
+        limit: 20,
+      })
+
+      expect(searchParams?.get('skip')).toBe('10')
+      expect(searchParams?.get('limit')).toBe('20')
+    })
+
+    it('includes status filter parameter', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/reservations`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerReservations('user-123', {
+        status: 1,
+      })
+
+      expect(searchParams?.get('status')).toBe('1')
+    })
+
+    it('includes date range parameters (date_from, date_to)', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/reservations`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerReservations('user-123', {
+        date_from: '2024-01-01',
+        date_to: '2024-01-31',
+      })
+
+      expect(searchParams?.get('date_from')).toBe('2024-01-01')
+      expect(searchParams?.get('date_to')).toBe('2024-01-31')
+    })
+
+    it('includes search parameter', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/reservations`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerReservations('user-123', {
+        search: 'john',
+      })
+
+      expect(searchParams?.get('search')).toBe('john')
+    })
+
+    it('includes all parameters together', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/reservations`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json([])
+        })
+      )
+
+      await adminService.getOwnerReservations('user-123', {
+        skip: 5,
+        limit: 15,
+        status: 2,
+        date_from: '2024-02-01',
+        date_to: '2024-02-29',
+        search: 'smith',
+      })
+
+      expect(searchParams?.get('skip')).toBe('5')
+      expect(searchParams?.get('limit')).toBe('15')
+      expect(searchParams?.get('status')).toBe('2')
+      expect(searchParams?.get('date_from')).toBe('2024-02-01')
+      expect(searchParams?.get('date_to')).toBe('2024-02-29')
+      expect(searchParams?.get('search')).toBe('smith')
+    })
+
+    it('handles errors and throws', async () => {
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId/reservations`, () => {
+          return HttpResponse.json(
+            { detail: 'Internal server error' },
+            { status: 500 }
+          )
+        })
+      )
+
+      await expect(adminService.getOwnerReservations('user-123')).rejects.toThrow()
+    })
+  })
 })
