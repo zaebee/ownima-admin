@@ -14,6 +14,7 @@
     "build:beta": "tsc -b tsconfig.app.json && vite build --mode beta",
     "build:production": "tsc -b tsconfig.app.json && vite build --mode production",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
