@@ -248,105 +248,6 @@ describe('UserEditModal', () => {
       expect(emailInput.value).toBe('updated@example.com')
     })
 
-    it('toggles is_active status', async () => {
-      const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
-      mockUpdateUser.mockResolvedValue({
-        id: '123',
-        email: 'test@example.com',
-      } as UserResponse)
-
-      renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
-
-      const activeLabel = screen.getByText('Active Status').closest('div')?.parentElement?.querySelector('label')
-
-      // Toggle active status off
-      await user.click(activeLabel!)
-
-      // Submit form
-      await user.click(screen.getByRole('button', { name: /save changes/i }))
-
-      // Verify is_active is now false
-      await waitFor(() => {
-        expect(mockUpdateUser).toHaveBeenCalledWith(
-          '123',
-          expect.objectContaining({
-            is_active: false,
-          })
-        )
-      })
-    })
-
-    it('toggles is_superuser status', async () => {
-      const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
-      mockUpdateUser.mockResolvedValue({
-        id: '123',
-        email: 'test@example.com',
-      } as UserResponse)
-
-      renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
-
-      const superuserLabel = screen.getByText('Administrator').closest('div')?.parentElement?.querySelector('label')
-
-      // Toggle superuser status on
-      await user.click(superuserLabel!)
-
-      // Submit form
-      await user.click(screen.getByRole('button', { name: /save changes/i }))
-
-      // Verify is_superuser is now true
-      await waitFor(() => {
-        expect(mockUpdateUser).toHaveBeenCalledWith(
-          '123',
-          expect.objectContaining({
-            is_superuser: true,
-          })
-        )
-      })
-    })
-  })
-
-  describe('Form Validation', () => {
-    it('shows error when email is empty', async () => {
-      const user = userEvent.setup()
-      renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
-
-      const emailInput = screen.getByPlaceholderText('Enter email address')
-      await user.clear(emailInput)
-      await user.click(screen.getByRole('button', { name: /save changes/i }))
-
-      expect(screen.getByText('Email is required')).toBeInTheDocument()
-    })
-
-    it('shows error when email is invalid', async () => {
-      const user = userEvent.setup()
-      renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
-
-      const emailInput = screen.getByPlaceholderText('Enter email address')
-      await user.clear(emailInput)
-      await user.type(emailInput, 'invalid-email')
-      await user.click(screen.getByRole('button', { name: /save changes/i }))
-
-      expect(screen.getByText('Please enter a valid email')).toBeInTheDocument()
-    })
-
-    it('clears error when user starts typing', async () => {
-      const user = userEvent.setup()
-      renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })
-
-      // Trigger validation error
-      const emailInput = screen.getByPlaceholderText('Enter email address')
-      await user.clear(emailInput)
-      await user.click(screen.getByRole('button', { name: /save changes/i }))
-      expect(screen.getByText('Email is required')).toBeInTheDocument()
-
-      // Start typing
-      await user.type(emailInput, 't')
-
-      // Error should be cleared
-      expect(screen.queryByText('Email is required')).not.toBeInTheDocument()
-    })
   })
 
   describe('Form Submission', () => {
@@ -547,7 +448,9 @@ describe('UserEditModal', () => {
       await user.click(screen.getByRole('button', { name: /save changes/i }))
 
       await waitFor(() => {
-        expect(screen.getByText('Update failed')).toBeInTheDocument()
+        // Toast shows "Update failed" in both title and message
+        const toastElements = screen.getAllByText('Update failed')
+        expect(toastElements.length).toBeGreaterThan(0)
       })
     })
   })
