@@ -12,7 +12,7 @@
 
 ### Internal
 
-* Chore/ci. PR [#20](https://github.com/zaebee/ownima-admin/pull/20) by [@zaebee](https://github.com/zaebee).
+* chore: Optimize CI/CD workflows for 76% faster builds. PR [#18](https://github.com/Ownima/owner-admin/pull/18) by [@zaebee](https://github.com/zaebee).
 * Chore/cleanup. PR [#17](https://github.com/Ownima/owner-admin/pull/17) by [@zaebee](https://github.com/zaebee).
 * chore: fix avatar url for beta env.. PR [#14](https://github.com/Ownima/owner-admin/pull/14) by [@zaebee](https://github.com/zaebee).
 * Admin Metrics v2.0 - Compact Metrics with DRY/KISS. PR [#9](https://github.com/Ownima/owner-admin/pull/9) by [@zaebee](https://github.com/zaebee).
