@@ -19,6 +19,21 @@ Object.defineProperty(window, 'location', {
   },
 })
 
+// Mock navigator.clipboard for Bun compatibility
+// Check if clipboard already exists to avoid redefine errors
+if (!navigator.clipboard) {
+  Object.defineProperty(navigator, 'clipboard', {
+    writable: true,
+    configurable: true,
+    value: {
+      writeText: vi.fn().mockResolvedValue(undefined),
+      readText: vi.fn().mockResolvedValue(''),
+      write: vi.fn().mockResolvedValue(undefined),
+      read: vi.fn().mockResolvedValue([]),
+    },
+  })
+}
+
 // Start MSW server
 beforeAll(() => {
   server.listen({ 
@@ -30,6 +45,12 @@ beforeAll(() => {
 afterEach(() => {
   server.resetHandlers()
   cleanup()
+
+  // Force DOM cleanup for Bun compatibility
+  // This ensures no artifacts from previous tests remain
+  document.body.innerHTML = ''
+  document.head.innerHTML = ''
+
   vi.clearAllMocks()
   localStorage.clear()
 })
