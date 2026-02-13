@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToastContext } from '../../contexts/ToastContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { userService } from '../../services/users';
+import { adminService } from '../../services/admin';
 import type { User } from '../../types';
 import type { components } from '../../types/api-generated';
 import {
@@ -40,7 +40,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, u
 
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateUserData }) =>
-      userService.updateUser(id, data),
+      adminService.updateUser(id, data),
     onSuccess: (updatedUser) => {
       // Invalidate both users and admin-users queries
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -68,7 +68,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, u
         currency: user.currency as components['schemas']['CurrencyEnum'] | null,
         language: user.language as components['schemas']['LanguageEnum'] | null,
         location: user.location || null,
-        booking_website_published: false,
+        booking_website_published: user.booking_website_published ?? false,
       });
       setErrors({});
     }

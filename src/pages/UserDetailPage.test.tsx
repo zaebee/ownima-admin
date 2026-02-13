@@ -297,6 +297,69 @@ describe('UserDetailPage', () => {
     })
   })
 
+  describe('Account Information Fields', () => {
+    it('renders language field when user has language set', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByText('Language')).toBeInTheDocument()
+        expect(screen.getAllByText('en').length).toBeGreaterThan(0)
+      })
+    })
+
+    it('renders working hours when user has working_hours_start and end set', async () => {
+      vi.mocked(adminService.getAdminUser).mockResolvedValue({
+        ...mockUser,
+        working_hours_start: '09:00',
+        working_hours_end: '18:00',
+      } as never)
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByText('Working Hours')).toBeInTheDocument()
+        expect(screen.getByText('09:00 – 18:00')).toBeInTheDocument()
+      })
+    })
+
+    it('renders working hours with only start set', async () => {
+      vi.mocked(adminService.getAdminUser).mockResolvedValue({
+        ...mockUser,
+        working_hours_start: '08:00',
+      } as never)
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByText('Working Hours')).toBeInTheDocument()
+        expect(screen.getByText('08:00 – —')).toBeInTheDocument()
+      })
+    })
+
+    it('uses user currency in financial tiles, not wallet_currency default', async () => {
+      vi.mocked(adminService.getAdminUser).mockResolvedValue({
+        ...mockUser,
+        currency: 'THB',
+      } as never)
+      renderUserDetailPage()
+      await waitFor(() => {
+        const thbElements = screen.getAllByText(/THB/)
+        expect(thbElements.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('falls back to wallet_currency when user has no currency', async () => {
+      vi.mocked(adminService.getAdminUser).mockResolvedValue({
+        ...mockUser,
+        currency: null,
+      } as never)
+      vi.mocked(adminService.getUserMetrics).mockResolvedValue({
+        ...mockMetrics,
+        wallet_currency: 'EUR',
+      } as never)
+      renderUserDetailPage()
+      await waitFor(() => {
+        const eurElements = screen.getAllByText(/EUR/)
+        expect(eurElements.length).toBeGreaterThan(0)
+      })
+    })
+  })
+
   describe('Reservation Status Breakdown', () => {
     it('renders pending reservations count', async () => {
       renderUserDetailPage()

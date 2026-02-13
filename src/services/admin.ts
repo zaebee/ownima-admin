@@ -20,10 +20,9 @@ interface AdminUserQueryParams extends Record<string, unknown> {
   limit?: number;
   search?: string;
   user_type?: 'OWNER' | 'RIDER';
-  registration_date_from?: string;
-  registration_date_to?: string;
+  registration_from?: string;
+  registration_to?: string;
   inactive_days?: number;
-  is_active?: boolean;
 }
 
 interface SystemErrorQueryParams extends Record<string, unknown> {
@@ -319,15 +318,18 @@ class AdminService {
   /**
    * Update a user by ID (admin operation)
    */
-  async updateUser(userId: string, data: Partial<AdminUser>): Promise<AdminUser> {
-    return await apiClient.patch<AdminUser>(`/users/${userId}`, data);
+  async updateUser(
+    userId: string,
+    data: components['schemas']['UserUpdate']
+  ): Promise<components['schemas']['UserAdmin']> {
+    return await apiClient.patch<components['schemas']['UserAdmin']>(`/admin/users/${userId}`, data);
   }
 
   /**
    * Delete a user by ID (admin operation)
    */
   async deleteUser(userId: string): Promise<{ message: string }> {
-    return await apiClient.delete<{ message: string }>(`/users/${userId}`);
+    return await apiClient.delete<{ message: string }>(`/admin/users/${userId}`);
   }
 
   /**
@@ -362,7 +364,7 @@ class AdminService {
    */
   async updateAdminRider(
     riderId: string,
-    data: Partial<components['schemas']['RiderUserAdmin']>
+    data: components['schemas']['RiderUserUpdate']
   ): Promise<components['schemas']['RiderUserAdmin']> {
     return await apiClient.patch<components['schemas']['RiderUserAdmin']>(
       `/admin/riders/${riderId}`,

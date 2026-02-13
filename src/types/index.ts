@@ -20,6 +20,7 @@ export interface User {
   last_login_at?: string;
   created_at: string;
   updated_at: string;
+  booking_website_published?: boolean;
 }
 
 export interface LoginRequest {

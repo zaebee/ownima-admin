@@ -946,10 +946,10 @@ export const handlers = [
     )
   }),
 
-  http.patch(`${API_BASE}/users/:id`, async ({ params, request }) => {
+  http.patch(`${API_BASE}/admin/users/:id`, async ({ params, request }) => {
     const updates = await request.json()
     const user = mockUsers.find(u => u.id === params.id)
-    
+
     if (!user) {
       return HttpResponse.json(
         { detail: 'User not found' },
@@ -964,9 +964,40 @@ export const handlers = [
     })
   }),
 
+  http.patch(`${API_BASE}/users/:id`, async ({ params, request }) => {
+    const updates = await request.json()
+    const user = mockUsers.find(u => u.id === params.id)
+
+    if (!user) {
+      return HttpResponse.json(
+        { detail: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    return HttpResponse.json({
+      ...user,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+  }),
+
+  http.delete(`${API_BASE}/admin/users/:id`, ({ params }) => {
+    const user = mockUsers.find(u => u.id === params.id)
+
+    if (!user) {
+      return HttpResponse.json(
+        { detail: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    return HttpResponse.json({ message: 'User deleted successfully' })
+  }),
+
   http.delete(`${API_BASE}/users/:id`, ({ params }) => {
     const user = mockUsers.find(u => u.id === params.id)
-    
+
     if (!user) {
       return HttpResponse.json(
         { detail: 'User not found' },

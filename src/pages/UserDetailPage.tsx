@@ -38,6 +38,8 @@ import {
   TrashIcon,
   CurrencyDollarIcon,
   GlobeAltIcon,
+  ClockIcon,
+  LanguageIcon,
 } from '@heroicons/react/24/outline';
 import { formatDate, formatDateTime } from '../utils/dateFormatting';
 
@@ -416,6 +418,26 @@ export const UserDetailPage: React.FC = () => {
                         )}
                       </div>
                     </div>
+                    {user.language && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex items-center space-x-1 text-sm font-medium text-gray-500 mb-1">
+                          <LanguageIcon className="w-4 h-4" />
+                          <span>Language</span>
+                        </div>
+                        <div className="text-sm text-gray-900 uppercase">{user.language}</div>
+                      </div>
+                    )}
+                    {(user.working_hours_start || user.working_hours_end) && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex items-center space-x-1 text-sm font-medium text-gray-500 mb-1">
+                          <ClockIcon className="w-4 h-4" />
+                          <span>Working Hours</span>
+                        </div>
+                        <div className="text-sm text-gray-900">
+                          {user.working_hours_start || '—'} – {user.working_hours_end || '—'}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -430,19 +452,19 @@ export const UserDetailPage: React.FC = () => {
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-blue-700">Wallet Balance</div>
                           <div className="mt-1 text-2xl font-bold text-blue-900">
-                            {parseFloat(String(metrics.wallet_balance)).toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.wallet_balance)).toFixed(2)} {user.currency || metrics.wallet_currency}
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-green-700">Total Spent</div>
                           <div className="mt-1 text-2xl font-bold text-green-900">
-                            {parseFloat(String(metrics.total_spent)).toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.total_spent)).toFixed(2)} {user.currency || metrics.wallet_currency}
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-purple-700">Total Earned</div>
                           <div className="mt-1 text-2xl font-bold text-purple-900">
-                            {parseFloat(String(metrics.total_earned)).toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.total_earned)).toFixed(2)} {user.currency || metrics.wallet_currency}
                           </div>
                         </div>
                       </div>

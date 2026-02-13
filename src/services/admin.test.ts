@@ -545,7 +545,7 @@ describe('AdminService', () => {
   describe('updateUser', () => {
     it('updates user successfully', async () => {
       server.use(
-        http.patch(`${API_BASE}/users/1`, async ({ request }) => {
+        http.patch(`${API_BASE}/admin/users/1`, async ({ request }) => {
           const updates = await request.json()
           return HttpResponse.json({
             id: '1',
@@ -561,10 +561,51 @@ describe('AdminService', () => {
 
       const result = await adminService.updateUser('1', {
         full_name: 'Updated Name',
+        is_active: true,
+        is_superuser: false,
+        is_beta_tester: false,
+        role: 'OWNER',
+        currency: null,
+        language: null,
+        booking_website_published: false,
       })
 
       expect(result.id).toBe('1')
       expect(result.full_name).toBe('Updated Name')
+    })
+  })
+
+  describe('updateAdminRider', () => {
+    it('updates rider successfully', async () => {
+      server.use(
+        http.patch(`${API_BASE}/admin/riders/r1`, async ({ request }) => {
+          const updates = await request.json()
+          return HttpResponse.json({
+            id: 'r1',
+            email: 'rider@example.com',
+            is_active: true,
+            is_superuser: false,
+            is_beta_tester: false,
+            average_rating: 4.5,
+            rating_count: 5,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: new Date().toISOString(),
+            ...updates,
+          })
+        })
+      )
+
+      const result = await adminService.updateAdminRider('r1', {
+        full_name: 'Updated Rider',
+        is_active: true,
+        is_superuser: false,
+        is_beta_tester: false,
+        currency: null,
+        language: null,
+      })
+
+      expect(result.id).toBe('r1')
+      expect(result.full_name).toBe('Updated Rider')
     })
   })
 
@@ -578,7 +619,7 @@ describe('AdminService', () => {
 
     it('throws error when user not found', async () => {
       server.use(
-        http.delete(`${API_BASE}/users/999`, () => {
+        http.delete(`${API_BASE}/admin/users/999`, () => {
           return HttpResponse.json(
             { detail: 'User not found' },
             { status: 404 }
@@ -900,10 +941,10 @@ describe('AdminService', () => {
     describe('bulkDeleteUsers', () => {
       it('deletes all OWNER users successfully', async () => {
         server.use(
-          http.delete(`${API_BASE}/users/1`, () => {
+          http.delete(`${API_BASE}/admin/users/1`, () => {
             return HttpResponse.json({ message: 'User deleted successfully' })
           }),
-          http.delete(`${API_BASE}/users/2`, () => {
+          http.delete(`${API_BASE}/admin/users/2`, () => {
             return HttpResponse.json({ message: 'User deleted successfully' })
           })
         )
@@ -934,7 +975,7 @@ describe('AdminService', () => {
         let endpointCalled = ''
 
         server.use(
-          http.delete(`${API_BASE}/users/1`, ({ request }) => {
+          http.delete(`${API_BASE}/admin/users/1`, ({ request }) => {
             endpointCalled = new URL(request.url).pathname
             return HttpResponse.json({ message: 'User deleted successfully' })
           })
@@ -942,7 +983,7 @@ describe('AdminService', () => {
 
         await adminService.bulkDeleteUsers(['1'], 'OWNER')
 
-        expect(endpointCalled).toBe('/api/v1/users/1')
+        expect(endpointCalled).toBe('/api/v1/admin/users/1')
       })
 
       it('routes to /admin/riders/:id for RIDER type', async () => {
@@ -964,7 +1005,7 @@ describe('AdminService', () => {
         let endpointCalled = ''
 
         server.use(
-          http.delete(`${API_BASE}/users/1`, ({ request }) => {
+          http.delete(`${API_BASE}/admin/users/1`, ({ request }) => {
             endpointCalled = new URL(request.url).pathname
             return HttpResponse.json({ message: 'User deleted successfully' })
           })
@@ -972,18 +1013,18 @@ describe('AdminService', () => {
 
         await adminService.bulkDeleteUsers(['1'])
 
-        expect(endpointCalled).toBe('/api/v1/users/1')
+        expect(endpointCalled).toBe('/api/v1/admin/users/1')
       })
 
       it('handles partial failures correctly', async () => {
         server.use(
-          http.delete(`${API_BASE}/users/1`, () => {
+          http.delete(`${API_BASE}/admin/users/1`, () => {
             return HttpResponse.json({ message: 'User deleted successfully' })
           }),
-          http.delete(`${API_BASE}/users/2`, () => {
+          http.delete(`${API_BASE}/admin/users/2`, () => {
             return HttpResponse.error()
           }),
-          http.delete(`${API_BASE}/users/3`, () => {
+          http.delete(`${API_BASE}/admin/users/3`, () => {
             return HttpResponse.json({ message: 'User deleted successfully' })
           })
         )
@@ -997,10 +1038,10 @@ describe('AdminService', () => {
 
       it('handles all failures', async () => {
         server.use(
-          http.delete(`${API_BASE}/users/1`, () => {
+          http.delete(`${API_BASE}/admin/users/1`, () => {
             return HttpResponse.error()
           }),
-          http.delete(`${API_BASE}/users/2`, () => {
+          http.delete(`${API_BASE}/admin/users/2`, () => {
             return HttpResponse.error()
           })
         )
@@ -1020,7 +1061,7 @@ describe('AdminService', () => {
 
       it('formats error messages with user IDs', async () => {
         server.use(
-          http.delete(`${API_BASE}/users/user-789`, () => {
+          http.delete(`${API_BASE}/admin/users/user-789`, () => {
             return HttpResponse.error()
           })
         )
@@ -1033,7 +1074,7 @@ describe('AdminService', () => {
 
       it('handles single user deletion', async () => {
         server.use(
-          http.delete(`${API_BASE}/users/1`, () => {
+          http.delete(`${API_BASE}/admin/users/1`, () => {
             return HttpResponse.json({ message: 'User deleted successfully' })
           })
         )
@@ -1048,11 +1089,11 @@ describe('AdminService', () => {
         const timestamps: number[] = []
 
         server.use(
-          http.delete(`${API_BASE}/users/1`, async () => {
+          http.delete(`${API_BASE}/admin/users/1`, async () => {
             timestamps.push(Date.now())
             return HttpResponse.json({ message: 'User deleted successfully' })
           }),
-          http.delete(`${API_BASE}/users/2`, async () => {
+          http.delete(`${API_BASE}/admin/users/2`, async () => {
             timestamps.push(Date.now())
             return HttpResponse.json({ message: 'User deleted successfully' })
           })
