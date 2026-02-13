@@ -52,6 +52,7 @@ afterEach(() => {
   document.head.innerHTML = ''
 
   vi.clearAllMocks()
+  vi.unstubAllGlobals()
   localStorage.clear()
 })
 

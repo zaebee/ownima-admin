@@ -139,11 +139,7 @@ describe('ReservationsTable', () => {
   beforeEach(() => {
     mockOnSort.mockClear();
     mockWindowOpen.mockClear();
-    // Mock window.open
-    vi.stubGlobal('window', {
-      ...window,
-      open: mockWindowOpen,
-    });
+    vi.spyOn(window, 'open').mockImplementation(mockWindowOpen);
   });
 
   it('renders reservation data correctly', () => {
