@@ -320,14 +320,14 @@ class AdminService {
    * Update a user by ID (admin operation)
    */
   async updateUser(userId: string, data: Partial<AdminUser>): Promise<AdminUser> {
-    return await apiClient.patch<AdminUser>(`/users/${userId}`, data);
+    return await apiClient.patch<AdminUser>(`/admin/users/${userId}`, data);
   }
 
   /**
    * Delete a user by ID (admin operation)
    */
   async deleteUser(userId: string): Promise<{ message: string }> {
-    return await apiClient.delete<{ message: string }>(`/users/${userId}`);
+    return await apiClient.delete<{ message: string }>(`/admin/users/${userId}`);
   }
 
   /**
