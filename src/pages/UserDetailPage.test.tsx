@@ -15,6 +15,7 @@ vi.mock('../services/admin', () => ({
     getOwnerReservations: vi.fn(),
     deleteUser: vi.fn(),
     getUserActivities: vi.fn(),
+    getRiderActivities: vi.fn(),
   },
 }))
 
@@ -86,6 +87,7 @@ describe('UserDetailPage', () => {
     vi.mocked(adminService.getOwnerVehicles).mockResolvedValue([])
     vi.mocked(adminService.getOwnerReservations).mockResolvedValue([])
     vi.mocked(adminService.getUserActivities).mockResolvedValue({ data: [], total: 0 })
+    vi.mocked(adminService.getRiderActivities).mockResolvedValue({ data: [], total: 0 })
   })
 
   describe('Loading State', () => {
