@@ -1288,6 +1288,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reservation/{reservation_id}/confirmation/force": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Force CONFIRMATION process for Reservation.
+         * @description Force complete a reservation by the owner for a specified vehicle and time slot.
+         */
+        post: operations["Reservation-force_confirmation_reservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reservation/{reservation_id}/cancel": {
         parameters: {
             query?: never;
@@ -1938,6 +1958,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bulk-import/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Import Vehicles
+         * @description Bulk import vehicles from CSV file.
+         *
+         *     CSV Format Requirements:
+         *     - Required columns: Car, Class, Seats, Deposit, pricing columns
+         *     - See scripts/csv-to-proto.py for full column mapping
+         *     - Encoding: UTF-8
+         *     - Format: CSV with header row
+         *
+         *     Process:
+         *     1. (Optional) If reset=True, deletes all existing owner data
+         *     2. Validates all CSV rows before insertion (fail-fast)
+         *     3. Creates vehicles, price templates, and extra options
+         *     4. Inserts into OpenSearch with per-owner index scoping
+         *     5. Returns summary with success/error counts
+         *
+         *     Warning:
+         *         Using reset=True will permanently delete all existing vehicles,
+         *         price templates, and extra options for the current owner.
+         *
+         *     Args:
+         *         csv_file: Uploaded CSV file containing vehicle data.
+         *         reset: If True, delete all existing owner data before import.
+         *         current_user: Current authenticated owner.
+         *         bulk_import_service: Bulk import service dependency.
+         *
+         *     Returns:
+         *         BulkImportResponse: Summary of import operation with success/error details.
+         *
+         *     Raises:
+         *         HTTPException: If file is not CSV or import validation fails.
+         */
+        post: operations["Bulk Import-bulk_import_vehicles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Notification Preferences
+         * @description Get notification preferences for the current user.
+         */
+        get: operations["Notifications-get_notification_preferences"];
+        /**
+         * Update Notification Preferences
+         * @description Update notification preferences for the current user.
+         */
+        put: operations["Notifications-update_notification_preferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/metrics/blocks": {
         parameters: {
             query?: never;
@@ -2299,6 +2392,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/users/{user_id}/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get vehicles owned by user
+         * @description Get all vehicles owned by a specific user (admin only).
+         *
+         *     Returns a paginated list of vehicles owned by the specified user.
+         *     Returns empty array if user exists but has no vehicles.
+         *     Returns 404 if user does not exist.
+         *
+         *     **Query Parameters:**
+         *     - `skip`: Number of records to skip for pagination (default: 0)
+         *     - `limit`: Maximum number of records to return (default: 20, max: 100)
+         *     - `status`: Filter by VehicleStatus enum (0-5)
+         *       - 0: Unspecified
+         *       - 1: Draft
+         *       - 2: Free (available)
+         *       - 3: Maintenance
+         *       - 4: Collected (in use)
+         *       - 5: Archived
+         *     - `search`: Search by vehicle name (case-insensitive partial match)
+         */
+        get: operations["Admin-get_owner_vehicles_endpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get reservations for owner's vehicles
+         * @description Get all reservations for vehicles owned by a user (admin only).
+         *
+         *     Returns a paginated list of reservations where the vehicle is owned by the specified user.
+         *     Returns empty array if user exists but has no reservations.
+         *     Returns 404 if user does not exist.
+         *
+         *     **Query Parameters:**
+         *     - `skip`: Number of records to skip for pagination (default: 0)
+         *     - `limit`: Maximum number of records to return (default: 20, max: 100)
+         *     - `status`: Filter by ReservationStatus enum (0-12)
+         *       - 0: Unspecified
+         *       - 1: Pending
+         *       - 2: Confirmation by Rider
+         *       - 3: Confirmation by Owner
+         *       - 4: Confirmed
+         *       - 5: Collected
+         *       - 6: Maintenance
+         *       - 7: Completed
+         *       - 8: Cancelled
+         *       - 9: No Response
+         *       - 10: Overdue
+         *       - 11: Conflict
+         *     - `date_from`: Filter by reservation start date (ISO 8601 format: YYYY-MM-DD)
+         *     - `date_to`: Filter by reservation end date (ISO 8601 format: YYYY-MM-DD)
+         *     - `search`: Search by rider name or reservation ID (case-insensitive partial match)
+         */
+        get: operations["Admin-get_owner_reservations_endpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/showcase/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Manually trigger showcase data reset
+         * @description Enqueues a background job to reset the showcase/demo account data. The job will delete existing vehicles, price templates, and extra options for the showcase account, then import fresh data from the configured CSV file. Only accessible to superusers/admins.
+         */
+        post: operations["Admin-trigger_showcase_reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/metrics": {
         parameters: {
             query?: never;
@@ -2574,6 +2767,14 @@ export interface components {
              */
             client_secret?: string | null;
         };
+        /** Body_Bulk Import-bulk_import_vehicles */
+        "Body_Bulk_Import-bulk_import_vehicles": {
+            /**
+             * Csv File
+             * Format: binary
+             */
+            csv_file: string;
+        };
         /** Body_Storage-create_entity_photos */
         "Body_Storage-create_entity_photos": {
             /** Request */
@@ -2586,6 +2787,65 @@ export interface components {
              * Format: binary
              */
             request: string;
+        };
+        /**
+         * BulkImportResponse
+         * @description Response from bulk import endpoint.
+         */
+        BulkImportResponse: {
+            /**
+             * Success
+             * @description Whether the import was successful
+             */
+            success: boolean;
+            /** @description Import summary statistics */
+            summary: components["schemas"]["BulkImportSummary"];
+            /**
+             * Timestamp
+             * @description ISO 8601 timestamp of import completion
+             */
+            timestamp: string;
+        };
+        /**
+         * BulkImportSummary
+         * @description Summary statistics for a bulk import operation.
+         */
+        BulkImportSummary: {
+            /**
+             * Total Vehicles
+             * @description Total number of vehicles in CSV
+             */
+            total_vehicles: number;
+            /**
+             * Successful Vehicles
+             * @description Number of vehicles successfully imported
+             */
+            successful_vehicles: number;
+            /**
+             * Total Templates
+             * @description Total number of price templates in CSV
+             */
+            total_templates: number;
+            /**
+             * Successful Templates
+             * @description Number of price templates successfully imported
+             */
+            successful_templates: number;
+            /**
+             * Total Extra Options
+             * @description Total number of extra options in CSV
+             */
+            total_extra_options: number;
+            /**
+             * Successful Extra Options
+             * @description Number of extra options successfully imported
+             */
+            successful_extra_options: number;
+            /**
+             * Errors
+             * @description List of validation or import errors
+             */
+            errors?: string[];
         };
         /** CancelReservationRequest */
         CancelReservationRequest: Record<string, never>;
@@ -3011,6 +3271,8 @@ export interface components {
         ExtraOptionPricePer: 0 | 1 | 2 | 3 | 4;
         /** ExtraPreview */
         ExtraPreview: {
+            /** Original */
+            original?: string;
             /** Previews */
             previews?: {
                 [key: string]: string;
@@ -3306,6 +3568,20 @@ export interface components {
              */
             expired_at?: string;
         };
+        /** NotificationPreferenceResponse */
+        NotificationPreferenceResponse: {
+            /** Channel */
+            channel: string;
+            /** Is Enabled */
+            is_enabled: boolean;
+        };
+        /** NotificationPreferenceUpdate */
+        NotificationPreferenceUpdate: {
+            /** Channels */
+            channels: {
+                [key: string]: boolean;
+            };
+        };
         /**
          * OccupancyEnum
          * @description Describes Time Slot occupancy type for reservation.
@@ -3417,6 +3693,21 @@ export interface components {
             created_at: string;
             /** @description Optional geographic coordinates (latitude, longitude) */
             coords?: components["schemas"]["Coordinates"] | null;
+            /**
+             * Working Hours Start
+             * @description Business opening time in HH:MM format (e.g., '07:00')
+             */
+            working_hours_start?: string | null;
+            /**
+             * Working Hours End
+             * @description Business closing time in HH:MM format (e.g., '19:00')
+             */
+            working_hours_end?: string | null;
+            /**
+             * Is Beta Tester
+             * @description Whether the owner is a beta tester
+             */
+            is_beta_tester?: boolean | null;
         };
         /**
          * PaginatedResponse[Activity]
@@ -3434,6 +3725,43 @@ export interface components {
              * @description List of items for the current page
              */
             data: components["schemas"]["Activity"][];
+            /**
+             * Count
+             * @description Total number of items across all pages
+             */
+            count: number;
+            /**
+             * Page
+             * @description Current page number (1-indexed)
+             */
+            page: number;
+            /**
+             * Size
+             * @description Number of items per page
+             */
+            size: number;
+            /**
+             * Total Pages
+             * @description Total number of pages available
+             */
+            total_pages: number;
+        };
+        /**
+         * PaginatedResponse[Reservation]
+         * @example {
+         *       "count": 127,
+         *       "data": [],
+         *       "page": 1,
+         *       "size": 50,
+         *       "total_pages": 3
+         *     }
+         */
+        PaginatedResponse_Reservation_: {
+            /**
+             * Data
+             * @description List of items for the current page
+             */
+            data: components["schemas"]["Reservation"][];
             /**
              * Count
              * @description Total number of items across all pages
@@ -3529,6 +3857,43 @@ export interface components {
              */
             total_pages: number;
         };
+        /**
+         * PaginatedResponse[Vehicle]
+         * @example {
+         *       "count": 127,
+         *       "data": [],
+         *       "page": 1,
+         *       "size": 50,
+         *       "total_pages": 3
+         *     }
+         */
+        PaginatedResponse_Vehicle_: {
+            /**
+             * Data
+             * @description List of items for the current page
+             */
+            data: components["schemas"]["Vehicle-Output"][];
+            /**
+             * Count
+             * @description Total number of items across all pages
+             */
+            count: number;
+            /**
+             * Page
+             * @description Current page number (1-indexed)
+             */
+            page: number;
+            /**
+             * Size
+             * @description Number of items per page
+             */
+            size: number;
+            /**
+             * Total Pages
+             * @description Total number of pages available
+             */
+            total_pages: number;
+        };
         /** Pagination */
         Pagination: {
             /** Limit */
@@ -3599,9 +3964,7 @@ export interface components {
                 [key: string]: string;
             };
             /** Extra Previews */
-            extra_previews?: {
-                [key: string]: components["schemas"]["ExtraPreview"];
-            };
+            extra_previews?: components["schemas"]["ExtraPreview"][];
         };
         /** Point */
         Point: {
@@ -4279,7 +4642,7 @@ export interface components {
              */
             date_to: string;
             /** Total Price */
-            total_price: number;
+            total_price: number | string;
             /**
              * Pick Up Time
              * @default
@@ -4303,7 +4666,7 @@ export interface components {
             /** @default RESERVATION */
             occupancy: components["schemas"]["OccupancyEnum"];
             /** Deposit Amount */
-            deposit_amount?: number | null;
+            deposit_amount?: number | string | null;
             /** Minimal Rent Period */
             minimal_rent_period?: number | null;
             /** @default 0 */
@@ -4875,7 +5238,7 @@ export interface components {
              */
             user_id: string;
             /** Amount */
-            amount: number;
+            amount: number | string;
             /** Transaction Id */
             transaction_id: string;
         };
@@ -4884,7 +5247,7 @@ export interface components {
             /** Status */
             status: string;
             /** New Balance */
-            new_balance: number;
+            new_balance: string;
             /** Transaction Id */
             transaction_id: string;
             /**
@@ -4954,13 +5317,13 @@ export interface components {
             /** Transaction Type */
             transaction_type: string;
             /** Amount */
-            amount: number;
+            amount: string;
             /** Commission Rate */
-            commission_rate: number | null;
+            commission_rate: string | null;
             /** Commission Amount */
-            commission_amount: number | null;
+            commission_amount: string | null;
             /** Net Amount */
-            net_amount: number;
+            net_amount: string;
             status: components["schemas"]["TransactionStatusEnum"];
             /** Description */
             description: string | null;
@@ -5434,21 +5797,21 @@ export interface components {
             cancelled_reservations: number;
             /**
              * Wallet Balance
-             * @default 0
+             * @default 0.0
              */
-            wallet_balance: number;
+            wallet_balance: string;
             /** @default USD */
             wallet_currency: components["schemas"]["CurrencyEnum"];
             /**
              * Total Spent
-             * @default 0
+             * @default 0.0
              */
-            total_spent: number;
+            total_spent: string;
             /**
              * Total Earned
-             * @default 0
+             * @default 0.0
              */
-            total_earned: number;
+            total_earned: string;
             /**
              * Account Age Days
              * @default 0
@@ -6090,7 +6453,7 @@ export interface components {
          * @description VehicleSubType specifies vehicle subtype (sedan, off-road, sport, etc.)
          * @enum {integer}
          */
-        VehicleSubType: 0 | 1 | 2 | 3;
+        VehicleSubType: 0 | 1 | 2 | 3 | 4 | 5 | 6;
         /** VehicleTeaser */
         VehicleTeaser: {
             /** Name */
@@ -10758,6 +11121,64 @@ export interface operations {
             };
         };
     };
+    "Reservation-force_confirmation_reservation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationReservationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "Reservation-cancel_reservation": {
         parameters: {
             query?: never;
@@ -13017,6 +13438,176 @@ export interface operations {
             };
         };
     };
+    "Bulk Import-bulk_import_vehicles": {
+        parameters: {
+            query?: {
+                /** @description Delete all existing vehicles, price templates, and extra options before import */
+                reset?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_Bulk_Import-bulk_import_vehicles"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkImportResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Notifications-get_notification_preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferenceResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
+    "Notifications-update_notification_preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferenceResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "Admin-get_block_metrics": {
         parameters: {
             query?: {
@@ -13991,6 +14582,193 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_owner_vehicles_endpoint": {
+        parameters: {
+            query?: {
+                /** @description Number of records to skip */
+                skip?: number;
+                /** @description Maximum records to return */
+                limit?: number;
+                /** @description Filter by VehicleStatus */
+                status?: number | null;
+                /** @description Search by vehicle name */
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Vehicle_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_owner_reservations_endpoint": {
+        parameters: {
+            query?: {
+                /** @description Number of records to skip */
+                skip?: number;
+                /** @description Maximum records to return */
+                limit?: number;
+                /** @description Filter by ReservationStatus */
+                status?: number | null;
+                /** @description Filter start date (YYYY-MM-DD) */
+                date_from?: string | null;
+                /** @description Filter end date (YYYY-MM-DD) */
+                date_to?: string | null;
+                /** @description Search by rider name or reservation ID */
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Reservation_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-trigger_showcase_reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
                 };
             };
         };
