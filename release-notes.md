@@ -12,6 +12,7 @@
 
 ### Internal
 
+* Feat/reservations. PR [#18](https://github.com/zaebee/ownima-admin/pull/18) by [@zaebee](https://github.com/zaebee).
 * chore: Fixed ansible args to run artifact.. PR [#20](https://github.com/Ownima/owner-admin/pull/20) by [@zaebee](https://github.com/zaebee).
 * Chore/devops. PR [#19](https://github.com/Ownima/owner-admin/pull/19) by [@zaebee](https://github.com/zaebee).
 * chore: Optimize CI/CD workflows for 76% faster builds. PR [#18](https://github.com/Ownima/owner-admin/pull/18) by [@zaebee](https://github.com/zaebee).
