@@ -26,7 +26,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 type RiderUserAdmin = components['schemas']['RiderUserAdmin'];
-type UpdateRiderData = Partial<RiderUserAdmin>;
+type UpdateRiderData = components['schemas']['RiderUserUpdate'];
 
 interface RiderEditModalProps {
   isOpen: boolean;
