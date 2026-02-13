@@ -188,6 +188,38 @@ describe('RiderDetailPage', () => {
     })
   })
 
+  describe('Account Information Fields', () => {
+    it('shows Active badge when rider is active', async () => {
+      renderRiderDetailPage()
+      await waitFor(() => {
+        expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
+      })
+    })
+
+    it('shows Inactive badge when rider is not active', async () => {
+      vi.mocked(adminService.getAdminRider).mockResolvedValue({
+        ...mockRider,
+        is_active: false,
+      } as never)
+      renderRiderDetailPage()
+      await waitFor(() => {
+        expect(screen.getAllByText('Inactive').length).toBeGreaterThan(0)
+      })
+    })
+
+    it('uses rider currency in financial tiles, not wallet_currency default', async () => {
+      vi.mocked(adminService.getAdminRider).mockResolvedValue({
+        ...mockRider,
+        currency: 'THB',
+      } as never)
+      renderRiderDetailPage()
+      await waitFor(() => {
+        const thbElements = screen.getAllByText(/THB/)
+        expect(thbElements.length).toBeGreaterThan(0)
+      })
+    })
+  })
+
   describe('Edit / Delete Actions', () => {
     it('renders Edit button', async () => {
       renderRiderDetailPage()

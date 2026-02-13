@@ -575,6 +575,40 @@ describe('AdminService', () => {
     })
   })
 
+  describe('updateAdminRider', () => {
+    it('updates rider successfully', async () => {
+      server.use(
+        http.patch(`${API_BASE}/admin/riders/r1`, async ({ request }) => {
+          const updates = await request.json()
+          return HttpResponse.json({
+            id: 'r1',
+            email: 'rider@example.com',
+            is_active: true,
+            is_superuser: false,
+            is_beta_tester: false,
+            average_rating: 4.5,
+            rating_count: 5,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: new Date().toISOString(),
+            ...updates,
+          })
+        })
+      )
+
+      const result = await adminService.updateAdminRider('r1', {
+        full_name: 'Updated Rider',
+        is_active: true,
+        is_superuser: false,
+        is_beta_tester: false,
+        currency: null,
+        language: null,
+      })
+
+      expect(result.id).toBe('r1')
+      expect(result.full_name).toBe('Updated Rider')
+    })
+  })
+
   describe('deleteUser', () => {
     it('deletes user successfully', async () => {
       const result = await adminService.deleteUser('1')
