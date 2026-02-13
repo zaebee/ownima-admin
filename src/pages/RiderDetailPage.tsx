@@ -275,7 +275,7 @@ export const RiderDetailPage: React.FC = () => {
           value={
             metricsLoading
               ? '-'
-              : `${metrics?.total_spent.toFixed(0) || '0'} ${metrics?.wallet_currency || 'EUR'}`
+              : `${parseFloat(String(metrics?.total_spent ?? 0)).toFixed(0)} ${metrics?.wallet_currency || 'EUR'}`
           }
           icon={CurrencyDollarIcon}
           description="Lifetime spending"
@@ -365,13 +365,13 @@ export const RiderDetailPage: React.FC = () => {
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-blue-700">Wallet Balance</div>
                           <div className="mt-1 text-2xl font-bold text-blue-900">
-                            {metrics.wallet_balance.toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.wallet_balance)).toFixed(2)} {metrics.wallet_currency}
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-green-700">Total Spent</div>
                           <div className="mt-1 text-2xl font-bold text-green-900">
-                            {metrics.total_spent.toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.total_spent)).toFixed(2)} {metrics.wallet_currency}
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
@@ -380,7 +380,7 @@ export const RiderDetailPage: React.FC = () => {
                           </div>
                           <div className="mt-1 text-2xl font-bold text-purple-900">
                             {metrics.total_reservations > 0
-                              ? (metrics.total_spent / metrics.total_reservations).toFixed(2)
+                              ? (parseFloat(String(metrics.total_spent)) / metrics.total_reservations).toFixed(2)
                               : '0.00'}{' '}
                             {metrics.wallet_currency}
                           </div>
@@ -528,7 +528,7 @@ export const RiderDetailPage: React.FC = () => {
                             Average Booking Value
                           </div>
                           <div className="mt-1 text-2xl font-bold text-purple-900">
-                            {(metrics.total_spent / metrics.total_reservations).toFixed(2)}{' '}
+                            {(parseFloat(String(metrics.total_spent)) / metrics.total_reservations).toFixed(2)}{' '}
                             {metrics.wallet_currency}
                           </div>
                         </div>
