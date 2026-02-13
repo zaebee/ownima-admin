@@ -184,6 +184,20 @@ export interface AdminUser extends User {
   rent_service_name?: string;
   address?: string;
 
+  // New fields from UserAdmin generated type
+  booking_website_published?: boolean;
+  business_name?: string;
+  working_hours_start?: string;
+  working_hours_end?: string;
+  average_rating?: number | null;
+  rating_count?: number;
+  total_reservations?: number;
+  completed_reservations?: number;
+  cancelled_reservations?: number;
+  cancel_rate?: number;
+  completion_rate?: number;
+  avg_response_time_seconds?: number | null;
+
   // Rider-specific fields
   bio?: string;
   date_of_birth?: string;

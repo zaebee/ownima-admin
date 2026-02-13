@@ -283,8 +283,8 @@ export const UsersPage: React.FC = () => {
         const apiUser = user as Record<string, unknown>;
         return {
           ...apiUser,
-          // For riders endpoint, role field doesn't exist, so use the filter type
-          user_type: apiUser.role || (userTypeFilter === 'RIDER' ? 'RIDER' : apiUser.role),
+          // Riders from /admin/riders don't have a role field — always tag as RIDER
+          user_type: userTypeFilter === 'RIDER' ? 'RIDER' : (apiUser.role || 'OWNER'),
           phone: apiUser.phone_number, // Map phone_number to phone
           login_count: apiUser.login_count || 0, // Use login_count as booking_count for now
           last_login: apiUser.last_login_at, // Map last_login_at to last_login

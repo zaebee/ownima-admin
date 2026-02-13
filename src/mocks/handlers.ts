@@ -118,6 +118,14 @@ export const handlers = [
   }),
 
   // Admin endpoints
+  http.get(`${API_BASE}/admin/users/:userId`, ({ params }) => {
+    const user = mockUsers.find(u => u.id === params.userId)
+    if (!user) {
+      return HttpResponse.json({ detail: 'User not found' }, { status: 404 })
+    }
+    return HttpResponse.json(user)
+  }),
+
   http.get(`${API_BASE}/admin/users`, () => {
     return HttpResponse.json({
       data: mockUsers,
@@ -502,6 +510,48 @@ export const handlers = [
     return HttpResponse.json({
       data: paginatedData,
       total: edgeCaseReservationActivities.length,
+    })
+  }),
+
+  // User metrics endpoint
+  http.get(`${API_BASE}/admin/users/:userId/metrics`, () => {
+    return HttpResponse.json({
+      total_vehicles: 3,
+      total_reservations: 10,
+      wallet_balance: 500.00,
+      total_spent: 200.00,
+      total_earned: 1500.00,
+      wallet_currency: 'USD',
+      login_count: 25,
+      account_age_days: 120,
+      days_since_last_login: 2,
+      draft_vehicles: 1,
+      published_vehicles: 2,
+      archived_vehicles: 0,
+      pending_reservations: 1,
+      confirmed_reservations: 2,
+      completed_reservations: 5,
+      cancelled_reservations: 2,
+    })
+  }),
+
+  // Admin riders endpoints
+  http.get(`${API_BASE}/admin/riders/:riderId`, ({ params }) => {
+    return HttpResponse.json({
+      id: params.riderId,
+      email: 'rider@example.com',
+      username: 'rider1',
+      full_name: 'Jane Rider',
+      is_active: true,
+      is_superuser: false,
+      is_beta_tester: false,
+      created_at: '2024-01-02T00:00:00Z',
+      login_count: 5,
+      last_login_at: '2024-01-14T00:00:00Z',
+      bio: 'Experienced rider',
+      date_of_birth: '1990-05-15',
+      average_rating: 4.5,
+      rating_count: 12,
     })
   }),
 

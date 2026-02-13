@@ -340,6 +340,13 @@ class AdminService {
   }
 
   /**
+   * Get a specific user by ID with admin-specific information
+   */
+  async getAdminUser(userId: string): Promise<AdminUser> {
+    return await apiClient.get<AdminUser>(`/admin/users/${userId}`);
+  }
+
+  /**
    * Get a specific rider by ID with admin-specific information
    */
   async getAdminRider(

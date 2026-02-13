@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tab } from '@headlessui/react';
 import clsx from 'clsx';
-import { userService } from '../services/users';
 import { adminService } from '../services/admin';
 import { getAvatarUrl, getCurrentEnvironment } from '../config/environment';
 import { useToastContext } from '../contexts/ToastContext';
@@ -74,7 +73,7 @@ export const UserDetailPage: React.FC = () => {
     error,
   } = useQuery({
     queryKey: ['user', userId],
-    queryFn: () => userService.getUser(userId!),
+    queryFn: () => adminService.getAdminUser(userId!),
     enabled: !!userId,
   });
 
@@ -431,19 +430,19 @@ export const UserDetailPage: React.FC = () => {
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-blue-700">Wallet Balance</div>
                           <div className="mt-1 text-2xl font-bold text-blue-900">
-                            {metrics.wallet_balance.toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.wallet_balance)).toFixed(2)} {metrics.wallet_currency}
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-green-700">Total Spent</div>
                           <div className="mt-1 text-2xl font-bold text-green-900">
-                            {metrics.total_spent.toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.total_spent)).toFixed(2)} {metrics.wallet_currency}
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
                           <div className="text-sm font-medium text-purple-700">Total Earned</div>
                           <div className="mt-1 text-2xl font-bold text-purple-900">
-                            {metrics.total_earned.toFixed(2)} {metrics.wallet_currency}
+                            {parseFloat(String(metrics.total_earned)).toFixed(2)} {metrics.wallet_currency}
                           </div>
                         </div>
                       </div>
