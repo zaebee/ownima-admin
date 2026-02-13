@@ -12,6 +12,7 @@
 
 ### Internal
 
+* Chore/sync. PR [#21](https://github.com/Ownima/owner-admin/pull/21) by [@zaebee](https://github.com/zaebee).
 * chore: Regenerated api contracts.. PR [#16](https://github.com/Ownima/owner-admin/pull/16) by [@zaebee](https://github.com/zaebee).
 * chore: Fixed ansible args to run artifact.. PR [#20](https://github.com/Ownima/owner-admin/pull/20) by [@zaebee](https://github.com/zaebee).
 * Chore/devops. PR [#19](https://github.com/Ownima/owner-admin/pull/19) by [@zaebee](https://github.com/zaebee).
