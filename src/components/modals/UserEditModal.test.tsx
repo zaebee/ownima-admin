@@ -4,16 +4,16 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { UserEditModal } from './UserEditModal'
-import { userService } from '../../services/users'
+import { adminService } from '../../services/admin'
 import { ToastProvider } from '../../contexts/ToastContext'
 import type { User } from '../../types'
 import type { components } from '../../types/api-generated'
 
 type UserResponse = components['schemas']['User-Output']
 
-// Mock user service
-vi.mock('../../services/users', () => ({
-  userService: {
+// Mock admin service
+vi.mock('../../services/admin', () => ({
+  adminService: {
     updateUser: vi.fn(),
   },
 }))
@@ -112,7 +112,7 @@ describe('UserEditModal', () => {
 
     it('initializes booking_website_published as false', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -135,7 +135,7 @@ describe('UserEditModal', () => {
 
     it('initializes with active status from user', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -158,7 +158,7 @@ describe('UserEditModal', () => {
 
     it('initializes with superuser status from user', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -182,7 +182,7 @@ describe('UserEditModal', () => {
 
     it('initializes with currency and language from user', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -253,7 +253,7 @@ describe('UserEditModal', () => {
   describe('Form Submission', () => {
     it('submits form with updated data', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'updated@example.com',
@@ -290,7 +290,7 @@ describe('UserEditModal', () => {
 
     it('includes booking_website_published field in submission', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -312,7 +312,7 @@ describe('UserEditModal', () => {
 
     it('closes modal on successful update', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -329,7 +329,7 @@ describe('UserEditModal', () => {
 
     it('removes empty full_name before submission', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -354,7 +354,7 @@ describe('UserEditModal', () => {
 
     it('does not submit if user is null', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: null })
 
@@ -380,7 +380,7 @@ describe('UserEditModal', () => {
 
     it('does not close while update is pending', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockImplementation(
         () => new Promise<UserResponse>((resolve) => setTimeout(() => resolve({ id: '123' } as UserResponse), 100))
       )
@@ -402,7 +402,7 @@ describe('UserEditModal', () => {
   describe('Loading State', () => {
     it('disables buttons while submitting', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockImplementation(
         () => new Promise<UserResponse>((resolve) => setTimeout(() => resolve({ id: '123' } as UserResponse), 100))
       )
@@ -423,7 +423,7 @@ describe('UserEditModal', () => {
   describe('Toast Notifications', () => {
     it('shows success toast on successful update', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockResolvedValue({
         id: '123',
         email: 'test@example.com',
@@ -440,7 +440,7 @@ describe('UserEditModal', () => {
 
     it('shows error toast on failed update', async () => {
       const user = userEvent.setup()
-      const mockUpdateUser = vi.mocked(userService.updateUser)
+      const mockUpdateUser = vi.mocked(adminService.updateUser)
       mockUpdateUser.mockRejectedValue(new Error('Update failed'))
 
       renderModal({ isOpen: true, onClose: mockOnClose, user: mockUser })

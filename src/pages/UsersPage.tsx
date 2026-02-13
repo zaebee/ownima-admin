@@ -165,9 +165,8 @@ export const UsersPage: React.FC = () => {
         skip: (page - 1) * DEFAULT_PAGE_SIZE,
         limit: DEFAULT_PAGE_SIZE,
         search: debouncedSearch || undefined,
-        is_active: activeFilter,
-        registration_date_from: dateFromFilter || undefined,
-        registration_date_to: dateToFilter || undefined,
+        registration_from: dateFromFilter || undefined,
+        registration_to: dateToFilter || undefined,
         inactive_days: inactiveDaysFilter,
       };
 

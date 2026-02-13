@@ -561,6 +561,13 @@ describe('AdminService', () => {
 
       const result = await adminService.updateUser('1', {
         full_name: 'Updated Name',
+        is_active: true,
+        is_superuser: false,
+        is_beta_tester: false,
+        role: 'OWNER',
+        currency: null,
+        language: null,
+        booking_website_published: false,
       })
 
       expect(result.id).toBe('1')

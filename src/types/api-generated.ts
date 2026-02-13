@@ -2031,54 +2031,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/metrics/blocks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Block Metrics
-         * @description Get all block metrics with comprehensive filtering - Main Plan Endpoint.
-         */
-        get: operations["Admin-get_block_metrics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/metrics/ratings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Rating Statistics
-         * @description Get platform-wide rating statistics.
-         *
-         *     Returns statistics for all ratings in the system:
-         *     - Total count of ratings (excluding soft-deleted)
-         *     - Platform average rating score
-         *     - Distribution of scores (1-5 stars)
-         *
-         *     This endpoint provides insights into the overall platform rating quality
-         *     and user satisfaction metrics.
-         */
-        get: operations["Admin-get_rating_statistics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -2089,14 +2041,6 @@ export interface paths {
         /**
          * Get Admin Users
          * @description Get paginated list of users with admin information and filtering.
-         *
-         *     Supports filtering by:
-         *     - User type (OWNER/RIDER)
-         *     - Registration date range
-         *     - Inactive users (not logged in for X days)
-         *     - Search by email or name
-         *
-         *     Returns standardized paginated response with page, size, and total_pages metadata.
          */
         get: operations["Admin-get_admin_users"];
         put?: never;
@@ -2107,7 +2051,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/system/info": {
+    "/api/v1/admin/users/{user_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2115,135 +2059,24 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get System Info Endpoint
-         * @description Get comprehensive system information for admin dashboard.
-         *
-         *     Returns real-time data about:
-         *     - Application versions (backend, API, git)
-         *     - Environment and configuration
-         *     - Database health and type
-         *     - Python runtime info
-         *     - System uptime
+         * Get User
+         * @description Get specific user details for admin.
          */
-        get: operations["Admin-get_system_info_endpoint"];
+        get: operations["Admin-get_user"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/system/errors": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
         /**
-         * Get Recent Errors
-         * @description Get recent system errors for admin monitoring.
-         *
-         *     TODO: Implement proper error logging and retrieval system.
-         *     This is a placeholder that returns empty list for now.
+         * Delete User
+         * @description Delete user account (admin only).
          */
-        get: operations["Admin-get_recent_errors"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        delete: operations["Admin-delete_user"];
         options?: never;
         head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/activity/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
         /**
-         * Get Recent User Activities
-         * @description Get recent user activities (logins, registrations) for admin monitoring.
-         *
-         *     Returns standardized paginated response with page, size, and total_pages metadata.
+         * Update User
+         * @description Update user profile (admin only).
          */
-        get: operations["Admin-get_recent_user_activities"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/activity/vehicles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Recent Vehicle Activities
-         * @description Get recent vehicle activities for admin monitoring.
-         *
-         *     Returns standardized paginated response with page, size, and total_pages metadata.
-         */
-        get: operations["Admin-get_recent_vehicle_activities"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/activity/reservations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Recent Reservation Activities
-         * @description Get recent reservation activities for admin monitoring.
-         *
-         *     Returns standardized paginated response with page, size, and total_pages metadata.
-         */
-        get: operations["Admin-get_recent_reservation_activities"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/activity/recent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Recent Activity
-         * @deprecated
-         * @description Get recent activities for users, vehicles, and reservations.
-         *
-         *     Optionally filter activities for a specific user by providing user_id.
-         */
-        get: operations["Admin-get_recent_activity"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
+        patch: operations["Admin-update_user"];
         trace?: never;
     };
     "/api/v1/admin/users/{user_id}/metrics": {
@@ -2256,9 +2089,6 @@ export interface paths {
         /**
          * Get User Metrics
          * @description Get comprehensive metrics for a specific user.
-         *
-         *     Returns vehicle counts, reservation statistics, financial data,
-         *     and activity metrics for the specified user.
          */
         get: operations["Admin-get_user_metrics"];
         put?: never;
@@ -2279,22 +2109,48 @@ export interface paths {
         /**
          * Get User Activities Endpoint
          * @description Get activity timeline for a specific user/owner.
-         *
-         *     Returns paginated activities filtered by user ID with optional category filtering.
-         *     Useful for investigating owner behavior, troubleshooting issues, and audit trails.
-         *
-         *     **Category Options:**
-         *     - `reservations`: Reservation-related activities (from owner's perspective)
-         *     - `ratings`: Rating and review activities
-         *     - `auth`: Authentication activities (logins, registrations)
-         *     - `all` or None: All activity types
-         *
-         *     **Use Cases:**
-         *     - Support investigation: Track owner's recent actions
-         *     - Dispute resolution: View complete activity history
-         *     - Performance analysis: Understand vehicle management patterns
          */
         get: operations["Admin-get_user_activities_endpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get vehicles owned by user
+         * @description Get all vehicles owned by a specific user (admin only).
+         */
+        get: operations["Admin-get_owner_vehicles_endpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get reservations for owner's vehicles
+         * @description Get all reservations for vehicles owned by a user (admin only).
+         */
+        get: operations["Admin-get_owner_reservations_endpoint"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2313,13 +2169,6 @@ export interface paths {
         /**
          * Get Admin Riders
          * @description Get paginated list of riders with admin information and filtering.
-         *
-         *     Supports filtering by:
-         *     - Registration date range
-         *     - Inactive riders (not logged in for X days)
-         *     - Search by email or name
-         *
-         *     Returns standardized paginated response with page, size, and total_pages metadata.
          */
         get: operations["Admin-get_admin_riders"];
         put?: never;
@@ -2368,20 +2217,6 @@ export interface paths {
         /**
          * Get Rider Activities
          * @description Get activity timeline for a specific rider.
-         *
-         *     Returns paginated activities filtered by rider ID with optional category filtering.
-         *     Useful for investigating rider behavior, troubleshooting issues, and audit trails.
-         *
-         *     **Category Options:**
-         *     - `reservations`: Reservation-related activities (bookings, cancellations)
-         *     - `ratings`: Rating and review activities
-         *     - `auth`: Authentication activities (logins, registrations)
-         *     - `all` or None: All activity types
-         *
-         *     **Use Cases:**
-         *     - Support investigation: Track rider's recent actions
-         *     - Dispute resolution: View complete activity history
-         *     - Behavior analysis: Understand booking patterns
          */
         get: operations["Admin-get_rider_activities"];
         put?: never;
@@ -2392,7 +2227,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/users/{user_id}/vehicles": {
+    "/api/v1/admin/metrics/blocks": {
         parameters: {
             query?: never;
             header?: never;
@@ -2400,26 +2235,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get vehicles owned by user
-         * @description Get all vehicles owned by a specific user (admin only).
-         *
-         *     Returns a paginated list of vehicles owned by the specified user.
-         *     Returns empty array if user exists but has no vehicles.
-         *     Returns 404 if user does not exist.
-         *
-         *     **Query Parameters:**
-         *     - `skip`: Number of records to skip for pagination (default: 0)
-         *     - `limit`: Maximum number of records to return (default: 20, max: 100)
-         *     - `status`: Filter by VehicleStatus enum (0-5)
-         *       - 0: Unspecified
-         *       - 1: Draft
-         *       - 2: Free (available)
-         *       - 3: Maintenance
-         *       - 4: Collected (in use)
-         *       - 5: Archived
-         *     - `search`: Search by vehicle name (case-insensitive partial match)
+         * Get Block Metrics
+         * @description Get all block metrics with comprehensive filtering - Main Plan Endpoint.
          */
-        get: operations["Admin-get_owner_vehicles_endpoint"];
+        get: operations["Admin-get_block_metrics"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2428,7 +2247,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/users/{user_id}/reservations": {
+    "/api/v1/admin/metrics/ratings": {
         parameters: {
             query?: never;
             header?: never;
@@ -2436,34 +2255,131 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get reservations for owner's vehicles
-         * @description Get all reservations for vehicles owned by a user (admin only).
-         *
-         *     Returns a paginated list of reservations where the vehicle is owned by the specified user.
-         *     Returns empty array if user exists but has no reservations.
-         *     Returns 404 if user does not exist.
-         *
-         *     **Query Parameters:**
-         *     - `skip`: Number of records to skip for pagination (default: 0)
-         *     - `limit`: Maximum number of records to return (default: 20, max: 100)
-         *     - `status`: Filter by ReservationStatus enum (0-12)
-         *       - 0: Unspecified
-         *       - 1: Pending
-         *       - 2: Confirmation by Rider
-         *       - 3: Confirmation by Owner
-         *       - 4: Confirmed
-         *       - 5: Collected
-         *       - 6: Maintenance
-         *       - 7: Completed
-         *       - 8: Cancelled
-         *       - 9: No Response
-         *       - 10: Overdue
-         *       - 11: Conflict
-         *     - `date_from`: Filter by reservation start date (ISO 8601 format: YYYY-MM-DD)
-         *     - `date_to`: Filter by reservation end date (ISO 8601 format: YYYY-MM-DD)
-         *     - `search`: Search by rider name or reservation ID (case-insensitive partial match)
+         * Get Rating Statistics
+         * @description Get platform-wide rating statistics.
          */
-        get: operations["Admin-get_owner_reservations_endpoint"];
+        get: operations["Admin-get_rating_statistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/activity/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent User Activities
+         * @description Get recent user activities (logins, registrations) for admin monitoring.
+         */
+        get: operations["Admin-get_recent_user_activities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/activity/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent Vehicle Activities
+         * @description Get recent vehicle activities for admin monitoring.
+         */
+        get: operations["Admin-get_recent_vehicle_activities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/activity/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent Reservation Activities
+         * @description Get recent reservation activities for admin monitoring.
+         */
+        get: operations["Admin-get_recent_reservation_activities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/activity/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent Activity
+         * @deprecated
+         * @description Get recent activities for users, vehicles, and reservations.
+         */
+        get: operations["Admin-get_recent_activity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/system/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get System Info Endpoint
+         * @description Get comprehensive system information for admin dashboard.
+         */
+        get: operations["Admin-get_system_info_endpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/system/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent Errors
+         * @description Get recent system errors for admin monitoring.
+         */
+        get: operations["Admin-get_recent_errors"];
         put?: never;
         post?: never;
         delete?: never;
@@ -13608,122 +13524,6 @@ export interface operations {
             };
         };
     };
-    "Admin-get_block_metrics": {
-        parameters: {
-            query?: {
-                /** @description Filter from this date (ISO format) */
-                date_start?: string | null;
-                /** @description Filter to this date (ISO format) */
-                date_end?: string | null;
-                /** @description Filter users by role: OWNER, RIDER */
-                role?: components["schemas"]["RoleEnum"] | null;
-                /** @description Filter users by status: active, inactive */
-                user_status?: string | null;
-                /** @description Filter vehicles by status */
-                vehicle_status?: string | null;
-                /** @description Filter reservations by status */
-                reservation_status?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminDashboardMetrics"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    "Admin-get_rating_statistics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RatingStatistics"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-        };
-    };
     "Admin-get_admin_users": {
         parameters: {
             query?: {
@@ -13795,11 +13595,71 @@ export interface operations {
             };
         };
     };
-    "Admin-get_system_info_endpoint": {
+    "Admin-get_user": {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAdmin"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-delete_user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -13811,7 +13671,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        [key: string]: unknown;
+                        [key: string]: string;
                     };
                 };
             };
@@ -13842,58 +13702,6 @@ export interface operations {
                     "application/json": components["schemas"]["BaseValidationError"];
                 };
             };
-        };
-    };
-    "Admin-get_recent_errors": {
-        parameters: {
-            query?: {
-                /** @description Number of recent errors to return */
-                _limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -13905,19 +13713,20 @@ export interface operations {
             };
         };
     };
-    "Admin-get_recent_user_activities": {
+    "Admin-update_user": {
         parameters: {
-            query?: {
-                /** @description Number of activities to skip */
-                skip?: number;
-                /** @description Number of activities to return */
-                limit?: number;
-            };
+            query?: never;
             header?: never;
-            path?: never;
+            path: {
+                user_id: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -13925,190 +13734,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    "Admin-get_recent_vehicle_activities": {
-        parameters: {
-            query?: {
-                /** @description Number of activities to skip */
-                skip?: number;
-                /** @description Number of activities to return */
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    "Admin-get_recent_reservation_activities": {
-        parameters: {
-            query?: {
-                /** @description Number of activities to skip */
-                skip?: number;
-                /** @description Number of activities to return */
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BaseValidationError"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    "Admin-get_recent_activity": {
-        parameters: {
-            query?: {
-                /** @description Filter activities for specific user */
-                user_id?: string | null;
-                /** @description Number of recent activities to return per block */
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RecentActivity"];
+                    "application/json": components["schemas"]["UserAdmin"];
                 };
             };
             /** @description Unauthorized */
@@ -14232,6 +13858,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaginatedResponse_Activity_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_owner_vehicles_endpoint": {
+        parameters: {
+            query?: {
+                /** @description Number of records to skip */
+                skip?: number;
+                /** @description Maximum records to return */
+                limit?: number;
+                /** @description Filter by VehicleStatus */
+                status?: number | null;
+                /** @description Search by vehicle name */
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Vehicle_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_owner_reservations_endpoint": {
+        parameters: {
+            query?: {
+                /** @description Number of records to skip */
+                skip?: number;
+                /** @description Maximum records to return */
+                limit?: number;
+                /** @description Filter by ReservationStatus */
+                status?: number | null;
+                /** @description Filter start date (YYYY-MM-DD) */
+                date_from?: string | null;
+                /** @description Filter end date (YYYY-MM-DD) */
+                date_to?: string | null;
+                /** @description Search by rider name or reservation ID */
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Reservation_"];
                 };
             };
             /** @description Unauthorized */
@@ -14586,22 +14350,24 @@ export interface operations {
             };
         };
     };
-    "Admin-get_owner_vehicles_endpoint": {
+    "Admin-get_block_metrics": {
         parameters: {
             query?: {
-                /** @description Number of records to skip */
-                skip?: number;
-                /** @description Maximum records to return */
-                limit?: number;
-                /** @description Filter by VehicleStatus */
-                status?: number | null;
-                /** @description Search by vehicle name */
-                search?: string | null;
+                /** @description Filter from this date (ISO format) */
+                date_start?: string | null;
+                /** @description Filter to this date (ISO format) */
+                date_end?: string | null;
+                /** @description Filter users by role: OWNER, RIDER */
+                role?: components["schemas"]["RoleEnum"] | null;
+                /** @description Filter users by status: active, inactive */
+                user_status?: string | null;
+                /** @description Filter vehicles by status */
+                vehicle_status?: string | null;
+                /** @description Filter reservations by status */
+                reservation_status?: string | null;
             };
             header?: never;
-            path: {
-                user_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -14612,7 +14378,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse_Vehicle_"];
+                    "application/json": components["schemas"]["AdminDashboardMetrics"];
                 };
             };
             /** @description Unauthorized */
@@ -14653,26 +14419,11 @@ export interface operations {
             };
         };
     };
-    "Admin-get_owner_reservations_endpoint": {
+    "Admin-get_rating_statistics": {
         parameters: {
-            query?: {
-                /** @description Number of records to skip */
-                skip?: number;
-                /** @description Maximum records to return */
-                limit?: number;
-                /** @description Filter by ReservationStatus */
-                status?: number | null;
-                /** @description Filter start date (YYYY-MM-DD) */
-                date_from?: string | null;
-                /** @description Filter end date (YYYY-MM-DD) */
-                date_to?: string | null;
-                /** @description Search by rider name or reservation ID */
-                search?: string | null;
-            };
+            query?: never;
             header?: never;
-            path: {
-                user_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -14683,7 +14434,352 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponse_Reservation_"];
+                    "application/json": components["schemas"]["RatingStatistics"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_recent_user_activities": {
+        parameters: {
+            query?: {
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_recent_vehicle_activities": {
+        parameters: {
+            query?: {
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_recent_reservation_activities": {
+        parameters: {
+            query?: {
+                /** @description Number of activities to skip */
+                skip?: number;
+                /** @description Number of activities to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_Activity_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_recent_activity": {
+        parameters: {
+            query?: {
+                /** @description Filter activities for specific user */
+                user_id?: string | null;
+                /** @description Number of recent activities to return per block */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecentActivity"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_system_info_endpoint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseValidationError"];
+                };
+            };
+        };
+    };
+    "Admin-get_recent_errors": {
+        parameters: {
+            query?: {
+                /** @description Number of recent errors to return */
+                _limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
             /** @description Unauthorized */
