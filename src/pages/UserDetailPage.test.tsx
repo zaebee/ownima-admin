@@ -1,6 +1,7 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { UserDetailPage } from './UserDetailPage'
@@ -225,6 +226,90 @@ describe('UserDetailPage', () => {
       renderUserDetailPage()
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+      })
+    })
+
+    it('opens confirm dialog when Delete button clicked', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+      })
+      await userEvent.click(screen.getByRole('button', { name: /Delete/i }))
+      await waitFor(() => {
+        // ConfirmDialog passes title="Delete User" to Modal, which renders it as a heading
+        expect(screen.getByText('Delete User')).toBeInTheDocument()
+      })
+    })
+
+    it('calls deleteUser when deletion confirmed', async () => {
+      vi.mocked(adminService.deleteUser).mockResolvedValue({ message: 'User deleted successfully' } as never)
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument()
+      })
+      await userEvent.click(screen.getByRole('button', { name: /Delete/i }))
+      await waitFor(() => {
+        expect(screen.getByText('Delete User')).toBeInTheDocument()
+      })
+      // confirmText="Delete" — there will now be two Delete buttons; pick the one inside the dialog
+      const allDeleteButtons = screen.getAllByRole('button', { name: /^Delete$/i })
+      await userEvent.click(allDeleteButtons[allDeleteButtons.length - 1])
+      await waitFor(() => {
+        expect(vi.mocked(adminService.deleteUser)).toHaveBeenCalledWith('user-123')
+      })
+    })
+
+    it('opens edit modal when Edit button clicked', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Edit/i })).toBeInTheDocument()
+      })
+      await userEvent.click(screen.getByRole('button', { name: /Edit/i }))
+      await waitFor(() => {
+        // UserEditModal passes title="Edit User" to Modal
+        expect(screen.getByText('Edit User')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Vehicle Status Breakdown', () => {
+    it('renders vehicle status breakdown when metrics loaded', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByText('Draft')).toBeInTheDocument()
+      })
+    })
+
+    it('shows draft vehicle count', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByText('Draft')).toBeInTheDocument()
+        // mockMetrics has draft_vehicles: 1 — multiple elements may show '1', use getAllByText
+        expect(screen.getAllByText('1').length).toBeGreaterThan(0)
+      })
+    })
+
+    it('shows published vehicle count', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByText('Published')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Reservation Status Breakdown', () => {
+    it('renders pending reservations count', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        // mockMetrics has pending_reservations: 1
+        expect(screen.getByText('Pending')).toBeInTheDocument()
+      })
+    })
+
+    it('renders completed reservations count', async () => {
+      renderUserDetailPage()
+      await waitFor(() => {
+        expect(screen.getByText('Completed')).toBeInTheDocument()
       })
     })
   })

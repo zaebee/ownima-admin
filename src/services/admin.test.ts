@@ -10,6 +10,42 @@ describe('AdminService', () => {
     localStorage.clear()
   })
 
+  describe('getAdminUser', () => {
+    it('fetches a single user by ID', async () => {
+      // The default handler returns mockUsers[0] whose id is 'user-1'
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId`, ({ params }) => {
+          return HttpResponse.json({
+            id: params.userId,
+            email: 'owner@example.com',
+            username: 'owner1',
+            full_name: 'John Owner',
+            is_active: true,
+            is_superuser: false,
+            role: 'OWNER',
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
+          })
+        })
+      )
+
+      const user = await adminService.getAdminUser('user-123')
+
+      expect(user).toHaveProperty('id', 'user-123')
+      expect(user).toHaveProperty('email', 'owner@example.com')
+    })
+
+    it('throws on 404 when user not found', async () => {
+      server.use(
+        http.get(`${API_BASE}/admin/users/:userId`, () => {
+          return HttpResponse.json({ detail: 'User not found' }, { status: 404 })
+        })
+      )
+
+      await expect(adminService.getAdminUser('nonexistent')).rejects.toThrow()
+    })
+  })
+
   describe('getAdminUsers', () => {
     it('fetches admin users successfully', async () => {
       const result = await adminService.getAdminUsers()
