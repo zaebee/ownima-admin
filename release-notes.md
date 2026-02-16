@@ -2,6 +2,7 @@
 
 ## Latest Changes
 
+* feat: user list reservations + dashboard beta tester filter. PR [#22](https://github.com/zaebee/ownima-admin/pull/22) by [@zaebee](https://github.com/zaebee).
 * chore(deps-dev): bump glob from 10.4.5 to 10.5.0. PR [#15](https://github.com/Ownima/owner-admin/pull/15) by [@dependabot[bot]](https://github.com/apps/dependabot).
 * feat: Enhanced User & Rider Management with Bulk Actions and Export. PR [#17](https://github.com/zaebee/ownima-admin/pull/17) by [@zaebee](https://github.com/zaebee).
 * feat: Implemented owner/rider activity details.. PR [#13](https://github.com/Ownima/owner-admin/pull/13) by [@zaebee](https://github.com/zaebee).
