@@ -14,6 +14,7 @@
 
 ### Internal
 
+* Feat/admin user list. PR [#22](https://github.com/Ownima/owner-admin/pull/22) by [@zaebee](https://github.com/zaebee).
 - Chore/sync. PR [#21](https://github.com/zaebee/ownima-admin/pull/21) by [@zaebee](https://github.com/zaebee).
 - Chore/sync. PR [#21](https://github.com/Ownima/owner-admin/pull/21) by [@zaebee](https://github.com/zaebee).
 - chore: Regenerated api contracts.. PR [#16](https://github.com/Ownima/owner-admin/pull/16) by [@zaebee](https://github.com/zaebee).
