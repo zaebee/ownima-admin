@@ -192,6 +192,35 @@ describe('AdminService', () => {
 
       expect(searchParams?.has('role')).toBe(false)
     })
+
+    it('sends is_beta_tester=false when excludeBetaTesters is set', async () => {
+      let searchParams: URLSearchParams | null = null
+
+      server.use(
+        http.get(`${API_BASE}/admin/metrics/blocks`, ({ request }) => {
+          searchParams = new URL(request.url).searchParams
+          return HttpResponse.json({
+            users: {
+              owners: {
+                total: 0, online_last_30_days: 0, logins_today: 0,
+                internal: 0, external: 0, verified: 0, with_vehicles: 0, with_active_rentals: 0,
+              },
+              riders: {
+                total: 0, online_last_30_days: 0, logins_today: 0,
+                internal: 0, external: 0, with_bookings: 0, with_completed_trips: 0, with_active_bookings: 0,
+              },
+              total_users: 0,
+            },
+            vehicles: { total: 0, draft: 0, free: 0, collected: 0, maintenance: 0, archived: 0 },
+            reservations: { total: 0, pending: 0, confirmed: 0, collected: 0, completed: 0, cancelled: 0, maintenance: 0 },
+          })
+        })
+      )
+
+      await adminService.getBlockMetrics({ excludeBetaTesters: true })
+
+      expect(searchParams?.get('is_beta_tester')).toBe('false')
+    })
   })
 
   describe('getSystemInfo', () => {

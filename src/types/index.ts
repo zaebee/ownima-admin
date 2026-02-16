@@ -154,6 +154,7 @@ export interface FilterParams {
     | 'conflict'
     | 'no_response'
     | 'unspecified';
+  excludeBetaTesters?: boolean;
 }
 
 export type DateRangePreset = 'today' | 'yesterday' | 'last_7_days' | 'last_30_days' | 'custom';
