@@ -61,13 +61,13 @@ export const StatusPieChart: React.FC<StatusPieChartProps> = ({
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   // Enrich data with percentages
-  const enrichedData = data.map(item => ({
+  const enrichedData = data.map((item) => ({
     ...item,
     percentage: total > 0 ? `${((item.value / total) * 100).toFixed(1)}%` : '0%',
   }));
 
   // Filter out zero values for cleaner visualization
-  const nonZeroData = enrichedData.filter(item => item.value > 0);
+  const nonZeroData = enrichedData.filter((item) => item.value > 0);
 
   if (loading) {
     return (
@@ -102,7 +102,7 @@ export const StatusPieChart: React.FC<StatusPieChartProps> = ({
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, percent }) => `${name}: ${Math.round((percent ?? 0) * 100)}%`}
+            label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(1)}%`}
             outerRadius={innerRadius > 0 ? 100 : 90}
             innerRadius={innerRadius}
             fill="#8884d8"
@@ -139,9 +139,7 @@ export const StatusPieChart: React.FC<StatusPieChartProps> = ({
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">Total</span>
-          <span className="text-2xl font-bold text-gray-900">
-            {total.toLocaleString()}
-          </span>
+          <span className="text-2xl font-bold text-gray-900">{total.toLocaleString()}</span>
         </div>
       </div>
     </div>
