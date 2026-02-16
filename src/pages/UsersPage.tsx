@@ -921,7 +921,7 @@ export const UsersPage: React.FC = () => {
                           <BookOpenIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
                           <span className="text-gray-500">Reserv.:</span>
                           <span className="ml-1 font-semibold text-primary-600">
-                            {(user as AdminUser).total_reservations ?? 0}
+                            {user.total_reservations ?? 0}
                           </span>
                         </div>
                       </div>

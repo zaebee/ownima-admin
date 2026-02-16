@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { UsersPage } from './UsersPage'
@@ -332,6 +332,28 @@ describe('UsersPage', () => {
 
       await waitFor(() => {
         expect(adminService.getAdminUsers).toHaveBeenCalled()
+      })
+    })
+  })
+
+  describe('Sorting', () => {
+    beforeEach(() => {
+      vi.mocked(adminService.getAdminUsers).mockResolvedValue(mockPaginatedResponse)
+    })
+
+    it('sorts by total_reservations when selected', async () => {
+      renderUsersPage()
+
+      await waitFor(() => {
+        expect(screen.getByText('John Owner')).toBeInTheDocument()
+      })
+
+      const sortSelect = screen.getByDisplayValue('Join Date')
+      fireEvent.change(sortSelect, { target: { value: 'total_reservations' } })
+
+      // List should still render after sort change
+      await waitFor(() => {
+        expect(screen.getByText('John Owner')).toBeInTheDocument()
       })
     })
   })
