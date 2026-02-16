@@ -108,8 +108,15 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     });
   };
 
+  const handleExcludeBetaTestersChange = (checked: boolean) => {
+    onFiltersChange({
+      ...filters,
+      excludeBetaTesters: checked || undefined,
+    });
+  };
+
   const hasActiveFilters = () => {
-    return filters.dateRange || (filters.role && filters.role !== 'ALL');
+    return filters.dateRange || (filters.role && filters.role !== 'ALL') || filters.excludeBetaTesters;
   };
 
   return (
@@ -215,14 +222,20 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </select>
         </div>
 
-        {/* Status Filter Placeholder */}
+        {/* Beta Testers Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status Filters
+            User Segment
           </label>
-          <div className="text-xs text-gray-500 bg-gray-50 rounded-md p-3">
-            Status filters will appear based on selected metrics
-          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.excludeBetaTesters ?? false}
+              onChange={(e) => handleExcludeBetaTestersChange(e.target.checked)}
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            Exclude beta testers
+          </label>
         </div>
       </div>
 
@@ -238,6 +251,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {filters.role && filters.role !== 'ALL' && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                 👤 {filters.role}
+              </span>
+            )}
+            {filters.excludeBetaTesters && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                No beta testers
               </span>
             )}
           </div>

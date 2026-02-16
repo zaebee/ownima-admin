@@ -563,6 +563,10 @@ class AdminService {
       params.reservation_status = filters.reservationStatus;
     }
 
+    if (filters.excludeBetaTesters) {
+      params.is_beta_tester = false;
+    }
+
     return params;
   }
 }

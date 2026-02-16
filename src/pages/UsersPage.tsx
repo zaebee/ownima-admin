@@ -43,6 +43,7 @@ import {
   ArrowRightOnRectangleIcon,
   PhoneIcon,
   ArrowDownTrayIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import { formatDate, formatDateTime } from '../utils/dateFormatting';
 import { DEFAULT_PAGE_SIZE } from '../constants/validation';
@@ -83,7 +84,7 @@ export const UsersPage: React.FC = () => {
   );
 
   // Sort state
-  type SortField = 'name' | 'email' | 'created_at' | 'login_count' | 'last_login';
+  type SortField = 'name' | 'email' | 'created_at' | 'login_count' | 'last_login' | 'total_reservations';
   type SortDirection = 'asc' | 'desc';
   const [sortField, setSortField] = useState<SortField>(
     (searchParams.get('sort') as SortField) || 'created_at'
@@ -316,6 +317,10 @@ export const UsersPage: React.FC = () => {
           case 'last_login':
             aValue = a.last_login_at ? new Date(a.last_login_at as string).getTime() : 0;
             bValue = b.last_login_at ? new Date(b.last_login_at as string).getTime() : 0;
+            break;
+          case 'total_reservations':
+            aValue = (a.total_reservations as number) || 0;
+            bValue = (b.total_reservations as number) || 0;
             break;
           default:
             return 0;
@@ -660,6 +665,7 @@ export const UsersPage: React.FC = () => {
               <option value="email">Email</option>
               <option value="login_count">Login Count</option>
               <option value="last_login">Last Login</option>
+              <option value="total_reservations">Reservations</option>
             </select>
 
             <button
@@ -909,6 +915,13 @@ export const UsersPage: React.FC = () => {
                           <span className="text-gray-500">Logins:</span>
                           <span className="ml-1 font-semibold text-primary-600">
                             {user.login_count || 0}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-xs text-gray-600">
+                          <BookOpenIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                          <span className="text-gray-500">Reserv.:</span>
+                          <span className="ml-1 font-semibold text-primary-600">
+                            {(user as AdminUser).total_reservations ?? 0}
                           </span>
                         </div>
                       </div>

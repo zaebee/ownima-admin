@@ -33,6 +33,7 @@ const mockUsers = [
     updated_at: '2024-01-01T00:00:00Z',
     login_count: 10,
     last_login_at: '2024-01-15T00:00:00Z',
+    total_reservations: 7,
   },
   {
     id: '2',
@@ -191,6 +192,27 @@ describe('UsersPage', () => {
       await waitFor(() => {
         // Active users should have active badges
         expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
+      })
+    })
+
+    it('displays reservations count in activity column', async () => {
+      renderUsersPage()
+
+      await waitFor(() => {
+        // The owner user has total_reservations: 7
+        expect(screen.getByText('7')).toBeInTheDocument()
+        // The "Reserv.:" label should appear
+        expect(screen.getAllByText('Reserv.:').length).toBeGreaterThan(0)
+      })
+    })
+
+    it('displays 0 for users without total_reservations', async () => {
+      renderUsersPage()
+
+      await waitFor(() => {
+        // Rider and inactive user have no total_reservations → renders 0
+        const zeros = screen.getAllByText('0')
+        expect(zeros.length).toBeGreaterThan(0)
       })
     })
 
