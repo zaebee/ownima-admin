@@ -2,6 +2,7 @@
 
 ## Latest Changes
 
+* chore(deps): bump react-router and react-router-dom. PR [#23](https://github.com/Ownima/owner-admin/pull/23) by [@dependabot[bot]](https://github.com/apps/dependabot).
 - chore: upgrade deps + fix recharts breaking change. PR [#23](https://github.com/zaebee/ownima-admin/pull/23) by [@zaebee](https://github.com/zaebee).
 - feat: user list reservations + dashboard beta tester filter. PR [#22](https://github.com/zaebee/ownima-admin/pull/22) by [@zaebee](https://github.com/zaebee).
 - chore(deps-dev): bump glob from 10.4.5 to 10.5.0. PR [#15](https://github.com/Ownima/owner-admin/pull/15) by [@dependabot[bot]](https://github.com/apps/dependabot).
