@@ -102,7 +102,7 @@ export const StatusPieChart: React.FC<StatusPieChartProps> = ({
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, percentage }) => `${name}: ${percentage}`}
+            label={({ name, percent }) => `${name}: ${Math.round((percent ?? 0) * 100)}%`}
             outerRadius={innerRadius > 0 ? 100 : 90}
             innerRadius={innerRadius}
             fill="#8884d8"
