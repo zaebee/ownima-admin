@@ -200,6 +200,9 @@ export interface AdminUser extends User {
   completion_rate?: number;
   avg_response_time_seconds?: number | null;
 
+  // Owner-specific fields
+  total_vehicles?: number;
+
   // Rider-specific fields
   bio?: string;
   date_of_birth?: string;
