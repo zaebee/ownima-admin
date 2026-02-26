@@ -15,6 +15,7 @@
 
 ### Internal
 
+* Feat/vehicle count. PR [#24](https://github.com/zaebee/ownima-admin/pull/24) by [@zaebee](https://github.com/zaebee).
 * Feat/admin user list. PR [#22](https://github.com/Ownima/owner-admin/pull/22) by [@zaebee](https://github.com/zaebee).
 - Chore/sync. PR [#21](https://github.com/zaebee/ownima-admin/pull/21) by [@zaebee](https://github.com/zaebee).
 - Chore/sync. PR [#21](https://github.com/Ownima/owner-admin/pull/21) by [@zaebee](https://github.com/zaebee).
