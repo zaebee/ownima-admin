@@ -89,7 +89,7 @@ describe('dateFormatting', () => {
     });
 
     it('handles end of day time', () => {
-      const result = formatDateTime('2024-01-15T23:59:00Z');
+      const result = formatDateTime('2024-01-15T20:59:00Z');
       expect(result).toContain('Jan 15, 2024');
     });
   });

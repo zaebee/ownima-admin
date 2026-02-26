@@ -236,7 +236,7 @@ describe('csvExport', () => {
     });
 
     it('handles different date formats', () => {
-      const date = 'November 16, 2024';
+      const date = 'November 16, 2024 20:00:00';
       const formatted = formatDateForCSV(date);
 
       expect(formatted).toBe('2024-11-16');

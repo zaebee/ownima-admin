@@ -44,10 +44,16 @@ import {
   PhoneIcon,
   ArrowDownTrayIcon,
   BookOpenIcon,
+  TruckIcon,
 } from '@heroicons/react/24/outline';
 import { formatDate, formatDateTime } from '../utils/dateFormatting';
 import { DEFAULT_PAGE_SIZE } from '../constants/validation';
-import { convertToCSV, downloadCSV, formatDateForCSV, formatDateTimeForCSV } from '../utils/csvExport';
+import {
+  convertToCSV,
+  downloadCSV,
+  formatDateForCSV,
+  formatDateTimeForCSV,
+} from '../utils/csvExport';
 import clsx from 'clsx';
 
 export const UsersPage: React.FC = () => {
@@ -84,7 +90,13 @@ export const UsersPage: React.FC = () => {
   );
 
   // Sort state
-  type SortField = 'name' | 'email' | 'created_at' | 'login_count' | 'last_login' | 'total_reservations';
+  type SortField =
+    | 'name'
+    | 'email'
+    | 'created_at'
+    | 'login_count'
+    | 'last_login'
+    | 'total_reservations';
   type SortDirection = 'asc' | 'desc';
   const [sortField, setSortField] = useState<SortField>(
     (searchParams.get('sort') as SortField) || 'created_at'
@@ -284,7 +296,7 @@ export const UsersPage: React.FC = () => {
         return {
           ...apiUser,
           // Riders from /admin/riders don't have a role field — always tag as RIDER
-          user_type: userTypeFilter === 'RIDER' ? 'RIDER' : (apiUser.role || 'OWNER'),
+          user_type: userTypeFilter === 'RIDER' ? 'RIDER' : apiUser.role || 'OWNER',
           phone: apiUser.phone_number, // Map phone_number to phone
           login_count: apiUser.login_count || 0, // Use login_count as booking_count for now
           last_login: apiUser.last_login_at, // Map last_login_at to last_login
@@ -293,43 +305,45 @@ export const UsersPage: React.FC = () => {
       });
 
       // Apply sorting
-      const sortedUsers = [...mappedUsers].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
-        let aValue: string | number;
-        let bValue: string | number;
+      const sortedUsers = [...mappedUsers].sort(
+        (a: Record<string, unknown>, b: Record<string, unknown>) => {
+          let aValue: string | number;
+          let bValue: string | number;
 
-        switch (sortField) {
-          case 'name':
-            aValue = ((a.full_name as string) || (a.email as string)).toLowerCase();
-            bValue = ((b.full_name as string) || (b.email as string)).toLowerCase();
-            break;
-          case 'email':
-            aValue = (a.email as string).toLowerCase();
-            bValue = (b.email as string).toLowerCase();
-            break;
-          case 'created_at':
-            aValue = new Date(a.created_at as string).getTime();
-            bValue = new Date(b.created_at as string).getTime();
-            break;
-          case 'login_count':
-            aValue = (a.login_count as number) || 0;
-            bValue = (b.login_count as number) || 0;
-            break;
-          case 'last_login':
-            aValue = a.last_login_at ? new Date(a.last_login_at as string).getTime() : 0;
-            bValue = b.last_login_at ? new Date(b.last_login_at as string).getTime() : 0;
-            break;
-          case 'total_reservations':
-            aValue = (a.total_reservations as number) || 0;
-            bValue = (b.total_reservations as number) || 0;
-            break;
-          default:
-            return 0;
+          switch (sortField) {
+            case 'name':
+              aValue = ((a.full_name as string) || (a.email as string)).toLowerCase();
+              bValue = ((b.full_name as string) || (b.email as string)).toLowerCase();
+              break;
+            case 'email':
+              aValue = (a.email as string).toLowerCase();
+              bValue = (b.email as string).toLowerCase();
+              break;
+            case 'created_at':
+              aValue = new Date(a.created_at as string).getTime();
+              bValue = new Date(b.created_at as string).getTime();
+              break;
+            case 'login_count':
+              aValue = (a.login_count as number) || 0;
+              bValue = (b.login_count as number) || 0;
+              break;
+            case 'last_login':
+              aValue = a.last_login_at ? new Date(a.last_login_at as string).getTime() : 0;
+              bValue = b.last_login_at ? new Date(b.last_login_at as string).getTime() : 0;
+              break;
+            case 'total_reservations':
+              aValue = (a.total_reservations as number) || 0;
+              bValue = (b.total_reservations as number) || 0;
+              break;
+            default:
+              return 0;
+          }
+
+          if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+          if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+          return 0;
         }
-
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
+      );
 
       return {
         items: sortedUsers as AdminUser[],
@@ -794,7 +808,11 @@ export const UsersPage: React.FC = () => {
                   <input
                     type="checkbox"
                     className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={normalizedData?.items && selectedUserIds.size === normalizedData.items.length && normalizedData.items.length > 0}
+                    checked={
+                      normalizedData?.items &&
+                      selectedUserIds.size === normalizedData.items.length &&
+                      normalizedData.items.length > 0
+                    }
                     onChange={toggleAllUsers}
                     disabled={!normalizedData?.items || normalizedData.items.length === 0}
                   />
@@ -924,6 +942,15 @@ export const UsersPage: React.FC = () => {
                             {user.total_reservations ?? 0}
                           </span>
                         </div>
+                        {user.user_type === 'OWNER' && (
+                          <div className="flex items-center text-xs text-gray-600">
+                            <TruckIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                            <span className="text-gray-500">Vehicles:</span>
+                            <span className="ml-1 font-semibold text-primary-600">
+                              {user.total_vehicles ?? 0}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </td>
 
@@ -1107,7 +1134,9 @@ export const UsersPage: React.FC = () => {
         onConfirm={confirmBulkDelete}
         title="Delete Selected Users"
         message={`Are you sure you want to delete ${selectedUserIds.size} selected user${selectedUserIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
-        confirmText={bulkDeleteMutation.isPending ? 'Deleting...' : `Delete ${selectedUserIds.size}`}
+        confirmText={
+          bulkDeleteMutation.isPending ? 'Deleting...' : `Delete ${selectedUserIds.size}`
+        }
         cancelText="Cancel"
         variant="danger"
       />
