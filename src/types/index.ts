@@ -200,6 +200,9 @@ export interface AdminUser extends User {
   completion_rate?: number;
   avg_response_time_seconds?: number | null;
 
+  // Owner-specific fields
+  total_vehicles?: number;
+
   // Rider-specific fields
   bio?: string;
   date_of_birth?: string;
@@ -292,7 +295,11 @@ export interface SystemError {
 // Activity Feed Types (Backend Specification v2.0)
 
 // Activity type definitions
-export type UserActivityType = 'user_registered' | 'user_login' | 'rider_registered' | 'rider_login';
+export type UserActivityType =
+  | 'user_registered'
+  | 'user_login'
+  | 'rider_registered'
+  | 'rider_login';
 
 export type VehicleActivityType =
   | 'vehicle_created'
@@ -310,7 +317,11 @@ export type ReservationActivityType =
 
 export type RatingActivityType = 'rating_submitted' | 'rating_received';
 
-export type ActivityType = UserActivityType | VehicleActivityType | ReservationActivityType | RatingActivityType;
+export type ActivityType =
+  | UserActivityType
+  | VehicleActivityType
+  | ReservationActivityType
+  | RatingActivityType;
 
 // Activity details interfaces for different activity types
 export interface UserActivityDetails {
@@ -369,7 +380,11 @@ export interface RatingActivityDetails {
   user_id: string;
 }
 
-export type ActivityDetails = UserActivityDetails | VehicleActivityDetails | ReservationActivityDetails | RatingActivityDetails;
+export type ActivityDetails =
+  | UserActivityDetails
+  | VehicleActivityDetails
+  | ReservationActivityDetails
+  | RatingActivityDetails;
 
 // Main Activity interface matching backend specification
 export interface Activity {
@@ -453,11 +468,14 @@ export const ReservationTypeLabels: Record<number, string> = {
 /**
  * Color themes for reservation type badges
  */
-export const ReservationTypeColors: Record<number, 'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'> = {
-  0: 'gray',      // Unspecified
-  1: 'green',     // Online
-  2: 'blue',      // Offline
-  3: 'yellow',    // Maintenance
+export const ReservationTypeColors: Record<
+  number,
+  'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'
+> = {
+  0: 'gray', // Unspecified
+  1: 'green', // Online
+  2: 'blue', // Offline
+  3: 'yellow', // Maintenance
 };
 
 /**
@@ -488,13 +506,16 @@ export const VehicleStatusLabels: Record<number, string> = {
 /**
  * Color themes for vehicle status badges
  */
-export const VehicleStatusColors: Record<number, 'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'> = {
-  0: 'gray',      // Unspecified
-  1: 'yellow',    // Draft
-  2: 'green',     // Free (available)
-  3: 'blue',      // Maintenance
-  4: 'purple',    // Collected (in use)
-  5: 'red',       // Archived
+export const VehicleStatusColors: Record<
+  number,
+  'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'
+> = {
+  0: 'gray', // Unspecified
+  1: 'yellow', // Draft
+  2: 'green', // Free (available)
+  3: 'blue', // Maintenance
+  4: 'purple', // Collected (in use)
+  5: 'red', // Archived
 };
 
 /**
@@ -556,20 +577,23 @@ export const ReservationStatusLabels: Record<number, string> = {
 /**
  * Color themes for reservation status badges
  */
-export const ReservationStatusColors: Record<number, 'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'> = {
-  0: 'yellow',    // Pending
-  1: 'yellow',    // Awaiting Rider
-  2: 'green',     // Confirmed
-  3: 'blue',      // Collected
-  4: 'blue',      // Maintenance
-  5: 'green',     // Completed
-  6: 'red',       // Cancelled
-  7: 'red',       // Overdue
-  8: 'red',       // Conflict
-  9: 'gray',      // Confirmation (deprecated)
-  10: 'yellow',   // Awaiting Owner
-  11: 'red',      // No Response
-  12: 'gray',     // Unspecified
+export const ReservationStatusColors: Record<
+  number,
+  'gray' | 'yellow' | 'green' | 'blue' | 'purple' | 'red'
+> = {
+  0: 'yellow', // Pending
+  1: 'yellow', // Awaiting Rider
+  2: 'green', // Confirmed
+  3: 'blue', // Collected
+  4: 'blue', // Maintenance
+  5: 'green', // Completed
+  6: 'red', // Cancelled
+  7: 'red', // Overdue
+  8: 'red', // Conflict
+  9: 'gray', // Confirmation (deprecated)
+  10: 'yellow', // Awaiting Owner
+  11: 'red', // No Response
+  12: 'gray', // Unspecified
 };
 
 /**

@@ -44,6 +44,7 @@ import {
   PhoneIcon,
   ArrowDownTrayIcon,
   BookOpenIcon,
+  TruckIcon,
 } from '@heroicons/react/24/outline';
 import { formatDate, formatDateTime } from '../utils/dateFormatting';
 import { DEFAULT_PAGE_SIZE } from '../constants/validation';
@@ -941,6 +942,15 @@ export const UsersPage: React.FC = () => {
                             {user.total_reservations ?? 0}
                           </span>
                         </div>
+                        {user.user_type === 'OWNER' && (
+                          <div className="flex items-center text-xs text-gray-600">
+                            <TruckIcon className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+                            <span className="text-gray-500">Vehicles:</span>
+                            <span className="ml-1 font-semibold text-primary-600">
+                              {user.total_vehicles ?? 0}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </td>
 
