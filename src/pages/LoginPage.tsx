@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { api } from "@/lib/api"
+import axios from "axios"
 
 export function LoginPage() {
   const [email, setEmail] = useState("")
@@ -15,32 +17,39 @@ export function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!email || !password) {
+      setError("Please enter both email and password")
+      return
+    }
+
     setError("")
     setIsLoading(true)
 
     try {
-      // В реальном приложении здесь будет запрос к API:
-      // const response = await fetch('/api/v1/auth/access-token', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      //   body: new URLSearchParams({ username: email, password, grant_type: 'password' })
-      // })
-      // const data = await response.json()
-      // if (!response.ok) throw new Error(data.detail)
-      // login(data.access_token)
+      // Подготовка данных в формате x-www-form-urlencoded (стандарт для OAuth2 Password Flow)
+      const formData = new URLSearchParams()
+      formData.append("username", email)
+      formData.append("password", password)
+      formData.append("grant_type", "password")
 
-      // Имитация задержки сети и успешного входа
-      if (email && password) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Временный мок-токен
-        login("mock_jwt_token_12345")
-        navigate("/")
-      } else {
-        setError("Please enter both email and password")
-      }
+      // Выполняем реальный запрос к бэкенду
+      const response = await api.post("/auth/access-token", formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      })
+
+      // Сохраняем токен и перенаправляем
+      login(response.data.access_token)
+      navigate("/")
     } catch (err) {
-      setError("Invalid credentials")
+      if (axios.isAxiosError(err) && err.response) {
+        // Показываем ошибку от сервера, если она есть
+        setError(err.response.data?.detail || "Invalid credentials")
+      } else {
+        setError("Network error. Please try again later.")
+      }
     } finally {
       setIsLoading(false)
     }
