@@ -14,6 +14,7 @@ import { UserDetailPage } from "./pages/UserDetailPage"
 import { RidersPage } from "./pages/RidersPage"
 import { RiderDetailPage } from "./pages/RiderDetailPage"
 import { VehiclesPage } from "./pages/VehiclesPage"
+import { VehicleDetailPage } from "./pages/VehicleDetailPage"
 import { ReservationsPage } from "./pages/ReservationsPage"
 import { SettingsPage } from "./pages/SettingsPage"
 
@@ -34,6 +35,7 @@ export default function App() {
               <Route path="riders" element={<RidersPage />} />
               <Route path="riders/:id" element={<RiderDetailPage />} />
               <Route path="vehicles" element={<VehiclesPage />} />
+              <Route path="vehicles/:id" element={<VehicleDetailPage />} />
               <Route path="reservations" element={<ReservationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -52,7 +53,11 @@ export function VehiclesPage() {
             <TableBody>
               {mockVehicles.map((vehicle) => (
                 <TableRow key={vehicle.id}>
-                  <TableCell className="font-medium">{vehicle.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link to={`/vehicles/${vehicle.id}`} className="hover:underline text-primary">
+                      {vehicle.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{vehicle.owner}</TableCell>
                   <TableCell>
                     <Badge variant={
