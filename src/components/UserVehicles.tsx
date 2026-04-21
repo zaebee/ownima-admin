@@ -50,6 +50,25 @@ export function UserVehicles({ userId }: { userId: string }) {
     )
   }
 
+  // Frontend Status mapping for clarity if backend returns integers mapping to statuses
+  const getStatusString = (status: number) => {
+    // According to mock, status looks to be an integer. Mapping roughly.
+    switch (status) {
+      case 1: return "ACTIVE";
+      case 2: return "MAINTENANCE";
+      case 0: return "INACTIVE";
+      default: return `STATUS_${status}`;
+    }
+  }
+
+  const getStatusVariant = (status: number) => {
+    switch (status) {
+      case 1: return "success";
+      case 2: return "destructive";
+      default: return "secondary";
+    }
+  }
+
   return (
     <Card className="overflow-hidden border-none shadow-sm">
       <CardContent className="p-0">
@@ -60,7 +79,7 @@ export function UserVehicles({ userId }: { userId: string }) {
               <TableHead>Vehicle</TableHead>
               <TableHead>License Plate</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Location</TableHead>
+              <TableHead>Price</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -69,10 +88,10 @@ export function UserVehicles({ userId }: { userId: string }) {
               <TableRow key={v.id} className="hover:bg-muted/20">
                 <TableCell>
                   <div className="h-12 w-16 overflow-hidden rounded-md bg-muted flex items-center justify-center">
-                    {v.media && v.media.length > 0 ? (
+                    {v.picture?.cover ? (
                       <img 
-                        src={getMediaUrl(v.media[0].media_url)} 
-                        alt={v.brand} 
+                        src={getMediaUrl(v.picture.cover)} 
+                        alt={v.name || "Vehicle"} 
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -83,30 +102,29 @@ export function UserVehicles({ userId }: { userId: string }) {
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium text-foreground">
-                      {v.brand} {v.model}
+                      {v.name || `${v.general_info?.brand} ${v.general_info?.model}`}
                     </span>
-                    <span className="text-xs text-muted-foreground">{v.year}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {v.general_info?.year} • {v.general_info?.vehicle_class || 'Class Unknown'}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline" className="font-mono text-xs font-semibold tracking-wider">
-                    {v.license_plate}
+                    {v.general_info?.reg_number || 'N/A'}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <Badge 
-                    variant={v.status === "ACTIVE" ? "success" : v.status === "MAINTENANCE" ? "destructive" : "secondary"}
+                    variant={getStatusVariant(v.status) as "default" | "secondary" | "destructive" | "outline" | "success"}
                     className="rounded-md"
                   >
-                    {v.status}
+                    {getStatusString(v.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-3 w-3" />
-                    <span className="truncate max-w-[150px]">
-                      {v.location?.city || "Unknown"}
-                    </span>
+                  <div className="flex items-center gap-1 text-sm font-medium">
+                    {Number(v.price || 0).toLocaleString()} <span className="text-xs text-muted-foreground">{v.currency || "RUB"}/day</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">

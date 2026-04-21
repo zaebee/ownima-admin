@@ -33,17 +33,18 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
   }, [userId, userType])
 
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return "N/A";
     return new Date(dateStr).toLocaleDateString(undefined, { 
       year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
     })
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: number) => {
     switch(status) {
-      case "COMPLETED": return "success"
-      case "CANCELLED": return "destructive"
-      case "ACTIVE": return "default"
-      case "PENDING": return "secondary"
+      case 2: return "success"  // Completed / Confirmed
+      case 3: return "default"  // Ongoing / Collected
+      case 5: return "secondary" // Completed
+      case 9: return "destructive" // Cancelled
       default: return "outline"
     }
   }
@@ -75,7 +76,7 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
         <Table>
           <TableHeader className="bg-muted/30">
             <TableRow>
-              <TableHead>ID</TableHead>
+              <TableHead>Booking</TableHead>
               <TableHead>Dates</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Total Price</TableHead>
@@ -86,24 +87,29 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
             {reservations.map((res) => (
               <TableRow key={res.id} className="hover:bg-muted/20">
                 <TableCell>
-                  <span className="font-mono text-xs font-semibold tracking-wider text-muted-foreground">
-                    #{res.id.substring(0, 8)}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="font-mono text-xs font-semibold tracking-wider text-muted-foreground mb-1">
+                      #{res.id.substring(0, 8)}
+                    </span>
+                    <span className="text-sm font-medium">
+                      {res.vehicle?.name || "Unknown Vehicle"}
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col text-sm">
-                    <span>{formatDate(res.start_time)}</span>
-                    <span className="text-xs text-muted-foreground">to {formatDate(res.end_time)}</span>
+                    <span>{res.humanized?.date_from || formatDate(res.date_from)}</span>
+                    <span className="text-xs text-muted-foreground">to {res.humanized?.date_to || formatDate(res.date_to)}</span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <Badge variant={getStatusColor(res.status) as any} className="rounded-md">
-                    {res.status}
+                    {res.humanized?.status?.replace('RESERVATION_', '') || `Status: ${res.status}`}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <span className="font-medium">
-                    {Number(res.total_price).toLocaleString()} {res.currency}
+                    {Number(res.total_price || 0).toLocaleString()} {res.currency || "RUB"}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
