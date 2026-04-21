@@ -1,49 +1,64 @@
+import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, Mail, Phone, MapPin, Calendar, Star, Car } from "lucide-react"
+import { ArrowLeft, Mail, Phone, MapPin, Calendar, Star, Car, Loader2 } from "lucide-react"
 import { UserActivityTimeline } from "@/components/UserActivityTimeline"
-
-// Mock data based on the OwnerUserAdmin schema
-const mockOwner = {
-  id: "1",
-  email: "john@example.com",
-  role: "OWNER",
-  full_name: "John Doe",
-  business_name: "Doe Rentals",
-  is_active: true,
-  is_superuser: false,
-  is_beta_tester: false,
-  phone_number: "+1 (555) 987-6543",
-  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-  location: "San Francisco, CA",
-  bio: "Premium car rentals in the Bay Area.",
-  created_at: "2022-08-20T14:00:00Z",
-  last_login_at: "2025-11-14T09:30:00Z",
-  login_count: 342,
-  average_rating: 4.9,
-  rating_count: 84,
-  total_vehicles: 12,
-  total_reservations: 156,
-  completed_reservations: 148,
-  cancelled_reservations: 8,
-  completion_rate: 0.95,
-  cancel_rate: 0.05,
-}
+import { api } from "@/lib/api"
+import { getMediaUrl } from "@/lib/utils"
 
 export function UserDetailPage() {
   const { id } = useParams()
-  // In a real app, we would fetch data based on ID
-  const owner = mockOwner
+  const [owner, setOwner] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchOwner = async () => {
+      try {
+        setIsLoading(true)
+        const response = await api.get(`/admin/users/${id}`)
+        setOwner(response.data)
+      } catch (error) {
+        console.error("Failed to fetch owner details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    if (id) fetchOwner()
+  }, [id])
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!owner) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+        <h2 className="text-xl font-semibold">User not found</h2>
+        <Button asChild variant="outline">
+          <Link to="/users">Back to Users</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  const initial = owner.full_name 
+    ? owner.full_name.charAt(0).toUpperCase() 
+    : owner.email?.charAt(0).toUpperCase() || "O"
 
   return (
     <div className="flex flex-col gap-8 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/owners">
+            <Link to="/users">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -63,11 +78,11 @@ export function UserDetailPage() {
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
               <Avatar className="h-24 w-24 border-4 border-background shadow-sm">
-                <AvatarImage src={owner.avatar} alt={owner.full_name} />
-                <AvatarFallback className="text-2xl">{owner.full_name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                {owner.avatar && <AvatarImage src={getMediaUrl(owner.avatar)} alt={owner.full_name || ""} />}
+                <AvatarFallback className="text-2xl bg-blue-600 text-white">{initial}</AvatarFallback>
               </Avatar>
             </div>
-            <CardTitle className="text-2xl">{owner.full_name}</CardTitle>
+            <CardTitle className="text-2xl">{owner.full_name || "Unnamed"}</CardTitle>
             {owner.business_name && (
               <p className="text-sm font-medium text-muted-foreground mt-1">{owner.business_name}</p>
             )}
@@ -90,7 +105,7 @@ export function UserDetailPage() {
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span className="text-foreground">{owner.location || "Not provided"}</span>
+                <span className="text-foreground">{owner.location || owner.address?.city || "Not provided"}</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
@@ -117,27 +132,29 @@ export function UserDetailPage() {
                   <Star className="h-4 w-4 fill-current" />
                   <span className="text-2xl font-bold text-foreground">{owner.average_rating?.toFixed(1) || "-"}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{owner.rating_count} Reviews</p>
+                <p className="text-xs text-muted-foreground">{owner.rating_count || 0} Reviews</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
                 <div className="flex items-center gap-1 mb-1 text-primary">
                   <Car className="h-4 w-4" />
-                  <span className="text-2xl font-bold text-foreground">{owner.total_vehicles}</span>
+                  <span className="text-2xl font-bold text-foreground">{owner.total_vehicles || 0}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Fleet Size</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
-                <span className="text-2xl font-bold mb-1">{owner.total_reservations}</span>
+                <span className="text-2xl font-bold mb-1">{owner.total_reservations || 0}</span>
                 <p className="text-xs text-muted-foreground">Total Bookings</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
-                <span className="text-2xl font-bold mb-1 text-green-600">{(owner.completion_rate * 100).toFixed(0)}%</span>
+                <span className="text-2xl font-bold mb-1 text-green-600">
+                  {((owner.completion_rate || 0) * 100).toFixed(0)}%
+                </span>
                 <p className="text-xs text-muted-foreground">Completion Rate</p>
               </CardContent>
             </Card>
