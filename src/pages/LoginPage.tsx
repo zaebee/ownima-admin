@@ -34,7 +34,7 @@ export function LoginPage() {
       formData.append("grant_type", "password")
 
       // Выполняем реальный запрос к бэкенду
-      const response = await api.post("/auth/access-token", formData, {
+      const response = await api.post("/auth/access-token?user_type=owner", formData, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
