@@ -11,7 +11,6 @@ import { LoginPage } from "./pages/LoginPage"
 import { Dashboard } from "./pages/Dashboard"
 import { UsersPage } from "./pages/UsersPage"
 import { UserDetailPage } from "./pages/UserDetailPage"
-import { RidersPage } from "./pages/RidersPage"
 import { RiderDetailPage } from "./pages/RiderDetailPage"
 import { VehiclesPage } from "./pages/VehiclesPage"
 import { VehicleDetailPage } from "./pages/VehicleDetailPage"
@@ -30,9 +29,8 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
-              <Route path="owners" element={<UsersPage />} />
+              <Route path="users" element={<UsersPage />} />
               <Route path="owners/:id" element={<UserDetailPage />} />
-              <Route path="riders" element={<RidersPage />} />
               <Route path="riders/:id" element={<RiderDetailPage />} />
               <Route path="vehicles" element={<VehiclesPage />} />
               <Route path="vehicles/:id" element={<VehicleDetailPage />} />

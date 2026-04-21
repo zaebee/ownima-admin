@@ -2,9 +2,15 @@ import { Bell, Search, LogOut } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
+import { getMediaUrl } from "@/lib/utils"
 
 export function Header() {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+
+  // Генерируем fallback по имени или email'у
+  const initial = user?.full_name 
+    ? user.full_name.charAt(0).toUpperCase() 
+    : user?.email?.charAt(0).toUpperCase() || "A"
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
@@ -38,12 +44,12 @@ export function Header() {
           <div className="flex items-center gap-x-4 lg:gap-x-6">
             <div className="flex items-center gap-x-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
-                <AvatarFallback>AD</AvatarFallback>
+                {user?.avatar && <AvatarImage src={getMediaUrl(user.avatar)} alt={user.full_name || ""} />}
+                <AvatarFallback className="bg-primary text-primary-foreground">{initial}</AvatarFallback>
               </Avatar>
               <span className="hidden lg:flex lg:items-center">
-                <span className="ml-4 text-sm font-semibold leading-6 text-foreground" aria-hidden="true">
-                  Admin User
+                <span className="ml-2 text-sm font-semibold leading-6 text-foreground max-w-[150px] truncate" aria-hidden="true">
+                  {user?.full_name || user?.email || "Loading..."}
                 </span>
               </span>
             </div>
