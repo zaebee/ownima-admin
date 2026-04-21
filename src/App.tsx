@@ -12,9 +12,6 @@ import { Dashboard } from "./pages/Dashboard"
 import { UsersPage } from "./pages/UsersPage"
 import { UserDetailPage } from "./pages/UserDetailPage"
 import { RiderDetailPage } from "./pages/RiderDetailPage"
-import { VehiclesPage } from "./pages/VehiclesPage"
-import { VehicleDetailPage } from "./pages/VehicleDetailPage"
-import { ReservationsPage } from "./pages/ReservationsPage"
 import { SettingsPage } from "./pages/SettingsPage"
 
 export default function App() {
@@ -32,9 +29,6 @@ export default function App() {
               <Route path="users" element={<UsersPage />} />
               <Route path="owners/:id" element={<UserDetailPage />} />
               <Route path="riders/:id" element={<RiderDetailPage />} />
-              <Route path="vehicles" element={<VehiclesPage />} />
-              <Route path="vehicles/:id" element={<VehicleDetailPage />} />
-              <Route path="reservations" element={<ReservationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>

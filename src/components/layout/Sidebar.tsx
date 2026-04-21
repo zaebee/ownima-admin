@@ -5,8 +5,6 @@ import { LayoutDashboard, Users, UserCircle, Car, CalendarDays, Settings } from 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Users", href: "/users", icon: Users },
-  { name: "Vehicles", href: "/vehicles", icon: Car },
-  { name: "Reservations", href: "/reservations", icon: CalendarDays },
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
