@@ -2,13 +2,16 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Activity, Clock } from "lucide-react"
+import { Activity, Clock, Loader2, Calendar, Car, LogIn, Star, CreditCard, User, Bell } from "lucide-react"
+import { api } from "@/lib/api"
+import { cn } from "@/lib/utils"
 
 interface ActivityItem {
   id: string
-  type: string
-  description: string
   timestamp: string
+  user_id: string
+  activity_type: string
+  details: Record<string, any>
 }
 
 interface UserActivityTimelineProps {
@@ -18,51 +21,119 @@ interface UserActivityTimelineProps {
   showCategories?: boolean
 }
 
-// Mock data for demonstration
-const mockActivities: ActivityItem[] = [
-  {
-    id: "a1",
-    type: "RESERVATION_CREATED",
-    description: "Created reservation #RES-12345",
-    timestamp: "2025-11-14T10:30:00Z",
-  },
-  {
-    id: "a2",
-    type: "USER_LOGIN",
-    description: "Logged in",
-    timestamp: "2025-11-14T08:15:00Z",
-  },
-  {
-    id: "a3",
-    type: "RATING_SUBMITTED",
-    description: "Rated vehicle #V-789 (5 stars)",
-    timestamp: "2025-11-10T15:20:00Z",
-  }
-]
+// Helpers for activity visualization
+const getActivityIcon = (type: string) => {
+  if (type.includes("RESERVATION") || type.includes("BOOKING")) return <Calendar className="h-4 w-4" />
+  if (type.includes("VEHICLE")) return <Car className="h-4 w-4" />
+  if (type.includes("LOGIN") || type.includes("AUTH") || type.includes("PASSWORD")) return <LogIn className="h-4 w-4" />
+  if (type.includes("RATING") || type.includes("REVIEW")) return <Star className="h-4 w-4" />
+  if (type.includes("PAYMENT") || type.includes("WALLET")) return <CreditCard className="h-4 w-4" />
+  if (type.includes("USER") || type.includes("PROFILE")) return <User className="h-4 w-4" />
+  return <Bell className="h-4 w-4" />
+}
+
+const getActivityColor = (type: string) => {
+  if (type.includes("CREATE") || type.includes("REGISTER") || type.includes("SUCCESS")) return "bg-green-500"
+  if (type.includes("DELETE") || type.includes("CANCEL") || type.includes("FAIL") || type.includes("ERROR")) return "bg-red-500"
+  if (type.includes("UPDATE") || type.includes("EDIT")) return "bg-amber-500"
+  if (type.includes("LOGIN")) return "bg-blue-500"
+  if (type.includes("RESERVATION") || type.includes("BOOKING")) return "bg-purple-500"
+  return "bg-slate-500"
+}
+
+const getActivityDescription = (activity: ActivityItem) => {
+  const { activity_type, details } = activity
+  
+  // Create a human readable description based on activity type and details
+  const formattedType = activity_type.replace(/_/g, ' ').toLowerCase()
+  const capitalizedType = formattedType.charAt(0).toUpperCase() + formattedType.slice(1)
+  
+  // Format specific details if present
+  let context = []
+  if (details.reservation_id) context.push(<span key="res" className="font-semibold">Res: {details.reservation_id.substring(0, 8)}...</span>)
+  if (details.vehicle_id) context.push(<span key="veh" className="font-semibold">Veh: {details.vehicle_id.substring(0, 8)}...</span>)
+  if (details.rating) context.push(<span key="rating" className="font-semibold">Score: {details.rating}⭐</span>)
+  
+  return (
+    <div className="flex flex-col">
+      <span className="text-sm font-medium">{capitalizedType}</span>
+      {context.length > 0 && (
+        <span className="text-xs text-muted-foreground mt-0.5 flex gap-2">
+          {context.reduce((prev, curr) => [prev, <span key={`sep-${Math.random()}`}>•</span>, curr] as any)}
+        </span>
+      )}
+      {/* Show JSON string of details if we couldn't parse specific well-known fields */}
+      {context.length === 0 && Object.keys(details).length > 0 && (
+        <span className="text-xs text-muted-foreground mt-0.5 max-w-[300px] truncate">
+          {JSON.stringify(details).replace(/["{}]/g, '')}
+        </span>
+      )}
+    </div>
+  )
+}
 
 export function UserActivityTimeline({ 
   userId, 
   userType, 
-  initialLimit = 10, 
+  initialLimit = 20, 
   showCategories = true 
 }: UserActivityTimelineProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [category, setCategory] = useState<string>("all")
   const [loading, setLoading] = useState(true)
+  const [skip, setSkip] = useState(0)
+  const [total, setTotal] = useState(0)
+
+  const fetchActivities = async (isLoadMore = false) => {
+    try {
+      if (!isLoadMore) setLoading(true)
+      
+      const endpoint = userType === "OWNER" 
+        ? `/admin/users/${userId}/activities` 
+        : `/admin/riders/${userId}/activities`
+        
+      const response = await api.get(endpoint, {
+        params: {
+          category: category === "all" ? null : category,
+          skip: isLoadMore ? skip : 0,
+          limit: initialLimit
+        }
+      })
+      
+      if (isLoadMore) {
+        setActivities(prev => [...prev, ...response.data.data])
+      } else {
+        setActivities(response.data.data)
+        setSkip(0)
+      }
+      
+      setTotal(response.data.count)
+      setSkip(prev => prev + initialLimit)
+    } catch (error) {
+      console.error("Failed to fetch activities:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // In a real app, this would fetch from /admin/riders/{userId}/activities or /admin/users/{userId}/activities
-    // using the category filter
-    setLoading(true)
-    setTimeout(() => {
-      setActivities(mockActivities)
-      setLoading(false)
-    }, 500)
+    if (userId) {
+      fetchActivities()
+    }
   }, [userId, userType, category])
+
+  const handleCategoryChange = (newCategory: string) => {
+    if (category !== newCategory) {
+      setCategory(newCategory)
+      setSkip(0)
+    }
+  }
+
+  const hasMore = activities.length < total
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 gap-4">
         <div>
           <CardTitle className="text-lg flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -71,25 +142,32 @@ export function UserActivityTimeline({
           <CardDescription>Latest actions performed by this {userType.toLowerCase()}</CardDescription>
         </div>
         {showCategories && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Badge 
               variant={category === "all" ? "default" : "outline"} 
-              className="cursor-pointer hover:bg-muted"
-              onClick={() => setCategory("all")}
+              className={cn("cursor-pointer hover:bg-primary/90 transition-colors", category !== "all" && "hover:bg-muted font-normal text-muted-foreground")}
+              onClick={() => handleCategoryChange("all")}
             >
               All
             </Badge>
             <Badge 
               variant={category === "reservations" ? "default" : "outline"} 
-              className="cursor-pointer hover:bg-muted"
-              onClick={() => setCategory("reservations")}
+              className={cn("cursor-pointer hover:bg-primary/90 transition-colors", category !== "reservations" && "hover:bg-muted font-normal text-muted-foreground")}
+              onClick={() => handleCategoryChange("reservations")}
             >
               Bookings
             </Badge>
             <Badge 
+              variant={category === "ratings" ? "default" : "outline"} 
+              className={cn("cursor-pointer hover:bg-primary/90 transition-colors", category !== "ratings" && "hover:bg-muted font-normal text-muted-foreground")}
+              onClick={() => handleCategoryChange("ratings")}
+            >
+              Ratings
+            </Badge>
+            <Badge 
               variant={category === "auth" ? "default" : "outline"} 
-              className="cursor-pointer hover:bg-muted"
-              onClick={() => setCategory("auth")}
+              className={cn("cursor-pointer hover:bg-primary/90 transition-colors", category !== "auth" && "hover:bg-muted font-normal text-muted-foreground")}
+              onClick={() => handleCategoryChange("auth")}
             >
               Auth
             </Badge>
@@ -97,33 +175,65 @@ export function UserActivityTimeline({
         )}
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="py-8 text-center text-muted-foreground">Loading activities...</div>
+        {loading && activities.length === 0 ? (
+          <div className="py-12 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
+            No activity found for this category.
+          </div>
         ) : (
           <>
-            <div className="space-y-6 pt-4">
+            <div className="space-y-6 pt-4 px-2">
               {activities.map((activity, index) => (
-                <div key={activity.id} className="relative pl-6 pb-2">
+                <div key={activity.id} className="relative pl-8 pb-2">
+                  {/* Vertical Line */}
                   {index !== activities.length - 1 && (
-                    <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
+                    <div className="absolute left-[13px] top-8 bottom-[-16px] w-px bg-border" />
                   )}
-                  <div className="absolute left-0 top-1.5 h-[22px] w-[22px] rounded-full border-4 border-background bg-primary" />
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <p className="text-sm font-medium">{activity.description}</p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {new Date(activity.timestamp).toLocaleString()}
+                  
+                  {/* Timeline Dot Icon */}
+                  <div className={cn(
+                    "absolute left-0 top-1 h-[28px] w-[28px] rounded-full border-4 border-background flex items-center justify-center text-white",
+                    getActivityColor(activity.activity_type)
+                  )}>
+                    <div className="scale-[0.6]">{getActivityIcon(activity.activity_type)}</div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    {getActivityDescription(activity)}
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground shrink-0 border rounded-md px-2 py-1 bg-muted/20">
+                      <Clock className="h-3.5 w-3.5" />
+                      {new Date(activity.timestamp).toLocaleString(undefined, { 
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })}
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-mono bg-muted/50 inline-block px-1.5 py-0.5 rounded">
-                    {activity.type}
-                  </p>
                 </div>
               ))}
             </div>
-            <div className="mt-6 text-center">
-              <Button variant="outline" size="sm" className="w-full">Load More Activity</Button>
-            </div>
+            
+            {/* Load More Button */}
+            {hasMore ? (
+              <div className="mt-8 text-center">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full max-w-sm" 
+                  onClick={() => fetchActivities(true)}
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Load More Activity ({activities.length} of {total})
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-xs text-muted-foreground">
+                End of activity history.
+              </div>
+            )}
           </>
         )}
       </CardContent>
