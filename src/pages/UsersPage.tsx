@@ -19,7 +19,7 @@ import {
   Loader2
 } from "lucide-react"
 import { api } from "@/lib/api"
-import { cn } from "@/lib/utils"
+import { cn, getMediaUrl } from "@/lib/utils"
 
 interface AdminUser {
   id: string
@@ -168,7 +168,7 @@ export function UsersPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
-                        {user.avatar && <AvatarImage src={user.avatar} />}
+                        {user.avatar && <AvatarImage src={getMediaUrl(user.avatar)} alt={user.full_name || ""} />}
                         <AvatarFallback className={`text-white ${getColor(user.id)}`}>
                           {getInitials(user.full_name, user.email)}
                         </AvatarFallback>
