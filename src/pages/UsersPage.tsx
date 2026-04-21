@@ -16,7 +16,8 @@ import {
   CheckCircle2, 
   XCircle,
   X,
-  Loader2
+  Loader2,
+  Download
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { cn, getMediaUrl } from "@/lib/utils"
@@ -46,7 +47,6 @@ const getInitials = (name: string | null, email: string) => {
 }
 
 const getColor = (id: string) => {
-  // Простой детерминированный выбор цвета
   const index = id.charCodeAt(0) % colors.length
   return colors[index]
 }
@@ -63,6 +63,7 @@ export function UsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [roleFilter, setRoleFilter] = useState<"OWNER" | "RIDER">("OWNER")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
@@ -70,7 +71,7 @@ export function UsersPage() {
     const fetchUsers = async () => {
       try {
         setIsLoading(true)
-        setSelectedIds([]) // Очищаем выбор при переключении вкладки
+        setSelectedIds([]) 
         const endpoint = roleFilter === "OWNER" ? "/admin/users" : "/admin/riders"
         const response = await api.get(endpoint, {
           params: { limit: 50, skip: 0 }
@@ -104,6 +105,52 @@ export function UsersPage() {
     }
   }
 
+  const exportCSV = async () => {
+    try {
+      setIsExporting(true)
+      const endpoint = roleFilter === "OWNER" ? "/admin/users" : "/admin/riders"
+      // Fetch up to 10k results for export
+      const response = await api.get(endpoint, { params: { limit: 10000, skip: 0 } })
+      const allUsers: AdminUser[] = response.data.data || []
+
+      if (allUsers.length === 0) return
+
+      const headers = [
+        "Internal ID", "Full Name", "Email", "Phone", "Is Active", "Joined Date",
+        "Total Vehicles", "Total Reservations", "Login Count", "Last Login"
+      ]
+
+      const csvContent = [
+        headers.join(","),
+        ...allUsers.map(u => [
+          `"${u.id.replace(/"/g, '""')}"`,
+          `"${(u.full_name || '').replace(/"/g, '""')}"`,
+          `"${(u.email || '').replace(/"/g, '""')}"`,
+          `"${(u.phone_number || '').replace(/"/g, '""')}"`,
+          u.is_active ? "TRUE" : "FALSE",
+          `"${u.created_at ? new Date(u.created_at).toISOString() : ''}"`,
+          u.total_vehicles || 0,
+          u.total_reservations || 0,
+          u.login_count || 0,
+          `"${u.last_login_at ? new Date(u.last_login_at).toISOString() : ''}"`
+        ].join(","))
+      ].join("\n")
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.setAttribute("href", url)
+      link.setAttribute("download", `${roleFilter.toLowerCase()}s_export_${new Date().toISOString().split('T')[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (error) {
+      console.error("Failed to export users:", error)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 pb-24">
       {/* Top Bar */}
@@ -112,52 +159,65 @@ export function UsersPage() {
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           <span>Showing {users.length} of {total} {roleFilter.toLowerCase()}s</span>
         </div>
-        <div className="flex items-center gap-1 text-sm bg-muted/50 p-1 rounded-lg">
-          <button 
-            onClick={() => setRoleFilter("OWNER")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
-              roleFilter === "OWNER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={exportCSV} 
+            disabled={isExporting || users.length === 0}
+            className="flex items-center gap-2"
           >
-            <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-            <span>Owners</span>
-          </button>
-          <button 
-            onClick={() => setRoleFilter("RIDER")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
-              roleFilter === "RIDER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <div className="h-2 w-2 rounded-full bg-green-500"></div>
-            <span>Riders</span>
-          </button>
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Export CSV
+          </Button>
+          <div className="h-4 w-px bg-border"></div>
+          <div className="flex items-center gap-1 text-sm bg-muted/50 p-1 rounded-lg">
+            <button 
+              onClick={() => setRoleFilter("OWNER")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
+                roleFilter === "OWNER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+              <span>Owners</span>
+            </button>
+            <button 
+              onClick={() => setRoleFilter("RIDER")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
+                roleFilter === "RIDER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <span>Riders</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <Card className="overflow-hidden border-none shadow-sm min-h-[400px]">
         <CardContent className="p-0 relative">
-          <Table>
+          <Table className="text-sm">
             <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="w-12 text-center">
+              <TableRow className="border-b">
+                <TableHead className="w-12 text-center h-10 px-0">
                   <Checkbox 
                     checked={selectedIds.length === users.length && users.length > 0}
                     onChange={toggleSelectAll}
                   />
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">USER</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">STATUS</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">METRICS</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">JOINED</TableHead>
-                <TableHead className="text-right text-xs font-semibold text-muted-foreground">ACTIONS</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground h-10">USER</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground h-10">STATUS</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground h-10">METRICS</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground h-10">JOINED</TableHead>
+                <TableHead className="text-right text-xs font-semibold text-muted-foreground h-10">ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.id} className="hover:bg-muted/20">
-                  <TableCell className="text-center">
+                <TableRow key={user.id} className="hover:bg-muted/10 border-b border-muted/50">
+                  <TableCell className="text-center px-0 py-2">
                     <Checkbox 
                       checked={selectedIds.includes(user.id)}
                       onChange={() => toggleSelect(user.id)}
@@ -165,80 +225,76 @@ export function UsersPage() {
                   </TableCell>
                   
                   {/* USER COLUMN */}
-                  <TableCell>
+                  <TableCell className="py-2">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-9 w-9">
                         {user.avatar && <AvatarImage src={getMediaUrl(user.avatar)} alt={user.full_name || ""} />}
-                        <AvatarFallback className={`text-white ${getColor(user.id)}`}>
+                        <AvatarFallback className={`text-white text-xs ${getColor(user.id)}`}>
                           {getInitials(user.full_name, user.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium text-foreground max-w-[200px] truncate">
+                        <span className="font-semibold text-foreground max-w-[200px] truncate leading-tight">
                           {user.full_name || "Unnamed"}
                         </span>
-                        <span className="text-sm text-muted-foreground">{user.email}</span>
-                        {user.phone_number && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                            <Phone className="h-3 w-3" />
-                            <span>{user.phone_number}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground leading-none">{user.email}</span>
+                          {user.phone_number && (
+                            <>
+                              <span className="text-muted-foreground/30 text-[10px]">•</span>
+                              <span className="text-[10px] bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded-sm font-mono tracking-tight leading-none">
+                                {user.phone_number}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
 
                   {/* STATUS COLUMN */}
-                  <TableCell>
-                    <Badge 
-                      variant={user.is_active ? "success" : "secondary"} 
-                      className="rounded-md px-2 py-0.5 font-medium"
-                    >
-                      {user.is_active ? (
-                        <CheckCircle2 className="mr-1.5 h-3 w-3" />
-                      ) : (
-                        <XCircle className="mr-1.5 h-3 w-3" />
-                      )}
-                      {user.is_active ? "Active" : "Inactive"}
-                    </Badge>
+                  <TableCell className="py-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className={cn("h-2 w-2 rounded-full", user.is_active ? "bg-green-500" : "bg-muted-foreground")} />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {user.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </div>
                   </TableCell>
 
                   {/* METRICS COLUMN */}
-                  <TableCell>
-                    <div className="flex flex-col gap-1.5 text-sm">
+                  <TableCell className="py-2">
+                    <div className="flex gap-4 text-xs">
                       {roleFilter === "OWNER" && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Car className="h-4 w-4" />
-                          <span><strong className="text-foreground font-medium">{user.total_vehicles || 0}</strong> vehicles</span>
+                        <div className="flex flex-col text-muted-foreground">
+                          <span className="font-medium text-foreground">{user.total_vehicles || 0}</span>
+                          <span className="text-[10px] uppercase tracking-wider">Veh</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span><strong className="text-foreground font-medium">{user.total_reservations || 0}</strong> reservations</span>
+                      <div className="flex flex-col text-muted-foreground">
+                        <span className="font-medium text-foreground">{user.total_reservations || 0}</span>
+                        <span className="text-[10px] uppercase tracking-wider">Res</span>
                       </div>
                     </div>
                   </TableCell>
 
                   {/* JOINED COLUMN */}
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
+                  <TableCell className="py-2">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {user.created_at ? formatDate(user.created_at) : "Unknown"}
                     </span>
                   </TableCell>
 
                   {/* ACTIONS COLUMN */}
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" asChild>
+                  <TableCell className="text-right py-2">
+                    <div className="flex items-center justify-end gap-0.5">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" asChild>
                         <Link to={`/${roleFilter.toLowerCase()}s/${user.id}`}>
-                          <User className="h-4 w-4" />
+                          <User className="h-3.5 w-3.5" />
                         </Link>
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-red-600">
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-blue-600">
+                        <Edit2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </TableCell>
