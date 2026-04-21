@@ -78,7 +78,7 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
             <TableRow>
               <TableHead>Booking</TableHead>
               <TableHead>Dates</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Status & Source</TableHead>
               <TableHead>Total Price</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -89,7 +89,7 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-mono text-xs font-semibold tracking-wider text-muted-foreground mb-1">
-                      #{res.id.substring(0, 8)}
+                      #{res.humanized?.id || res.id.substring(0, 8)}
                     </span>
                     <span className="text-sm font-medium">
                       {res.vehicle?.name || "Unknown Vehicle"}
@@ -103,9 +103,16 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getStatusColor(res.status) as any} className="rounded-md">
-                    {res.humanized?.status?.replace('RESERVATION_', '') || `Status: ${res.status}`}
-                  </Badge>
+                  <div className="flex flex-col items-start gap-1.5">
+                    <Badge variant={getStatusColor(res.status) as any} className="rounded-md">
+                      {res.humanized?.status?.replace('RESERVATION_', '') || `Status: ${res.status}`}
+                    </Badge>
+                    {res.humanized?.source && (
+                      <span className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
+                        {res.humanized.source.replace('SOURCE_', '').replace(/_/g, ' ')}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <span className="font-medium">
