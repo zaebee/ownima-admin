@@ -109,9 +109,24 @@ export function UsersPage() {
     try {
       setIsExporting(true)
       const endpoint = roleFilter === "OWNER" ? "/admin/users" : "/admin/riders"
-      // Fetch up to 10k results for export
-      const response = await api.get(endpoint, { params: { limit: 10000, skip: 0 } })
-      const allUsers: AdminUser[] = response.data.data || []
+      
+      // Fetch results in chunks as backend limits max limit to 1000
+      let allUsers: AdminUser[] = []
+      let currentSkip = 0
+      const fetchLimit = 1000
+      let hasMore = true
+
+      while (hasMore) {
+        const response = await api.get(endpoint, { params: { limit: fetchLimit, skip: currentSkip } })
+        const fetchedUsers = response.data.data || []
+        allUsers = [...allUsers, ...fetchedUsers]
+        
+        if (fetchedUsers.length < fetchLimit) {
+          hasMore = false
+        } else {
+          currentSkip += fetchLimit
+        }
+      }
 
       if (allUsers.length === 0) return
 
