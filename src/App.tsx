@@ -13,6 +13,8 @@ import { UsersPage } from "./pages/UsersPage"
 import { UserDetailPage } from "./pages/UserDetailPage"
 import { RiderDetailPage } from "./pages/RiderDetailPage"
 import { SettingsPage } from "./pages/SettingsPage"
+import { VehiclesPage } from "./pages/VehiclesPage"
+import { VehicleDetailPage } from "./pages/VehicleDetailPage"
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="vehicles" element={<VehiclesPage />} />
+              <Route path="vehicles/:id" element={<VehicleDetailPage />} />
               <Route path="owners/:id" element={<UserDetailPage />} />
               <Route path="riders/:id" element={<RiderDetailPage />} />
               <Route path="settings" element={<SettingsPage />} />

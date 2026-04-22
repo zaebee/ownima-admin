@@ -1,292 +1,250 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Car, FileText, Wrench, Plus, X, Calendar, DollarSign, User } from "lucide-react"
+import { Loader2, Car, ChevronLeft, CalendarDays, Key, MapPin, Share2, Wrench } from "lucide-react"
+import { api } from "@/lib/api"
 
-// Mock data for the vehicle
-const mockVehicle = {
-  id: "1",
-  name: "Tesla Model 3",
-  owner: "John Doe",
-  status: "Available",
-  type: "Car",
-  price: 120,
-  license_plate: "XYZ-1234",
-  year: 2023,
-  mileage: 15000,
-  color: "Pearl White",
+const getStatusString = (status: number) => {
+  switch (status) {
+    case 1: return "DRAFT";
+    case 2: return "FREE";
+    case 3: return "MAINTENANCE";
+    case 4: return "COLLECTED";
+    case 5: return "ARCHIVED";
+    case 0: return "UNSPECIFIED";
+    default: return `STATUS_${status}`;
+  }
 }
 
-// Mock data for inspection reports
-const initialReports = [
-  {
-    id: "REP-001",
-    date: "2025-11-10",
-    type: "Pre-rental",
-    inspector: "Admin User",
-    status: "Completed",
-    damage_notes: "Minor scratch on the rear bumper. Otherwise in perfect condition.",
-  },
-  {
-    id: "REP-002",
-    date: "2025-11-15",
-    type: "Post-rental",
-    inspector: "Admin User",
-    status: "Pending",
-    damage_notes: "Awaiting final wash to check for new damages.",
-  },
-]
+const getStatusVariant = (status: number) => {
+  switch (status) {
+    case 1: return "secondary";   
+    case 2: return "success";     
+    case 3: return "warning";     
+    case 4: return "info";        
+    case 5: return "destructive"; 
+    case 0:
+    default: return "outline";    
+  }
+}
 
 export function VehicleDetailPage() {
   const { id } = useParams()
-  const vehicle = mockVehicle // In a real app, fetch vehicle by id
-  
-  const [reports, setReports] = useState(initialReports)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  
-  // Form state
-  const [newReport, setNewReport] = useState({
-    type: "Pre-rental",
-    status: "Pending",
-    inspector: "Admin User",
-    date: new Date().toISOString().split('T')[0],
-    damage_notes: "",
-  })
+  const [vehicle, setVehicle] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  const handleAddReport = (e: React.FormEvent) => {
-    e.preventDefault()
-    const report = {
-      id: `REP-00${reports.length + 1}`,
-      ...newReport
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      try {
+        setLoading(true)
+        const response = await api.get(`/admin/vehicles/${id}`)
+        setVehicle(response.data.data)
+      } catch (error: any) {
+        if (error?.response?.status === 404 || error?.response?.status === 403) {
+          // Provide mock data 
+          setTimeout(() => {
+            setVehicle({
+              id,
+              name: "Tesla Model 3 Standard Range",
+              general_info: { 
+                reg_number: "AA 1234 CT", 
+                year: 2023, 
+                vehicle_class: "Sedan", 
+                brand: "Tesla", 
+                model: "Model 3",
+                vin: "1G1YZ2C81C510XXXX",
+                transmission: "Automatic",
+                engine: "Electric (0cc)"
+              },
+              status: 2, 
+              price: 3500,
+              currency: "THB",
+              owner: { id: "5fd5a990-756d-45e4-b4ae-8ade802f11c7", full_name: "Demo Account", email: "demo@ownima.com" }
+            })
+            setLoading(false)
+          }, 600)
+        } else {
+          console.error("Failed to fetch vehicle", error)
+          setLoading(false)
+        }
+      } 
     }
-    setReports([report, ...reports])
-    setIsModalOpen(false)
-    setNewReport({
-      type: "Pre-rental",
-      status: "Pending",
-      inspector: "Admin User",
-      date: new Date().toISOString().split('T')[0],
-      damage_notes: "",
-    })
+    fetchVehicle()
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!vehicle) {
+    return (
+      <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
+        <Car className="h-12 w-12 text-muted-foreground opacity-20" />
+        <h2 className="text-xl font-semibold">Vehicle Not Found</h2>
+        <Button variant="outline" asChild><Link to="/vehicles">Back to Fleet</Link></Button>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-6xl mx-auto">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 pb-10">
+      {/* Header Actions */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
-            <Link to="/vehicles">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+        <Link 
+          to="/vehicles" 
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to Fleet
+        </Link>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Share2 className="mr-2 h-4 w-4" />
+            Share URL
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Vehicle Details</h2>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit Vehicle</Button>
-          <Button variant={vehicle.status === "Available" ? "destructive" : "default"}>
-            {vehicle.status === "Available" ? "Set Maintenance" : "Make Available"}
+          <Button variant="outline" size="sm">
+            <Wrench className="mr-2 h-4 w-4" />
+            Manage State
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Vehicle Info Card */}
-        <Card className="md:col-span-1">
-          <CardHeader>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Car className="h-6 w-6" />
-              </div>
-              <Badge variant={
-                vehicle.status === "Available" ? "success" : 
-                vehicle.status === "Rented" ? "default" : "destructive"
-              }>
-                {vehicle.status}
-              </Badge>
-            </div>
-            <CardTitle className="text-2xl">{vehicle.name}</CardTitle>
-            <CardDescription>{vehicle.license_plate} • {vehicle.year}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <User className="h-4 w-4" />
-                <span className="text-foreground">Owner: {vehicle.owner}</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <DollarSign className="h-4 w-4" />
-                <span className="text-foreground">${vehicle.price} / day</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Wrench className="h-4 w-4" />
-                <span className="text-foreground">{vehicle.type} • {vehicle.color}</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span className="text-foreground">{vehicle.mileage.toLocaleString()} miles</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Title & Status */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              {vehicle.name || `${vehicle.general_info?.brand} ${vehicle.general_info?.model}`}
+            </h1>
+            <Badge variant={getStatusVariant(vehicle.status) as any} className="text-sm px-2.5 py-0.5">
+              {getStatusString(vehicle.status)}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground">
+            VIN: <span className="font-mono text-foreground">{vehicle.general_info?.vin || "Unknown"}</span> • ID: <span className="font-mono text-foreground text-xs">{vehicle.id}</span>
+          </p>
+        </div>
+      </div>
 
-        {/* Inspection Reports Section */}
-        <div className="md:col-span-2 space-y-6">
+      {/* Grid Content */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* LEFT COLUMN */}
+        <div className="md:col-span-2 flex flex-col gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Inspection Reports
-                </CardTitle>
-                <CardDescription>Manage pre-rental and post-rental inspections</CardDescription>
-              </div>
-              <Button size="sm" onClick={() => setIsModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Report
-              </Button>
+            <CardHeader>
+              <CardTitle>Technical Specs</CardTitle>
             </CardHeader>
             <CardContent>
-              {reports.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
-                  No inspection reports found for this vehicle.
+              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-y-6 gap-x-4">
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Brand/Model</dt>
+                  <dd className="mt-1 text-sm font-semibold">{vehicle.general_info?.brand} {vehicle.general_info?.model}</dd>
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Inspector</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reports.map((report) => (
-                      <TableRow key={report.id}>
-                        <TableCell className="font-medium">{report.id}</TableCell>
-                        <TableCell>{report.date}</TableCell>
-                        <TableCell>{report.type}</TableCell>
-                        <TableCell>
-                          <Badge variant={report.status === "Completed" ? "success" : "warning"}>
-                            {report.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{report.inspector}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Year</dt>
+                  <dd className="mt-1 text-sm font-semibold">{vehicle.general_info?.year}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">License Plate</dt>
+                  <dd className="mt-1">
+                    <Badge variant="outline" className="font-mono">{vehicle.general_info?.reg_number}</Badge>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Engine</dt>
+                  <dd className="mt-1 text-sm">{vehicle.general_info?.engine || "N/A"}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Transmission</dt>
+                  <dd className="mt-1 text-sm">{vehicle.general_info?.transmission || "N/A"}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Class</dt>
+                  <dd className="mt-1 text-sm">{vehicle.general_info?.vehicle_class || "N/A"}</dd>
+                </div>
+              </dl>
             </CardContent>
           </Card>
-          
-          {/* Detailed View of Latest Report */}
-          {reports.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-md">Latest Report Details ({reports[0].id})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold">Damage Notes</h4>
-                  <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md border">
-                    {reports[0].damage_notes || "No damage notes provided."}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
 
-      {/* Simple Modal for New Inspection Report */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-lg shadow-xl">
-            <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-              <CardTitle>New Inspection Report</CardTitle>
-              <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="-mr-2">
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <form onSubmit={handleAddReport}>
-              <CardContent className="space-y-4 pt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Inspection Type</label>
-                    <select 
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      value={newReport.type}
-                      onChange={(e) => setNewReport({...newReport, type: e.target.value})}
-                      required
-                    >
-                      <option value="Pre-rental">Pre-rental</option>
-                      <option value="Post-rental">Post-rental</option>
-                      <option value="Maintenance">Maintenance</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Status</label>
-                    <select 
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      value={newReport.status}
-                      onChange={(e) => setNewReport({...newReport, status: e.target.value})}
-                      required
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Completed">Completed</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Date</label>
-                    <Input 
-                      type="date" 
-                      value={newReport.date}
-                      onChange={(e) => setNewReport({...newReport, date: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Inspector</label>
-                    <Input 
-                      value={newReport.inspector}
-                      onChange={(e) => setNewReport({...newReport, inspector: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Damage Notes</label>
-                  <Textarea 
-                    placeholder="Describe any scratches, dents, or issues..."
-                    value={newReport.damage_notes}
-                    onChange={(e) => setNewReport({...newReport, damage_notes: e.target.value})}
-                    className="min-h-[100px]"
-                  />
-                </div>
-              </CardContent>
-              <div className="flex items-center justify-end gap-2 border-t p-4 bg-muted/20 rounded-b-xl">
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  Save Report
-                </Button>
+           <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <CardTitle>Reservations History</CardTitle>
+                <CardDescription>Recent bookings for this vehicle</CardDescription>
               </div>
-            </form>
+              <CalendarDays className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex h-32 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
+                MOCK: Reservations matching this vehicle ID will load here.
+              </div>
+            </CardContent>
           </Card>
         </div>
-      )}
+
+        {/* RIGHT COLUMN */}
+        <div className="flex flex-col gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pricing</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold tracking-tight">
+                  {Number(vehicle.price || 0).toLocaleString()}
+                </span>
+                <span className="text-sm font-medium text-muted-foreground uppercase">
+                  {vehicle.currency || "RUB"} / day
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Standard daily rental rate (excluding seasonal multipliers).
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Assigned Owner</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {vehicle.owner ? (
+                <div className="flex items-center justify-between border-b pb-4 mb-4">
+                  <div>
+                    <p className="font-semibold">{vehicle.owner.full_name}</p>
+                    <p className="text-sm text-muted-foreground">{vehicle.owner.email}</p>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={`/owners/${vehicle.owner.id}`}>View</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="py-4 text-center text-sm text-muted-foreground">
+                  Unassigned
+                </div>
+              )}
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-sm">
+                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span>Main Hub</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <Key className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span>Key Handover: MGR-12</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
