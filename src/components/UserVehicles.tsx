@@ -55,22 +55,28 @@ export function UserVehicles({ userId }: { userId: string }) {
     )
   }
 
-  // Frontend Status mapping for clarity if backend returns integers mapping to statuses
+  // Frontend Status mapping reflecting backend VehicleStatus enum
   const getStatusString = (status: number) => {
-    // According to mock, status looks to be an integer. Mapping roughly.
     switch (status) {
-      case 1: return "ACTIVE";
-      case 2: return "MAINTENANCE";
-      case 0: return "INACTIVE";
+      case 1: return "DRAFT";
+      case 2: return "FREE";
+      case 3: return "MAINTENANCE";
+      case 4: return "COLLECTED";
+      case 5: return "ARCHIVED";
+      case 0: return "UNSPECIFIED";
       default: return `STATUS_${status}`;
     }
   }
 
   const getStatusVariant = (status: number) => {
     switch (status) {
-      case 1: return "success";
-      case 2: return "destructive";
-      default: return "secondary";
+      case 1: return "secondary";   // DRAFT
+      case 2: return "success";     // FREE
+      case 3: return "warning";     // MAINTENANCE
+      case 4: return "info";        // COLLECTED
+      case 5: return "destructive"; // ARCHIVED
+      case 0:
+      default: return "outline";    // UNSPECIFIED
     }
   }
 
