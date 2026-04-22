@@ -17,7 +17,11 @@ import {
   XCircle,
   X,
   Loader2,
-  Download
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { cn, getMediaUrl } from "@/lib/utils"
@@ -66,6 +70,8 @@ export function UsersPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [roleFilter, setRoleFilter] = useState<"OWNER" | "RIDER">("OWNER")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [page, setPage] = useState(1)
+  const limit = 20
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -73,8 +79,9 @@ export function UsersPage() {
         setIsLoading(true)
         setSelectedIds([]) 
         const endpoint = roleFilter === "OWNER" ? "/admin/users" : "/admin/riders"
+        const skip = (page - 1) * limit
         const response = await api.get(endpoint, {
-          params: { limit: 50, skip: 0 }
+          params: { limit, skip }
         })
         
         setUsers(response.data.data || [])
@@ -87,7 +94,12 @@ export function UsersPage() {
     }
     
     fetchUsers()
-  }, [roleFilter])
+  }, [roleFilter, page])
+
+  const handleRoleChange = (role: "OWNER" | "RIDER") => {
+    setRoleFilter(role)
+    setPage(1)
+  }
 
   const toggleSelectAll = () => {
     if (selectedIds.length === users.length) {
@@ -188,7 +200,7 @@ export function UsersPage() {
           <div className="h-4 w-px bg-border"></div>
           <div className="flex items-center gap-1 text-sm bg-muted/50 p-1 rounded-lg">
             <button 
-              onClick={() => setRoleFilter("OWNER")}
+              onClick={() => handleRoleChange("OWNER")}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
                 roleFilter === "OWNER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
@@ -198,7 +210,7 @@ export function UsersPage() {
               <span>Owners</span>
             </button>
             <button 
-              onClick={() => setRoleFilter("RIDER")}
+              onClick={() => handleRoleChange("RIDER")}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
                 roleFilter === "RIDER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
@@ -326,6 +338,56 @@ export function UsersPage() {
             </TableBody>
           </Table>
         </CardContent>
+        {total > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/10">
+            <div className="text-xs text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{Math.min(total, (page - 1) * limit + 1)}</span> to{" "}
+              <span className="font-medium text-foreground">{Math.min(total, page * limit)}</span> of{" "}
+              <span className="font-medium text-foreground">{total}</span> entries
+            </div>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-7 w-7" 
+                onClick={() => setPage(1)} 
+                disabled={page === 1 || isLoading}
+              >
+                <ChevronsLeft className="h-3 w-3" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-7 w-7" 
+                onClick={() => setPage(p => Math.max(1, p - 1))} 
+                disabled={page === 1 || isLoading}
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </Button>
+              <div className="text-xs font-medium px-2">
+                Page {page} of {Math.ceil(total / limit) || 1}
+              </div>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-7 w-7" 
+                onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))} 
+                disabled={page >= Math.ceil(total / limit) || isLoading}
+              >
+                <ChevronRight className="h-3 w-3" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-7 w-7" 
+                onClick={() => setPage(Math.ceil(total / limit))} 
+                disabled={page >= Math.ceil(total / limit) || isLoading}
+              >
+                <ChevronsRight className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Floating Bulk Actions Bar */}
