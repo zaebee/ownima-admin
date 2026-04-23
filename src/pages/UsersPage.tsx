@@ -188,7 +188,7 @@ export function UsersPage() {
       else if (key === 'total_vehicles') comp = (a.total_vehicles || 0) - (b.total_vehicles || 0)
       else if (key === 'total_reservations') comp = (a.total_reservations || 0) - (b.total_reservations || 0)
       else if (key === 'login_count') comp = (a.login_count || 0) - (b.login_count || 0)
-      else if (key === 'full_name') comp = String(a.full_name || '').localeCompare(String(b.full_name || ''))
+      else if (key === 'email') comp = String(a.email || '').localeCompare(String(b.email || ''))
       
       return isDesc ? -comp : comp
     })
@@ -372,7 +372,7 @@ export function UsersPage() {
                     onChange={toggleSelectAll}
                   />
                 </TableHead>
-                <SortableHead label="USER" sortKey="full_name" />
+                <SortableHead label="USER" sortKey="email" />
                 <TableHead className="text-xs font-semibold text-muted-foreground h-10">STATUS</TableHead>
                 {roleFilter === "OWNER" && <SortableHead label="VEHICLES" sortKey="total_vehicles" />}
                 <SortableHead label="RESERVATIONS" sortKey="total_reservations" />
