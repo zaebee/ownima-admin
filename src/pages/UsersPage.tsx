@@ -24,7 +24,8 @@ import {
   ChevronsRight,
   Search,
   Copy,
-  Check
+  Check,
+  ArrowUpDown
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
@@ -119,6 +120,7 @@ export function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<"OWNER" | "RIDER">("OWNER")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [page, setPage] = useState(1)
+  const [sortBy, setSortBy] = useState("created_at_desc")
   const limit = 20
 
   useEffect(() => {
@@ -128,8 +130,17 @@ export function UsersPage() {
         setSelectedIds([]) 
         const endpoint = roleFilter === "OWNER" ? "/admin/users" : "/admin/riders"
         const skip = (page - 1) * limit
+        
+        let sort_by = "created_at"
+        let sort_order = "desc"
+        const lastUnderscore = sortBy.lastIndexOf('_')
+        if (lastUnderscore !== -1) {
+          sort_by = sortBy.substring(0, lastUnderscore)
+          sort_order = sortBy.substring(lastUnderscore + 1)
+        }
+
         const response = await api.get(endpoint, {
-          params: { limit, skip }
+          params: { limit, skip, sort_by, sort_order }
         })
         
         setUsers(response.data.data || [])
@@ -142,11 +153,19 @@ export function UsersPage() {
     }
     
     fetchUsers()
-  }, [roleFilter, page])
+  }, [roleFilter, page, sortBy])
+
+  // Reset to page 1 when sort changes
+  useEffect(() => {
+    setPage(1)
+  }, [sortBy])
 
   const handleRoleChange = (role: "OWNER" | "RIDER") => {
     setRoleFilter(role)
     setPage(1)
+    if (role === "RIDER" && sortBy.includes("vehicles")) {
+      setSortBy("created_at_desc")
+    }
   }
 
   const toggleSelectAll = () => {
@@ -239,17 +258,33 @@ export function UsersPage() {
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="text-sm text-muted-foreground flex items-center gap-2 min-w-[200px]">
+          <div className="text-sm text-muted-foreground flex items-center gap-2 min-w-[150px]">
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             <span>Showing {users.length} of {total} {roleFilter.toLowerCase()}s</span>
           </div>
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full sm:w-56 lg:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
               type="text" 
               placeholder="Search by name or email..." 
-              className="pl-9 h-9 w-full bg-background/50"
+              className="pl-9 h-9 w-full bg-background/50 focus-visible:ring-1"
             />
+          </div>
+          <div className="relative w-full sm:w-48">
+            <select
+              className="h-9 w-full appearance-none rounded-md border border-input bg-background pl-9 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 hover:bg-muted/50 transition-colors"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="created_at_desc">Newest Joined</option>
+              <option value="last_login_at_desc">Recent Login</option>
+              {roleFilter === "OWNER" && <option value="total_vehicles_desc">Most Vehicles</option>}
+              <option value="total_reservations_desc">Most Reservations</option>
+            </select>
+            <ArrowUpDown className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <div className="absolute right-3 top-2.5 pointer-events-none text-muted-foreground">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819L7.43179 8.56819C7.60753 8.74393 7.89245 8.74393 8.06819 8.56819L10.5682 6.06819C10.7439 5.89245 10.7439 5.60753 10.5682 5.43179C10.3924 5.25605 10.1075 5.25605 9.93179 5.43179L7.75 7.61358L5.56819 5.43179C5.39245 5.25605 5.10753 5.25605 4.93179 5.43179Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3 self-end sm:self-auto">
