@@ -144,15 +144,19 @@ export function UserActivityTimeline({
         }
       })
       
+      const fetchedData = response.data?.data || []
+      const fetchedCount = response.data?.count || 0
+
       if (isLoadMore) {
-        setActivities(prev => [...prev, ...response.data.data])
+        setActivities(prev => [...prev, ...fetchedData])
       } else {
-        setActivities(response.data.data)
+        setActivities(fetchedData)
         setSkip(0)
       }
       
-      setTotal(response.data.count)
+      setTotal(fetchedCount)
       setSkip(prev => prev + initialLimit)
+      setLoading(false)
     } catch (error: any) {
       if (error?.response?.status === 404 || error?.response?.status === 403 || !error.response) {
         // MOCK DATA FALLBACK for UI Preview
@@ -162,7 +166,7 @@ export function UserActivityTimeline({
               id: "act_1",
               timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 mins ago
               user_id: userId,
-              activity_type: "RESERVATION_CONFIRMED",
+              activity_type: "RESERVATION_COMPLETED",
               details: { reservation_id: "res-9892x-11k", message: "Owner manually confirmed booking" }
             },
             {
@@ -170,7 +174,7 @@ export function UserActivityTimeline({
               timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
               user_id: userId,
               activity_type: "VEHICLE_UPDATED",
-              details: { vehicle_id: "veh-482xs", field: "Price changed to 3500 THB" }
+              details: { vehicle_id: "veh-482xs", changes: { status: { from: "VEHICLE_DRAFT", to: "VEHICLE_FREE" } } }
             },
             {
               id: "act_3",
@@ -191,7 +195,7 @@ export function UserActivityTimeline({
               timestamp: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(), // 5 days ago
               user_id: userId,
               activity_type: "VEHICLE_CREATED",
-              details: { vehicle_name: "Tesla Model 3 Standard Range", status: "Listed" }
+              details: { vehicle_id: "veh-482xs", name: "Tesla Model 3 Standard Range" }
             }
           ]
           
