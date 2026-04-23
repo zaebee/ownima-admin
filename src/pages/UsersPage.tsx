@@ -22,7 +22,9 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Search
+  Search,
+  Copy,
+  Check
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
@@ -63,6 +65,50 @@ const formatDate = (dateString: string) => {
     day: "numeric",
     year: "numeric"
   })
+}
+
+const InlineCopy = ({ text, title }: { text: string, title: string }) => {
+  const [copied, setCopied] = useState(false)
+  
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  
+  return (
+    <button 
+      onClick={handleCopy} 
+      className="p-1 rounded-md text-muted-foreground/30 hover:text-foreground hover:bg-muted transition-all opacity-0 group-hover:opacity-100"
+      title={title}
+    >
+      {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+    </button>
+  )
+}
+
+const ActionCopyID = ({ id }: { id: string }) => {
+  const [copied, setCopied] = useState(false)
+  
+  return (
+    <Button 
+      variant="ghost" 
+      size="icon" 
+      className="h-7 w-7 text-muted-foreground hover:text-foreground" 
+      title="Copy Database ID"
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        navigator.clipboard.writeText(id)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }}
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+    </Button>
+  )
 }
 
 export function UsersPage() {
@@ -284,14 +330,20 @@ export function UsersPage() {
                         <span className="font-semibold text-foreground max-w-[200px] truncate leading-tight group-hover:text-primary group-hover:underline transition-colors">
                           {user.full_name || "Unnamed"}
                         </span>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-muted-foreground leading-none">{user.email}</span>
+                        <div className="flex flex-wrap items-center mt-0.5 -ml-1">
+                          <div className="flex items-center pl-1 rounded">
+                            <span className="text-xs text-muted-foreground leading-none">{user.email}</span>
+                            <InlineCopy text={user.email} title="Copy Email" />
+                          </div>
                           {user.phone_number && (
                             <>
-                              <span className="text-muted-foreground/30 text-[10px]">•</span>
-                              <span className="text-[10px] bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded-sm font-mono tracking-tight leading-none group-hover:bg-primary/5 transition-colors">
-                                {user.phone_number}
-                              </span>
+                              <span className="text-muted-foreground/30 text-[10px] mx-1">•</span>
+                              <div className="flex items-center gap-0.5 pl-1 rounded">
+                                <span className="text-[10px] bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded-sm font-mono tracking-tight leading-none group-hover:bg-primary/5 transition-colors">
+                                  {user.phone_number}
+                                </span>
+                                <InlineCopy text={user.phone_number} title="Copy Phone Number" />
+                              </div>
                             </>
                           )}
                         </div>
@@ -338,14 +390,12 @@ export function UsersPage() {
 
                   {/* ACTIONS COLUMN */}
                   <TableCell className="text-right py-2">
-                    <div className="flex items-center justify-end gap-0.5">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" asChild>
+                    <div className="flex items-center justify-end gap-1">
+                      <ActionCopyID id={user.id} />
+                      <Button variant="outline" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground bg-muted/30" title="View Profile" asChild>
                         <Link to={`/${roleFilter.toLowerCase()}s/${user.id}`}>
                           <User className="h-3.5 w-3.5" />
                         </Link>
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-blue-600">
-                        <Edit2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </TableCell>
