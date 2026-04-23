@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -113,38 +113,47 @@ const ActionCopyID = ({ id }: { id: string }) => {
 }
 
 export function UsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>([])
-  const [total, setTotal] = useState(0)
+  const [allUsers, setAllUsers] = useState<AdminUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [roleFilter, setRoleFilter] = useState<"OWNER" | "RIDER">("OWNER")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState("created_at_desc")
+  const [searchQuery, setSearchQuery] = useState("")
   const limit = 20
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchAllUsers = async () => {
       try {
         setIsLoading(true)
         setSelectedIds([]) 
+        setPage(1)
         const endpoint = roleFilter === "OWNER" ? "/admin/users" : "/admin/riders"
-        const skip = (page - 1) * limit
         
-        let sort_by = "created_at"
-        let sort_order = "desc"
-        const lastUnderscore = sortBy.lastIndexOf('_')
-        if (lastUnderscore !== -1) {
-          sort_by = sortBy.substring(0, lastUnderscore)
-          sort_order = sortBy.substring(lastUnderscore + 1)
-        }
+        // Client-side fetching of all users for sorting/searching MVP
+        let fetchedData: AdminUser[] = []
+        let currentSkip = 0
+        const fetchLimit = 1000
+        let hasMore = true
+        let loopCount = 0
 
-        const response = await api.get(endpoint, {
-          params: { limit, skip, sort_by, sort_order }
-        })
+        while (hasMore && loopCount < 10) { // Max 10k users limit for safety
+          const response = await api.get(endpoint, {
+            params: { limit: fetchLimit, skip: currentSkip }
+          })
+          const chunk = response.data.data || []
+          fetchedData = [...fetchedData, ...chunk]
+          
+          if (chunk.length < fetchLimit) {
+            hasMore = false
+          } else {
+            currentSkip += fetchLimit
+            loopCount++
+          }
+        }
         
-        setUsers(response.data.data || [])
-        setTotal(response.data.count || 0)
+        setAllUsers(fetchedData)
       } catch (error) {
         console.error("Failed to fetch users:", error)
       } finally {
@@ -152,13 +161,42 @@ export function UsersPage() {
       }
     }
     
-    fetchUsers()
-  }, [roleFilter, page, sortBy])
+    fetchAllUsers()
+  }, [roleFilter])
 
-  // Reset to page 1 when sort changes
+  const filteredAndSorted = useMemo(() => {
+    let result = [...allUsers]
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      result = result.filter(u => 
+        (u.full_name && u.full_name.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.phone_number && u.phone_number.includes(q))
+      )
+    }
+
+    result.sort((a, b) => {
+      if (sortBy === "created_at_desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      if (sortBy === "last_login_at_desc") {
+        const timeA = a.last_login_at ? new Date(a.last_login_at).getTime() : 0
+        const timeB = b.last_login_at ? new Date(b.last_login_at).getTime() : 0
+        return timeB - timeA
+      }
+      if (sortBy === "total_vehicles_desc") return (b.total_vehicles || 0) - (a.total_vehicles || 0)
+      if (sortBy === "total_reservations_desc") return (b.total_reservations || 0) - (a.total_reservations || 0)
+      return 0
+    })
+
+    return result
+  }, [allUsers, searchQuery, sortBy])
+
+  const displayedUsers = filteredAndSorted.slice((page - 1) * limit, page * limit)
+  const total = filteredAndSorted.length
+
   useEffect(() => {
     setPage(1)
-  }, [sortBy])
+  }, [sortBy, searchQuery])
 
   const handleRoleChange = (role: "OWNER" | "RIDER") => {
     setRoleFilter(role)
@@ -169,10 +207,10 @@ export function UsersPage() {
   }
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === users.length) {
+    if (selectedIds.length === displayedUsers.length) {
       setSelectedIds([])
     } else {
-      setSelectedIds(users.map(o => o.id))
+      setSelectedIds(displayedUsers.map(o => o.id))
     }
   }
 
@@ -187,27 +225,8 @@ export function UsersPage() {
   const exportCSV = async () => {
     try {
       setIsExporting(true)
-      const endpoint = roleFilter === "OWNER" ? "/admin/users" : "/admin/riders"
       
-      // Fetch results in chunks as backend limits max limit to 1000
-      let allUsers: AdminUser[] = []
-      let currentSkip = 0
-      const fetchLimit = 1000
-      let hasMore = true
-
-      while (hasMore) {
-        const response = await api.get(endpoint, { params: { limit: fetchLimit, skip: currentSkip } })
-        const fetchedUsers = response.data.data || []
-        allUsers = [...allUsers, ...fetchedUsers]
-        
-        if (fetchedUsers.length < fetchLimit) {
-          hasMore = false
-        } else {
-          currentSkip += fetchLimit
-        }
-      }
-
-      if (allUsers.length === 0) return
+      if (filteredAndSorted.length === 0) return
 
       const isOwner = roleFilter === "OWNER"
       const headers = isOwner
@@ -216,7 +235,7 @@ export function UsersPage() {
 
       const csvContent = [
         headers.join(","),
-        ...allUsers.map(u => {
+        ...filteredAndSorted.map(u => {
           const row: string[] = [
             `"${(u.id || '').replace(/"/g, '""')}"`,
             `"${(u.full_name || '').replace(/"/g, '""')}"`,
@@ -260,7 +279,7 @@ export function UsersPage() {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="text-sm text-muted-foreground flex items-center gap-2 min-w-[150px]">
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            <span>Showing {users.length} of {total} {roleFilter.toLowerCase()}s</span>
+            <span>Showing {displayedUsers.length} of {total} {roleFilter.toLowerCase()}s</span>
           </div>
           <div className="relative w-full sm:w-56 lg:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -268,6 +287,8 @@ export function UsersPage() {
               type="text" 
               placeholder="Search by name or email..." 
               className="pl-9 h-9 w-full bg-background/50 focus-visible:ring-1"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <div className="relative w-full sm:w-48">
@@ -292,7 +313,7 @@ export function UsersPage() {
             variant="outline" 
             size="sm" 
             onClick={exportCSV} 
-            disabled={isExporting || users.length === 0}
+            disabled={isExporting || displayedUsers.length === 0}
             className="flex items-center gap-2"
           >
             {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
@@ -331,7 +352,7 @@ export function UsersPage() {
               <TableRow className="border-b">
                 <TableHead className="w-12 text-center h-10 px-0">
                   <Checkbox 
-                    checked={selectedIds.length === users.length && users.length > 0}
+                    checked={selectedIds.length === displayedUsers.length && displayedUsers.length > 0}
                     onChange={toggleSelectAll}
                   />
                 </TableHead>
@@ -343,7 +364,7 @@ export function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {displayedUsers.map((user) => (
                 <TableRow key={user.id} className="hover:bg-muted/10 border-b border-muted/50">
                   <TableCell className="text-center px-0 py-2">
                     <Checkbox 
@@ -437,7 +458,7 @@ export function UsersPage() {
                 </TableRow>
               ))}
               
-              {users.length === 0 && !isLoading && (
+              {displayedUsers.length === 0 && !isLoading && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                     No {roleFilter.toLowerCase()}s found.
