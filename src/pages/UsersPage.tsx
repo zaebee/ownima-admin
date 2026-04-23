@@ -142,25 +142,33 @@ export function UsersPage() {
 
       if (allUsers.length === 0) return
 
-      const headers = [
-        "Internal ID", "Full Name", "Email", "Phone", "Is Active", "Joined Date",
-        "Total Vehicles", "Total Reservations", "Login Count", "Last Login"
-      ]
+      const isOwner = roleFilter === "OWNER"
+      const headers = isOwner
+        ? ["Internal ID", "Full Name", "Email", "Phone", "Is Active", "Joined Date", "Total Vehicles", "Total Reservations", "Login Count", "Last Login"]
+        : ["Internal ID", "Full Name", "Email", "Phone", "Is Active", "Joined Date", "Total Reservations", "Login Count", "Last Login"]
 
       const csvContent = [
         headers.join(","),
-        ...allUsers.map(u => [
-          `"${u.id.replace(/"/g, '""')}"`,
-          `"${(u.full_name || '').replace(/"/g, '""')}"`,
-          `"${(u.email || '').replace(/"/g, '""')}"`,
-          `"${(u.phone_number || '').replace(/"/g, '""')}"`,
-          u.is_active ? "TRUE" : "FALSE",
-          `"${u.created_at ? new Date(u.created_at).toISOString() : ''}"`,
-          u.total_vehicles || 0,
-          u.total_reservations || 0,
-          u.login_count || 0,
-          `"${u.last_login_at ? new Date(u.last_login_at).toISOString() : ''}"`
-        ].join(","))
+        ...allUsers.map(u => {
+          const row: string[] = [
+            `"${(u.id || '').replace(/"/g, '""')}"`,
+            `"${(u.full_name || '').replace(/"/g, '""')}"`,
+            `"${(u.email || '').replace(/"/g, '""')}"`,
+            `"${(u.phone_number || '').replace(/"/g, '""')}"`,
+            u.is_active ? "TRUE" : "FALSE",
+            `"${u.created_at ? new Date(u.created_at).toISOString() : ''}"`
+          ]
+          
+          if (isOwner) {
+            row.push(String(u.total_vehicles || 0))
+          }
+          
+          row.push(String(u.total_reservations || 0))
+          row.push(String(u.login_count || 0))
+          row.push(`"${u.last_login_at ? new Date(u.last_login_at).toISOString() : ''}"`)
+          
+          return row.join(",")
+        })
       ].join("\n")
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
