@@ -25,7 +25,9 @@ import {
   Search,
   Copy,
   Check,
-  ArrowUpDown
+  ArrowUpDown,
+  ArrowDown,
+  ArrowUp
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
@@ -177,15 +179,18 @@ export function UsersPage() {
     }
 
     result.sort((a, b) => {
-      if (sortBy === "created_at_desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      if (sortBy === "last_login_at_desc") {
-        const timeA = a.last_login_at ? new Date(a.last_login_at).getTime() : 0
-        const timeB = b.last_login_at ? new Date(b.last_login_at).getTime() : 0
-        return timeB - timeA
-      }
-      if (sortBy === "total_vehicles_desc") return (b.total_vehicles || 0) - (a.total_vehicles || 0)
-      if (sortBy === "total_reservations_desc") return (b.total_reservations || 0) - (a.total_reservations || 0)
-      return 0
+      const isDesc = sortBy.endsWith('_desc')
+      const key = sortBy.replace(/_desc$|_asc$/, '')
+      let comp = 0
+      
+      if (key === 'created_at') comp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      else if (key === 'last_login_at') comp = (a.last_login_at ? new Date(a.last_login_at).getTime() : 0) - (b.last_login_at ? new Date(b.last_login_at).getTime() : 0)
+      else if (key === 'total_vehicles') comp = (a.total_vehicles || 0) - (b.total_vehicles || 0)
+      else if (key === 'total_reservations') comp = (a.total_reservations || 0) - (b.total_reservations || 0)
+      else if (key === 'login_count') comp = (a.login_count || 0) - (b.login_count || 0)
+      else if (key === 'full_name') comp = String(a.full_name || '').localeCompare(String(b.full_name || ''))
+      
+      return isDesc ? -comp : comp
     })
 
     return result
@@ -272,6 +277,33 @@ export function UsersPage() {
     }
   }
 
+  const SortableHead = ({ label, sortKey, className = "" }: { label: string, sortKey: string, className?: string }) => {
+    const isActive = sortBy.startsWith(sortKey)
+    const isDesc = sortBy.endsWith('_desc')
+    
+    return (
+      <TableHead 
+        className={cn("text-xs font-semibold text-muted-foreground h-10 cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none whitespace-nowrap", className)}
+        onClick={() => {
+          if (isActive) {
+            setSortBy(sortKey + (isDesc ? "_asc" : "_desc"))
+          } else {
+            setSortBy(sortKey + "_desc")
+          }
+        }}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          {isActive ? (
+            isDesc ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowUpDown className="h-3 w-3 opacity-30" />
+          )}
+        </div>
+      </TableHead>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6 pb-24">
       {/* Top Bar */}
@@ -290,22 +322,6 @@ export function UsersPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
-          <div className="relative w-full sm:w-48">
-            <select
-              className="h-9 w-full appearance-none rounded-md border border-input bg-background pl-9 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 hover:bg-muted/50 transition-colors"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <option value="created_at_desc">Newest Joined</option>
-              <option value="last_login_at_desc">Recent Login</option>
-              {roleFilter === "OWNER" && <option value="total_vehicles_desc">Most Vehicles</option>}
-              <option value="total_reservations_desc">Most Reservations</option>
-            </select>
-            <ArrowUpDown className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <div className="absolute right-3 top-2.5 pointer-events-none text-muted-foreground">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819L7.43179 8.56819C7.60753 8.74393 7.89245 8.74393 8.06819 8.56819L10.5682 6.06819C10.7439 5.89245 10.7439 5.60753 10.5682 5.43179C10.3924 5.25605 10.1075 5.25605 9.93179 5.43179L7.75 7.61358L5.56819 5.43179C5.39245 5.25605 5.10753 5.25605 4.93179 5.43179Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
-            </div>
           </div>
         </div>
         <div className="flex items-center gap-3 self-end sm:self-auto">
@@ -356,11 +372,13 @@ export function UsersPage() {
                     onChange={toggleSelectAll}
                   />
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground h-10">USER</TableHead>
+                <SortableHead label="USER" sortKey="full_name" />
                 <TableHead className="text-xs font-semibold text-muted-foreground h-10">STATUS</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground h-10">METRICS</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground h-10">JOINED</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground h-10">LAST LOGIN</TableHead>
+                {roleFilter === "OWNER" && <SortableHead label="VEHICLES" sortKey="total_vehicles" />}
+                <SortableHead label="RESERVATIONS" sortKey="total_reservations" />
+                <SortableHead label="LOGINS" sortKey="login_count" />
+                <SortableHead label="JOINED" sortKey="created_at" />
+                <SortableHead label="LAST LOGIN" sortKey="last_login_at" />
                 <TableHead className="text-right text-xs font-semibold text-muted-foreground h-10">ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
@@ -418,24 +436,21 @@ export function UsersPage() {
                     </div>
                   </TableCell>
 
-                  {/* METRICS COLUMN */}
+                  {/* VEHICLES COLUMN */}
+                  {roleFilter === "OWNER" && (
+                    <TableCell className="py-2">
+                       <span className="font-medium text-foreground text-xs">{user.total_vehicles || 0}</span>
+                    </TableCell>
+                  )}
+
+                  {/* RESERVATIONS COLUMN */}
                   <TableCell className="py-2">
-                    <div className="flex flex-wrap gap-4 text-xs">
-                      {roleFilter === "OWNER" && (
-                        <div className="flex flex-col text-muted-foreground">
-                          <span className="font-medium text-foreground">{user.total_vehicles || 0}</span>
-                          <span className="text-[10px] uppercase tracking-wider">Veh</span>
-                        </div>
-                      )}
-                      <div className="flex flex-col text-muted-foreground">
-                        <span className="font-medium text-foreground">{user.total_reservations || 0}</span>
-                        <span className="text-[10px] uppercase tracking-wider">Res</span>
-                      </div>
-                      <div className="flex flex-col text-muted-foreground">
-                        <span className="font-medium text-blue-600">{user.login_count || 0}</span>
-                        <span className="text-[10px] uppercase tracking-wider">Logins</span>
-                      </div>
-                    </div>
+                    <span className="font-medium text-foreground text-xs">{user.total_reservations || 0}</span>
+                  </TableCell>
+
+                  {/* LOGINS COLUMN */}
+                  <TableCell className="py-2">
+                    <span className="font-medium text-blue-600 text-xs">{user.login_count || 0}</span>
                   </TableCell>
 
                   {/* JOINED COLUMN */}
