@@ -21,8 +21,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Search
 } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
 import { cn, getMediaUrl } from "@/lib/utils"
 
@@ -189,12 +191,22 @@ export function UsersPage() {
   return (
     <div className="flex flex-col gap-6 pb-24">
       {/* Top Bar */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground flex items-center gap-2">
-          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-          <span>Showing {users.length} of {total} {roleFilter.toLowerCase()}s</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="text-sm text-muted-foreground flex items-center gap-2 min-w-[200px]">
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            <span>Showing {users.length} of {total} {roleFilter.toLowerCase()}s</span>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="text" 
+              placeholder="Search by name or email..." 
+              className="pl-9 h-9 w-full bg-background/50"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-end sm:self-auto">
           <Button 
             variant="outline" 
             size="sm" 
@@ -205,7 +217,7 @@ export function UsersPage() {
             {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             Export CSV
           </Button>
-          <div className="h-4 w-px bg-border"></div>
+          <div className="h-4 w-px bg-border hidden sm:block"></div>
           <div className="flex items-center gap-1 text-sm bg-muted/50 p-1 rounded-lg">
             <button 
               onClick={() => handleRoleChange("OWNER")}
@@ -261,15 +273,15 @@ export function UsersPage() {
                   
                   {/* USER COLUMN */}
                   <TableCell className="py-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
+                    <Link to={`/${roleFilter.toLowerCase()}s/${user.id}`} className="group flex items-center gap-3">
+                      <Avatar className="h-9 w-9 border border-border group-hover:border-primary/50 transition-colors">
                         {user.avatar && <AvatarImage src={getMediaUrl(user.avatar)} alt={user.full_name || ""} />}
                         <AvatarFallback className={`text-white text-xs ${getColor(user.id)}`}>
                           {getInitials(user.full_name, user.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-foreground max-w-[200px] truncate leading-tight">
+                        <span className="font-semibold text-foreground max-w-[200px] truncate leading-tight group-hover:text-primary group-hover:underline transition-colors">
                           {user.full_name || "Unnamed"}
                         </span>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -277,14 +289,14 @@ export function UsersPage() {
                           {user.phone_number && (
                             <>
                               <span className="text-muted-foreground/30 text-[10px]">•</span>
-                              <span className="text-[10px] bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded-sm font-mono tracking-tight leading-none">
+                              <span className="text-[10px] bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded-sm font-mono tracking-tight leading-none group-hover:bg-primary/5 transition-colors">
                                 {user.phone_number}
                               </span>
                             </>
                           )}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </TableCell>
 
                   {/* STATUS COLUMN */}
@@ -299,7 +311,7 @@ export function UsersPage() {
 
                   {/* METRICS COLUMN */}
                   <TableCell className="py-2">
-                    <div className="flex gap-4 text-xs">
+                    <div className="flex flex-wrap gap-4 text-xs">
                       {roleFilter === "OWNER" && (
                         <div className="flex flex-col text-muted-foreground">
                           <span className="font-medium text-foreground">{user.total_vehicles || 0}</span>
@@ -309,6 +321,10 @@ export function UsersPage() {
                       <div className="flex flex-col text-muted-foreground">
                         <span className="font-medium text-foreground">{user.total_reservations || 0}</span>
                         <span className="text-[10px] uppercase tracking-wider">Res</span>
+                      </div>
+                      <div className="flex flex-col text-muted-foreground">
+                        <span className="font-medium text-blue-600">{user.login_count || 0}</span>
+                        <span className="text-[10px] uppercase tracking-wider">Logins</span>
                       </div>
                     </div>
                   </TableCell>
