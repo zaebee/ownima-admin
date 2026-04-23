@@ -112,9 +112,11 @@ export function UserDetailPage() {
             {(owner.rent_service_name || owner.business_name) && (
               <div className="flex items-center gap-2 mb-3 mt-1">
                 <p className="text-foreground font-medium">{owner.rent_service_name || owner.business_name}</p>
-                {owner.booking_website_published && (
-                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] h-5 px-1.5 uppercase tracking-wider">
-                    Public Web
+                {owner.booking_website_published && owner.username && (
+                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] h-5 px-0 uppercase tracking-wider hover:bg-emerald-500/20 transition-colors">
+                    <a href={`https://booking.ownima.com/${owner.username}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-1.5 w-full h-full">
+                      Public Web
+                    </a>
                   </Badge>
                 )}
               </div>
@@ -269,7 +271,7 @@ export function UserDetailPage() {
 
       {activeTab === "vehicles" && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {id && <UserVehicles userId={id} />}
+          {id && <UserVehicles userId={id} ownerCurrency={owner.currency} />}
         </div>
       )}
       

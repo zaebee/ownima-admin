@@ -7,7 +7,7 @@ import { Loader2, Car, MapPin, Eye, ChevronLeft, ChevronRight, ChevronsLeft, Che
 import { api } from "@/lib/api"
 import { getMediaUrl } from "@/lib/utils"
 
-export function UserVehicles({ userId }: { userId: string }) {
+export function UserVehicles({ userId, ownerCurrency }: { userId: string, ownerCurrency?: string }) {
   const [vehicles, setVehicles] = useState<any[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -135,7 +135,7 @@ export function UserVehicles({ userId }: { userId: string }) {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1 text-sm font-medium">
-                    {Number(v.price || 0).toLocaleString()} <span className="text-xs text-muted-foreground">{v.currency || "RUB"}/day</span>
+                    {Number(v.price || 0).toLocaleString()} <span className="text-xs text-muted-foreground">{v.currency || ownerCurrency || "RUB"}/day</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
