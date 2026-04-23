@@ -67,8 +67,8 @@ export function UserDetailPage() {
 
   // Computed Red Flags
   const redFlags = []
-  if (owner.cancel_rate >= 0.2) {
-    redFlags.push(`High cancellation rate (${(owner.cancel_rate * 100).toFixed(1)}%)`)
+  if (owner.cancel_rate !== undefined && owner.cancel_rate >= 20) {
+    redFlags.push(`High cancellation rate (${Number(owner.cancel_rate).toFixed(1)}%)`)
   }
   if (owner.average_rating !== null && owner.average_rating < 4.0 && owner.rating_count >= 1) {
     redFlags.push(`Low average rating (${owner.average_rating.toFixed(1)} ⭐) from ${owner.rating_count} reviews`)
@@ -262,11 +262,11 @@ export function UserDetailPage() {
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm font-medium text-muted-foreground">Cancel Rate</span>
-                  <span className="font-bold">{owner.cancel_rate !== undefined ? (owner.cancel_rate * 100).toFixed(1) + "%" : "0%"}</span>
+                  <span className="font-bold">{owner.cancel_rate !== undefined ? Number(owner.cancel_rate).toFixed(1) + "%" : "0%"}</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm font-medium text-muted-foreground">Completion Rate</span>
-                  <span className="font-bold text-emerald-600">{((owner.completion_rate || 0) * 100).toFixed(0)}%</span>
+                  <span className="font-bold text-emerald-600">{owner.completion_rate !== undefined ? Number(owner.completion_rate).toFixed(1) + "%" : "0%"}</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm font-medium text-muted-foreground">Avg Response</span>

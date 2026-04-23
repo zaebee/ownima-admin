@@ -165,7 +165,7 @@ export function RiderDetailPage() {
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b">
                   <span className="text-sm text-muted-foreground">Completion Rate</span>
-                  <span className="font-semibold text-green-600">{((rider.completion_rate || 0) * 100).toFixed(0)}%</span>
+                  <span className="font-semibold text-green-600">{rider.completion_rate !== undefined ? Number(rider.completion_rate).toFixed(1) + "%" : "0%"}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b">
                   <span className="text-sm text-muted-foreground">Logins</span>
