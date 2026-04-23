@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, Mail, Phone, MapPin, Calendar, Star, Car, Loader2, Globe, Clock, CalendarDays, Activity } from "lucide-react"
+import { ArrowLeft, Mail, Phone, MapPin, Calendar, Star, Car, Loader2, Globe, Clock, CalendarDays, Activity, AlertTriangle } from "lucide-react"
 import { UserActivityTimeline } from "@/components/UserActivityTimeline"
 import { UserVehicles } from "@/components/UserVehicles"
 import { UserReservations } from "@/components/UserReservations"
@@ -65,6 +65,24 @@ export function UserDetailPage() {
     
   const addressStr = [owner.address?.city, owner.address?.county].filter(Boolean).join(", ") || owner.location || "Not provided"
 
+  // Computed Red Flags
+  const redFlags = []
+  if (owner.cancel_rate >= 0.2) {
+    redFlags.push(`High cancellation rate (${(owner.cancel_rate * 100).toFixed(1)}%)`)
+  }
+  if (owner.average_rating !== null && owner.average_rating < 4.0 && owner.rating_count >= 1) {
+    redFlags.push(`Low average rating (${owner.average_rating.toFixed(1)} ⭐) from ${owner.rating_count} reviews`)
+  }
+  const daysSinceLogin = owner.last_login_at 
+    ? Math.floor((new Date().getTime() - new Date(owner.last_login_at).getTime()) / (1000 * 3600 * 24))
+    : 999
+  if (daysSinceLogin > 30) {
+    redFlags.push(`Account dormant for ${daysSinceLogin} days (Last login: ${new Date(owner.last_login_at).toLocaleDateString()})`)
+  }
+  if (owner.total_vehicles > 0 && owner.total_reservations === 0 && daysSinceLogin > 7) {
+    redFlags.push("Has listed vehicles but zero reservations (Platform churn risk)")
+  }
+
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -83,6 +101,22 @@ export function UserDetailPage() {
           </Button>
         </div>
       </div>
+
+      {redFlags.length > 0 && (
+        <div className="bg-destructive/10 border-l-4 border-destructive p-4 rounded-r-xl">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider mb-1">Attention Required</h3>
+              <ul className="list-disc pl-4 text-sm text-destructive/90 space-y-0.5 font-medium">
+                {redFlags.map((flag, idx) => (
+                  <li key={idx}>{flag}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Card className="border-none shadow-sm rounded-xl overflow-hidden bg-muted/20">
         <div className="flex flex-col lg:flex-row gap-6 p-6">
