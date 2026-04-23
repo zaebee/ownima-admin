@@ -171,6 +171,10 @@ export function RiderDetailPage() {
                   <span className="text-sm text-muted-foreground">Logins</span>
                   <span className="font-semibold">{rider.login_count || 0}</span>
                 </div>
+                <div className="flex justify-between items-center pb-3 border-b">
+                  <span className="text-sm text-muted-foreground">Account Age</span>
+                  <span className="font-semibold">{rider.created_at ? `${Math.floor((new Date().getTime() - new Date(rider.created_at).getTime()) / (1000 * 3600 * 24))} days` : "Unknown"}</span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Last Login</span>
                   <span className="font-semibold text-sm">

@@ -276,6 +276,10 @@ export function UserDetailPage() {
                   <span className="text-sm font-medium text-muted-foreground">Logins</span>
                   <span className="font-bold text-blue-600">{owner.login_count || 0}</span>
                 </div>
+                <div className="flex justify-between items-center pb-2 border-b">
+                  <span className="text-sm font-medium text-muted-foreground">Account Age</span>
+                  <span className="font-bold">{owner.created_at ? `${Math.floor((new Date().getTime() - new Date(owner.created_at).getTime()) / (1000 * 3600 * 24))} days` : "Unknown"}</span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-muted-foreground">Last online</span>
                   <span className="font-mono text-xs">
