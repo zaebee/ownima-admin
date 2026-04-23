@@ -360,6 +360,7 @@ export function UsersPage() {
                 <TableHead className="text-xs font-semibold text-muted-foreground h-10">STATUS</TableHead>
                 <TableHead className="text-xs font-semibold text-muted-foreground h-10">METRICS</TableHead>
                 <TableHead className="text-xs font-semibold text-muted-foreground h-10">JOINED</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground h-10">LAST LOGIN</TableHead>
                 <TableHead className="text-right text-xs font-semibold text-muted-foreground h-10">ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
@@ -442,6 +443,20 @@ export function UsersPage() {
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {user.created_at ? formatDate(user.created_at) : "Unknown"}
                     </span>
+                  </TableCell>
+
+                  {/* LAST LOGIN COLUMN */}
+                  <TableCell className="py-2">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium text-foreground whitespace-nowrap">
+                        {user.last_login_at ? formatDate(user.last_login_at) : "Never"}
+                      </span>
+                      {user.last_login_at && (
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-0.5">
+                          {new Date(user.last_login_at).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
 
                   {/* ACTIONS COLUMN */}
