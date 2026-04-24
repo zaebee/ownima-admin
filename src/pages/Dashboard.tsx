@@ -306,19 +306,19 @@ export function Dashboard() {
           <CardContent className="flex-1 relative z-10 pt-4">
             <ul className="space-y-4">
               <li className="flex items-center justify-between border-b border-border/50 pb-3">
-                <span className="text-sm font-medium">Overdue Reservations</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Overdue Reservations</span>
                 <span className="text-sm font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 px-2 py-0.5 rounded-full">{metrics.reservations.overdue}</span>
               </li>
               <li className="flex items-center justify-between border-b border-border/50 pb-3">
-                <span className="text-sm font-medium">Booking Conflicts</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Booking Conflicts</span>
                 <span className="text-sm font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 px-2 py-0.5 rounded-full">{metrics.reservations.conflict}</span>
               </li>
               <li className="flex items-center justify-between border-b border-border/50 pb-3">
-                <span className="text-sm font-medium">No Responses</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">No Responses</span>
                 <span className="text-sm font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded-full">{metrics.reservations.no_response}</span>
               </li>
               <li className="flex items-center justify-between pb-1">
-                <span className="text-sm font-medium">Auth Failures (24h)</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Auth Failures (24h)</span>
                 <span className="text-sm font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-2 py-0.5 rounded-full">{authFailures}</span>
               </li>
             </ul>
@@ -468,6 +468,62 @@ export function Dashboard() {
                 No data available
               </div>
             )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Secondary BI Row */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-base">Reservations / Hour (Today)</CardTitle>
+            <CardDescription>Velocity of incoming bookings</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={RESERVATIONS_HR_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} minTickGap={15} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                <RechartsTooltip 
+                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="bookings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-base">Demand by Vehicle Type</CardTitle>
+            <CardDescription>Types of vehicles actively rented</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={VEHICLE_TYPE_DATA}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={1000}
+                >
+                  {VEHICLE_TYPE_DATA.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip 
+                  formatter={(value: number) => [`${value} Active`, 'Count']}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }}/>
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
