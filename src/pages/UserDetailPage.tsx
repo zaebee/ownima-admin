@@ -203,7 +203,7 @@ export function UserDetailPage() {
         <button 
           onClick={() => setActiveTab("overview")}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
+            "flex items-center shrink-0 gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
             activeTab === "overview" 
               ? "border-primary text-foreground" 
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -215,7 +215,7 @@ export function UserDetailPage() {
         <button 
           onClick={() => setActiveTab("vehicles")}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
+            "flex items-center shrink-0 gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
             activeTab === "vehicles" 
               ? "border-primary text-foreground" 
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -228,7 +228,7 @@ export function UserDetailPage() {
         <button 
           onClick={() => setActiveTab("reservations")}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
+            "flex items-center shrink-0 gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
             activeTab === "reservations" 
               ? "border-primary text-foreground" 
               : "border-transparent text-muted-foreground hover:text-foreground"

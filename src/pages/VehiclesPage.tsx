@@ -179,9 +179,14 @@ export function VehiclesPage() {
                         <span className="font-semibold text-foreground">
                           {v.name || `${v.general_info?.brand} ${v.general_info?.model}`}
                         </span>
-                        <span className="text-xs text-muted-foreground mt-0.5">
-                          {v.general_info?.year} • {v.general_info?.vehicle_class || 'Unknown Class'}
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground">
+                            {v.general_info?.vehicle_class || 'Unknown Class'}
+                          </span>
+                          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium truncate max-w-[120px]">
+                            {v.price_templates?.template_name || 'demo'}
+                          </span>
+                        </div>
                         {/* Mobile info fallback */}
                         <div className="flex flex-wrap items-center gap-2 mt-1 sm:hidden">
                           <span className="text-[10px] font-mono bg-muted px-1 rounded">{v.general_info?.reg_number || 'N/A'}</span>
