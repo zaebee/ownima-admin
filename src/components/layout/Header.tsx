@@ -1,11 +1,15 @@
-import { Bell, Search, LogOut } from "lucide-react"
+import { Bell, Search, LogOut, Menu } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
 import { getMediaUrl } from "@/lib/utils"
 import { GlobalSearch } from "@/components/GlobalSearch"
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const { logout, user } = useAuth()
 
   // Генерируем fallback по имени или email'у
@@ -15,7 +19,18 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-      <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+      <div className="flex items-center lg:hidden">
+        <button 
+          type="button" 
+          className="-m-2.5 p-2.5 text-muted-foreground hover:text-foreground"
+          onClick={onMenuClick}
+        >
+          <span className="sr-only">Open sidebar</span>
+          <Menu className="h-6 w-6" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ml-2 lg:ml-0">
         <div className="relative flex flex-1 items-center max-w-md">
           <GlobalSearch />
         </div>
