@@ -10,17 +10,17 @@ import { Loader2, ChevronLeft, CalendarDays, MapPin, CreditCard, User, Car, Shie
 const getStatusClasses = (status: string) => {
   switch (status) {
     case "Active":
-      return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+      return "bg-blue-500 text-white"
     case "Confirmed":
-      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
+      return "bg-emerald-500 text-white"
     case "Completed":
-      return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+      return "bg-slate-500 text-white"
     case "Cancelled":
-      return "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400"
+      return "bg-rose-500 text-white"
     case "Pending":
-      return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+      return "bg-amber-500 text-white"
     default:
-      return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+      return "bg-slate-500 text-white"
   }
 }
 
