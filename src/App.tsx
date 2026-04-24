@@ -17,6 +17,7 @@ import { VehicleDetailPage } from "./pages/VehicleDetailPage"
 import { ReservationsPage } from "./pages/ReservationsPage"
 import { ReservationDetailPage } from "./pages/ReservationDetailPage"
 import { BillingPage } from "./pages/BillingPage"
+import { TransactionDetailPage } from "./pages/TransactionDetailPage"
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="reservations" element={<ReservationsPage />} />
               <Route path="reservations/:id" element={<ReservationDetailPage />} />
               <Route path="billing" element={<BillingPage />} />
+              <Route path="transactions/:id" element={<TransactionDetailPage />} />
               <Route path="owners/:id" element={<UserDetailPage />} />
               <Route path="riders/:id" element={<RiderDetailPage />} />
             </Route>

@@ -179,7 +179,11 @@ export function BillingPage() {
                   const date = new Date(txn.date)
                   return (
                     <TableRow key={txn.id}>
-                      <TableCell className="font-mono text-xs">{txn.id}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        <Link to={`/transactions/${txn.id}`} className="text-blue-600 hover:underline">
+                          {txn.id}
+                        </Link>
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         <span className="block text-xs">{date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
