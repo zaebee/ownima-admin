@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Loader2, Car, ChevronLeft, CalendarDays, Key, MapPin, Share2, Wrench, Settings2, Gauge, ShieldCheck, Route, FileText, Zap, Edit } from "lucide-react"
+import { Loader2, Car, ChevronLeft, CalendarDays, Key, MapPin, Share2, Wrench, Settings2, Gauge, ShieldCheck, Route, FileText, Zap, Edit, CheckCircle2, Check, X, PlusCircle, Star } from "lucide-react"
 import { api } from "@/lib/api"
 
 const getStatusString = (status: number) => {
@@ -49,29 +49,57 @@ export function VehicleDetailPage() {
           setTimeout(() => {
             setVehicle({
               id,
-              name: "Tesla Model 3 Standard Range",
-              general_info: { 
-                reg_number: "AA 1234 CT", 
-                year: 2023, 
-                vehicle_class: "Sedan", 
-                brand: "Tesla", 
-                model: "Model 3",
-                vin: "1G1YZ2C81C510XXXX",
-                transmission: "Automatic",
-                engine: "Electric (0cc)",
-                doors: 4,
-                seats: 5,
-                fuel_type: "Electric",
-                mileage: 12500
+              name: "BMW 420d Cabriolet 2018",
+              owner_id: "5fd5a990-756d-45e4-b4ae-8ade802f11c7",
+              status: 2,
+              picture: {
+                cover: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=2000&q=80"
               },
-              status: 2, 
-              price: 3500,
+              general_info: { 
+                reg_number: "SHOW-0015", 
+                brand: "BMW", 
+                model: "420d Cabriolet", 
+                year: 2018,
+                vehicle_class: "premium",
+                body_type: "sedan",
+                vin: "1G1YZ2C81C510XXXX"
+              },
+              specification_info: {
+                transmission: "auto",
+                doors: 4,
+                number_of_seats: 5,
+                fuel_type: "FUEL_GASOLINE",
+                mileage: 45000,
+                engine_capacity: 2.0
+              },
+              additional_info: {
+                insurance_included: true,
+                anti_hijack: false,
+                full_wheel_drive: false,
+                auto_transmission: true,
+                bluetooth_audio: true,
+                cruise_control: false,
+                airbags: true,
+                wheelchair_accessible: false
+              },
+              price_templates: {
+                deposit_amount: 30000.0,
+                minimal_rent_period: 1,
+                template_name: "Premium Template"
+              },
+              extra_options_details: [
+                { id: "baby_seat_100", name: "Baby Seat/Booster", price: 100.0, is_mandatory: false, description: "Optional baby seat/booster service" },
+                { id: "car_wash_1000", name: "Car Wash", price: 1000.0, is_mandatory: false, description: "Optional car wash service" },
+                { id: "delivery_within_the_city_default", name: "Delivery within the city", price: 0.0, is_mandatory: false, description: "Optional delivery within the city service" }
+              ],
+              price: 13000,
               currency: "THB",
               owner: { id: "5fd5a990-756d-45e4-b4ae-8ade802f11c7", full_name: "Demo Account", email: "demo@ownima.com" },
-              created_at: new Date().toISOString(),
-              images: [
-                "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop"
-              ]
+              rating_stats: {
+                average_rating: 4.8,
+                rating_count: 14
+              },
+              created_at: new Date().toISOString()
             })
             setLoading(false)
           }, 800)
@@ -134,6 +162,9 @@ export function VehicleDetailPage() {
   }
 
   const vInfo = vehicle.general_info || {}
+  const specInfo = vehicle.specification_info || {}
+  const addInfo = vehicle.additional_info || {}
+  const imgUrl = vehicle.picture?.cover || vehicle.images?.[0]
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-10 animate-in fade-in duration-500">
@@ -168,13 +199,21 @@ export function VehicleDetailPage() {
             {getStatusString(vehicle.status)}
           </Badge>
         </div>
-        <p className="text-muted-foreground flex items-center gap-2">
-          <span className="font-medium text-foreground">{vInfo.year || "Unknown Year"}</span>
-          <span>•</span>
-          <span>VIN: <span className="font-mono text-foreground">{vInfo.vin || "Unknown"}</span></span>
-          <span>•</span>
-          <span>ID: <span className="font-mono text-foreground text-xs">{vehicle.id}</span></span>
-        </p>
+        <div className="flex items-center gap-3 text-muted-foreground">
+          {vehicle.rating_stats && vehicle.rating_stats.rating_count > 0 && (
+            <div className="flex items-center gap-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 rounded-sm text-sm font-medium">
+              <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+              {vehicle.rating_stats.average_rating} ({vehicle.rating_stats.rating_count})
+            </div>
+          )}
+          <p className="flex items-center gap-2">
+            <span className="font-medium text-foreground">{vInfo.year || "Unknown Year"}</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline">VIN: <span className="font-mono text-foreground">{vInfo.vin || "Unknown"}</span></span>
+            <span>•</span>
+            <span>ID: <span className="font-mono text-foreground text-xs">{vehicle.id}</span></span>
+          </p>
+        </div>
       </div>
 
       {/* Grid Content */}
@@ -185,9 +224,9 @@ export function VehicleDetailPage() {
           
           {/* Main Visual */}
           <div className="w-full aspect-[21/9] md:aspect-[21/9] rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 border relative group">
-            {vehicle.images && vehicle.images.length > 0 ? (
+            {imgUrl ? (
               <img 
-                src={vehicle.images[0]} 
+                src={imgUrl} 
                 alt={`${vInfo.brand} ${vInfo.model}`} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
@@ -211,7 +250,7 @@ export function VehicleDetailPage() {
                 <Gauge className="h-5 w-5 text-blue-500" />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Mileage</p>
-                  <p className="text-lg font-semibold">{vInfo.mileage ? `${vInfo.mileage.toLocaleString()} km` : "N/A"}</p>
+                  <p className="text-lg font-semibold">{specInfo.mileage ? `${specInfo.mileage.toLocaleString()} km` : "N/A"}</p>
                 </div>
               </CardContent>
             </Card>
@@ -220,7 +259,7 @@ export function VehicleDetailPage() {
                 <Zap className="h-5 w-5 text-amber-500" />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Fuel Type</p>
-                  <p className="text-lg font-semibold">{vInfo.fuel_type || "N/A"}</p>
+                  <p className="text-lg font-semibold capitalize">{specInfo.fuel_type ? specInfo.fuel_type.replace('FUEL_', '').toLowerCase() : "N/A"}</p>
                 </div>
               </CardContent>
             </Card>
@@ -229,7 +268,7 @@ export function VehicleDetailPage() {
                 <Settings2 className="h-5 w-5 text-slate-500" />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Transmission</p>
-                  <p className="text-lg font-semibold">{vInfo.transmission || "N/A"}</p>
+                  <p className="text-lg font-semibold capitalize">{specInfo.transmission || "N/A"}</p>
                 </div>
               </CardContent>
             </Card>
@@ -238,49 +277,106 @@ export function VehicleDetailPage() {
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Class</p>
-                  <p className="text-lg font-semibold">{vInfo.vehicle_class || "N/A"}</p>
+                  <p className="text-lg font-semibold capitalize">{vInfo.vehicle_class || "N/A"}</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Full Technical Specs */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                Complete Specifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground mb-1">Brand</dt>
-                  <dd className="text-sm font-semibold">{vInfo.brand || "—"}</dd>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Full Technical Specs */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  Specifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid grid-cols-2 gap-y-6 gap-x-4">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Brand & Model</dt>
+                    <dd className="text-sm font-semibold">{vInfo.brand || "—"} {vInfo.model || ""}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Body Type</dt>
+                    <dd className="text-sm font-semibold capitalize">{vInfo.body_type || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Engine</dt>
+                    <dd className="text-sm font-semibold">{specInfo.engine_capacity ? `${specInfo.engine_capacity}L` : "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Doors</dt>
+                    <dd className="text-sm font-semibold">{specInfo.doors || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Seats</dt>
+                    <dd className="text-sm font-semibold">{specInfo.number_of_seats || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground mb-1">Drive</dt>
+                    <dd className="text-sm font-semibold">{addInfo.full_wheel_drive ? 'AWD/4WD' : 'Standard'}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+
+            {/* Features */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
+                  Features & Included
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-4 text-sm mt-1">
+                  {Object.entries(addInfo).map(([key, val]) => {
+                    if (key === 'stats' || typeof val !== 'boolean') return null;
+                    const label = key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                    return (
+                      <div key={key} className="flex items-center gap-2.5">
+                        {val ? <Check className="h-4 w-4 text-emerald-500 shrink-0" /> : <X className="h-4 w-4 text-muted-foreground/30 shrink-0" />}
+                        <span className={`${val ? 'text-foreground font-medium' : 'text-muted-foreground line-through opacity-60'}`}>{label}</span>
+                      </div>
+                    )
+                  })}
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground mb-1">Model</dt>
-                  <dd className="text-sm font-semibold">{vInfo.model || "—"}</dd>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Extra Options */}
+          {vehicle.extra_options_details && vehicle.extra_options_details.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <PlusCircle className="h-5 w-5 text-muted-foreground" />
+                  Available Extras
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-3">
+                  {vehicle.extra_options_details.map((opt: any) => (
+                    <div key={opt.id} className="flex items-center justify-between border-b border-border/50 last:border-0 pb-3 last:pb-0">
+                      <div>
+                        <p className="text-sm font-medium flex items-center gap-2">
+                          {opt.name}
+                          {opt.is_mandatory && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 uppercase">Mandatory</Badge>}
+                        </p>
+                        {opt.description && <p className="text-xs text-muted-foreground line-clamp-1">{opt.description}</p>}
+                      </div>
+                      <div className="text-sm font-semibold whitespace-nowrap">
+                        {opt.price === 0 ? "Free" : `+${opt.price} ${vehicle.currency || 'THB'}`}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground mb-1">Year</dt>
-                  <dd className="text-sm font-semibold">{vInfo.year || "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground mb-1">Engine</dt>
-                  <dd className="text-sm font-semibold">{vInfo.engine || "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground mb-1">Doors</dt>
-                  <dd className="text-sm font-semibold">{vInfo.doors || "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground mb-1">Seats</dt>
-                  <dd className="text-sm font-semibold">{vInfo.seats || "—"}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
+
         </div>
 
         {/* RIGHT COLUMN: PRICING, ASSIGNMENT, ACTIONS */}
@@ -302,6 +398,16 @@ export function VehicleDetailPage() {
                 <span className="text-lg font-medium text-slate-400 uppercase">
                   {vehicle.currency || "RUB"}
                 </span>
+              </div>
+              <div className="flex flex-col gap-2 pt-4 pb-2 border-t border-slate-800 mb-4">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-400">Security Deposit</span>
+                  <span className="font-medium text-slate-50">{vehicle.price_templates?.deposit_amount ? `${vehicle.price_templates.deposit_amount.toLocaleString()} ${vehicle.currency}` : "N/A"}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-400">Minimum Rent</span>
+                  <span className="font-medium text-slate-50">{vehicle.price_templates?.minimal_rent_period || 1} day(s)</span>
+                </div>
               </div>
               <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-900 border-none font-semibold">
                 Adjust Pricing
