@@ -6,6 +6,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Users", href: "/users", icon: Users },
   { name: "Vehicles", href: "/vehicles", icon: Car },
+  { name: "Reservations", href: "/reservations", icon: CalendarDays },
 ]
 
 interface SidebarProps {
