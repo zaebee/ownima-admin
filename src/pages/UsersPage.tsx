@@ -366,7 +366,7 @@ export function UsersPage() {
           <Table className="text-sm">
             <TableHeader className="bg-muted/30">
               <TableRow className="border-b">
-                <TableHead className="w-12 text-center h-10 px-0">
+                <TableHead className="w-[40px] sm:w-[60px] pl-2 sm:pl-4">
                   <Checkbox 
                     checked={selectedIds.length === displayedUsers.length && displayedUsers.length > 0}
                     onChange={toggleSelectAll}
@@ -385,7 +385,7 @@ export function UsersPage() {
             <TableBody>
               {displayedUsers.map((user) => (
                 <TableRow key={user.id} className="hover:bg-muted/10 border-b border-muted/50">
-                  <TableCell className="text-center px-0 py-2">
+                  <TableCell className="pl-2 sm:pl-4 py-2">
                     <Checkbox 
                       checked={selectedIds.includes(user.id)}
                       onChange={() => toggleSelect(user.id)}

@@ -199,7 +199,7 @@ export function UserDetailPage() {
       </Card>
 
       {/* Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b mt-2 mb-2">
+      <div className="flex overflow-x-auto items-center gap-2 border-b mt-2 mb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <button 
           onClick={() => setActiveTab("overview")}
           className={cn(
