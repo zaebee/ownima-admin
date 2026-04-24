@@ -1,12 +1,13 @@
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, UserCircle, Car, CalendarDays, Settings, X } from "lucide-react"
+import { LayoutDashboard, Users, UserCircle, Car, CalendarDays, Settings, X, CreditCard } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Users", href: "/users", icon: Users },
   { name: "Vehicles", href: "/vehicles", icon: Car },
   { name: "Reservations", href: "/reservations", icon: CalendarDays },
+  { name: "Billing & Payouts", href: "/billing", icon: CreditCard },
 ]
 
 interface SidebarProps {
