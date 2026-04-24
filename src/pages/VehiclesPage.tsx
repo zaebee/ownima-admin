@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, Car, Search, Eye, Filter, Plus } from "lucide-react"
 import { api } from "@/lib/api"
-import { getMediaUrl } from "@/lib/utils"
+import { getMediaUrl, cn } from "@/lib/utils"
 
 // Fallback mock data in case backend endpoint is not ready yet
 const MOCK_VEHICLES = [
@@ -136,13 +136,13 @@ export function VehiclesPage() {
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow>
-                <TableHead className="w-[80px]">Photo</TableHead>
-                <TableHead>Vehicle Details</TableHead>
-                <TableHead>License Plate</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Pricing</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[60px] sm:w-[80px] pl-2 sm:pl-4">Photo</TableHead>
+                <TableHead className="pl-2 sm:pl-4">Vehicle Details</TableHead>
+                <TableHead className="hidden md:table-cell">License Plate</TableHead>
+                <TableHead className="hidden sm:table-cell">Owner</TableHead>
+                <TableHead className="hidden sm:table-cell">Status</TableHead>
+                <TableHead className="hidden md:table-cell">Pricing</TableHead>
+                <TableHead className="text-right pr-2 sm:pr-4">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -161,7 +161,7 @@ export function VehiclesPage() {
               ) : (
                 vehicles.map((v) => (
                   <TableRow key={v.id} className="hover:bg-muted/20">
-                    <TableCell>
+                    <TableCell className="pl-2 sm:pl-4">
                       <div className="h-10 w-14 overflow-hidden rounded-md bg-muted flex items-center justify-center">
                         {v.picture?.cover ? (
                           <img 
@@ -174,7 +174,7 @@ export function VehiclesPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="pl-2 sm:pl-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-foreground">
                           {v.name || `${v.general_info?.brand} ${v.general_info?.model}`}
@@ -182,14 +182,22 @@ export function VehiclesPage() {
                         <span className="text-xs text-muted-foreground mt-0.5">
                           {v.general_info?.year} • {v.general_info?.vehicle_class || 'Unknown Class'}
                         </span>
+                        {/* Mobile info fallback */}
+                        <div className="flex flex-wrap items-center gap-2 mt-1 sm:hidden">
+                          <span className="text-[10px] font-mono bg-muted px-1 rounded">{v.general_info?.reg_number || 'N/A'}</span>
+                          <span className="text-[10px] items-center flex gap-0.5">
+                            <div className={cn("h-1.5 w-1.5 rounded-full", v.status === "ACTIVE" ? "bg-green-500" : "bg-muted-foreground")} />
+                            {getStatusString(v.status)}
+                          </span>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge variant="outline" className="font-mono text-xs font-semibold tracking-wider">
                         {v.general_info?.reg_number || 'N/A'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {v.owner ? (
                         <Link to={`/owners/${v.owner.id}`} className="text-sm font-medium hover:underline text-blue-600">
                           {v.owner.full_name || 'Owner Name'}
@@ -198,7 +206,7 @@ export function VehiclesPage() {
                         <span className="text-sm text-muted-foreground">No Owner</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge 
                         variant={getStatusVariant(v.status) as any}
                         className="rounded-md"
@@ -206,7 +214,7 @@ export function VehiclesPage() {
                         {getStatusString(v.status)}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <div className="flex items-center gap-1 text-sm font-medium">
                         {Number(v.price || 0).toLocaleString()} 
                         <span className="text-[10px] uppercase text-muted-foreground border border-border/50 px-1 py-0.5 rounded ml-1">
@@ -214,11 +222,16 @@ export function VehiclesPage() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" asChild>
+                    <TableCell className="text-right pr-2 sm:pr-4">
+                      <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
                         <Link to={`/vehicles/${v.id}`}>
                           <Eye className="h-4 w-4 mr-1.5" />
                           View
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="icon" className="sm:hidden h-8 w-8" asChild>
+                        <Link to={`/vehicles/${v.id}`}>
+                          <Eye className="h-4 w-4" />
                         </Link>
                       </Button>
                     </TableCell>

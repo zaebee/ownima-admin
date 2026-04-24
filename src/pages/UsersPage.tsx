@@ -373,12 +373,12 @@ export function UsersPage() {
                   />
                 </TableHead>
                 <SortableHead label="USER" sortKey="email" />
-                <TableHead className="text-xs font-semibold text-muted-foreground h-10">STATUS</TableHead>
-                {roleFilter === "OWNER" && <SortableHead label="VEHICLES" sortKey="total_vehicles" />}
-                <SortableHead label="RESERVATIONS" sortKey="total_reservations" />
-                <SortableHead label="LOGINS" sortKey="login_count" />
-                <SortableHead label="JOINED" sortKey="created_at" />
-                <SortableHead label="LAST LOGIN" sortKey="last_login_at" />
+                <TableHead className="hidden md:table-cell text-xs font-semibold text-muted-foreground h-10">STATUS</TableHead>
+                {roleFilter === "OWNER" && <SortableHead label="VEHICLES" sortKey="total_vehicles" className="hidden lg:table-cell" />}
+                <SortableHead label="RESERVATIONS" sortKey="total_reservations" className="hidden sm:table-cell" />
+                <SortableHead label="LOGINS" sortKey="login_count" className="hidden lg:table-cell" />
+                <SortableHead label="JOINED" sortKey="created_at" className="hidden xl:table-cell" />
+                <SortableHead label="LAST LOGIN" sortKey="last_login_at" className="hidden md:table-cell" />
                 <TableHead className="text-right text-xs font-semibold text-muted-foreground h-10">ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
@@ -427,7 +427,7 @@ export function UsersPage() {
                   </TableCell>
 
                   {/* STATUS COLUMN */}
-                  <TableCell className="py-2">
+                  <TableCell className="py-2 hidden md:table-cell">
                     <div className="flex items-center gap-1.5">
                       <div className={cn("h-2 w-2 rounded-full", user.is_active ? "bg-green-500" : "bg-muted-foreground")} />
                       <span className="text-xs font-medium text-muted-foreground">
@@ -438,30 +438,30 @@ export function UsersPage() {
 
                   {/* VEHICLES COLUMN */}
                   {roleFilter === "OWNER" && (
-                    <TableCell className="py-2">
+                    <TableCell className="py-2 hidden lg:table-cell">
                        <span className="font-medium text-foreground text-xs">{user.total_vehicles || 0}</span>
                     </TableCell>
                   )}
 
                   {/* RESERVATIONS COLUMN */}
-                  <TableCell className="py-2">
+                  <TableCell className="py-2 hidden sm:table-cell">
                     <span className="font-medium text-foreground text-xs">{user.total_reservations || 0}</span>
                   </TableCell>
 
                   {/* LOGINS COLUMN */}
-                  <TableCell className="py-2">
+                  <TableCell className="py-2 hidden lg:table-cell">
                     <span className="font-medium text-blue-600 text-xs">{user.login_count || 0}</span>
                   </TableCell>
 
                   {/* JOINED COLUMN */}
-                  <TableCell className="py-2">
+                  <TableCell className="py-2 hidden xl:table-cell">
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {user.created_at ? formatDate(user.created_at) : "Unknown"}
                     </span>
                   </TableCell>
 
                   {/* LAST LOGIN COLUMN */}
-                  <TableCell className="py-2">
+                  <TableCell className="py-2 hidden md:table-cell">
                     <div className="flex flex-col">
                       <span className="text-xs font-medium text-foreground whitespace-nowrap">
                         {user.last_login_at ? formatDate(user.last_login_at) : "Never"}
