@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Search, MoreHorizontal, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -17,6 +18,14 @@ const mockRiders = [
 export function RidersPage() {
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("registered_desc")
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [])
 
   const filteredAndSorted = useMemo(() => {
     let result = [...mockRiders]
@@ -109,7 +118,44 @@ export function RidersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSorted.map((rider) => (
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TableRow key={`skeleton-rider-${i}`}>
+                    <TableCell className="py-3">
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-40 sm:hidden" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell py-3">
+                      <Skeleton className="h-5 w-16 rounded" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <Skeleton className="h-4 w-6" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <div className="flex items-center gap-1.5">
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right py-3">
+                      <div className="flex justify-end">
+                        <Skeleton className="h-8 w-8 rounded-sm" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredAndSorted.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                    No riders found matching your search.
+                  </TableCell>
+                </TableRow>
+              ) : filteredAndSorted.map((rider) => (
                 <TableRow key={rider.id}>
                   <TableCell className="font-medium">
                     <div className="flex flex-col">

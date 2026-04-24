@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Search, MoreHorizontal, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -16,6 +17,14 @@ const mockReservations = [
 export function ReservationsPage() {
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("created_at_desc")
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [])
 
   const filteredAndSorted = useMemo(() => {
     let result = [...mockReservations]
@@ -110,7 +119,44 @@ export function ReservationsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSorted.map((res) => (
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TableRow key={`skeleton-res-${i}`}>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <Skeleton className="h-4 w-28" />
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-40 sm:hidden" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell py-3">
+                      <Skeleton className="h-5 w-20 rounded" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right py-3">
+                      <div className="flex justify-end">
+                        <Skeleton className="h-8 w-8 rounded-sm" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredAndSorted.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    No reservations found matching your search.
+                  </TableCell>
+                </TableRow>
+              ) : filteredAndSorted.map((res) => (
                 <TableRow key={res.id}>
                   <TableCell className="font-medium hidden sm:table-cell">{res.id}</TableCell>
                   <TableCell>

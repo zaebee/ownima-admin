@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Car, MapPin, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { Car, MapPin, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api"
 import { getMediaUrl } from "@/lib/utils"
 
@@ -34,17 +35,54 @@ export function UserVehicles({ userId, ownerCurrency }: { userId: string, ownerC
     if (userId) fetchVehicles()
   }, [userId, page])
 
-  if (loading) {
+  if (loading && vehicles.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex h-[300px] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </CardContent>
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader className="bg-muted/30">
+            <TableRow>
+              <TableHead className="w-[80px]">Photo</TableHead>
+              <TableHead>Vehicle Details</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Pricing</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <TableRow key={`skeleton-profile-vehicle-${i}`}>
+                <TableCell className="py-4">
+                  <Skeleton className="h-12 w-16 rounded-md" />
+                </TableCell>
+                <TableCell className="py-4">
+                  <div className="flex flex-col gap-2">
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                </TableCell>
+                <TableCell className="py-4">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </TableCell>
+                <TableCell className="hidden md:table-cell py-4">
+                  <div className="flex flex-col gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </TableCell>
+                <TableCell className="text-right py-4">
+                  <div className="flex justify-end">
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </Card>
     )
   }
 
-  if (vehicles.length === 0) {
+  if (!loading && vehicles.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col h-[300px] items-center justify-center gap-2">

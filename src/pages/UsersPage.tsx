@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { 
   Phone, 
@@ -310,7 +311,6 @@ export function UsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="text-sm text-muted-foreground flex items-center gap-2 min-w-[150px]">
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             <span>Showing {displayedUsers.length} of {total} {roleFilter.toLowerCase()}s</span>
           </div>
           <div className="relative w-full sm:w-56 lg:w-64">
@@ -383,7 +383,44 @@ export function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayedUsers.map((user) => (
+              {isLoading ? (
+                Array.from({ length: 15 }).map((_, i) => (
+                  <TableRow key={`skeleton-user-${i}`} className="border-b border-muted/50">
+                    <TableCell className="pl-2 sm:pl-4 py-3"><Skeleton className="h-4 w-4 rounded" /></TableCell>
+                    <TableCell className="py-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-9 w-9 rounded-full" />
+                        <div className="flex flex-col gap-1.5">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-40" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3 hidden md:table-cell">
+                      <div className="flex items-center gap-1.5">
+                        <Skeleton className="h-2 w-2 rounded-full" />
+                        <Skeleton className="h-3 w-12" />
+                      </div>
+                    </TableCell>
+                    {roleFilter === "OWNER" && <TableCell className="py-3 hidden lg:table-cell"><Skeleton className="h-4 w-6" /></TableCell>}
+                    <TableCell className="py-3 hidden sm:table-cell"><Skeleton className="h-4 w-6" /></TableCell>
+                    <TableCell className="py-3 hidden lg:table-cell"><Skeleton className="h-4 w-6" /></TableCell>
+                    <TableCell className="py-3 hidden xl:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell className="py-3 hidden md:table-cell">
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-12" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Skeleton className="h-7 w-7 rounded-sm" />
+                        <Skeleton className="h-7 w-7 rounded-sm" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : displayedUsers.map((user) => (
                 <TableRow key={user.id} className="hover:bg-muted/10 border-b border-muted/50">
                   <TableCell className="pl-2 sm:pl-4 py-2">
                     <Checkbox 

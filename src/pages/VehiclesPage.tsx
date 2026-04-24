@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Car, Search, Eye, Filter, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { Car, Search, Eye, Filter, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api"
 import { getMediaUrl, cn } from "@/lib/utils"
 
@@ -207,11 +208,46 @@ export function VehiclesPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 10 }).map((_, i) => (
+                  <TableRow key={`skeleton-vehicle-${i}`} className="hover:bg-muted/20">
+                    <TableCell className="pl-2 sm:pl-4 py-3">
+                      <Skeleton className="h-10 w-14 rounded-md" />
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-4 w-32" />
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-3 w-16" />
+                          <Skeleton className="h-4 w-12 rounded" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell py-3">
+                      <Skeleton className="h-5 w-24 rounded" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-6 w-6 rounded-full" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-3">
+                      <Skeleton className="h-5 w-16" />
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell py-3">
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right pr-2 sm:pr-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-8 rounded-sm" />
+                        <Skeleton className="h-8 w-8 rounded-sm" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : filteredAndSorted.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
