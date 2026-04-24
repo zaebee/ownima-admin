@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -189,8 +190,10 @@ export function ReservationsPage() {
                   <TableCell className="hidden sm:table-cell">{res.dates}</TableCell>
                   <TableCell className="hidden sm:table-cell">${res.total}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link to={`/reservations/${res.id}`}>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Link>
                     </Button>
                   </TableCell>
                 </TableRow>

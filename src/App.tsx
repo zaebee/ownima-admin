@@ -14,6 +14,8 @@ import { UserDetailPage } from "./pages/UserDetailPage"
 import { RiderDetailPage } from "./pages/RiderDetailPage"
 import { VehiclesPage } from "./pages/VehiclesPage"
 import { VehicleDetailPage } from "./pages/VehicleDetailPage"
+import { ReservationsPage } from "./pages/ReservationsPage"
+import { ReservationDetailPage } from "./pages/ReservationDetailPage"
 
 export default function App() {
   return (
@@ -30,6 +32,8 @@ export default function App() {
               <Route path="users" element={<UsersPage />} />
               <Route path="vehicles" element={<VehiclesPage />} />
               <Route path="vehicles/:id" element={<VehicleDetailPage />} />
+              <Route path="reservations" element={<ReservationsPage />} />
+              <Route path="reservations/:id" element={<ReservationDetailPage />} />
               <Route path="owners/:id" element={<UserDetailPage />} />
               <Route path="riders/:id" element={<RiderDetailPage />} />
             </Route>
