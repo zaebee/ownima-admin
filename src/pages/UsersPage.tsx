@@ -292,7 +292,7 @@ export function UsersPage() {
           }
         }}
       >
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 text-[11px] uppercase tracking-wider">
           {label}
           {isActive ? (
             isDesc ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
@@ -373,13 +373,13 @@ export function UsersPage() {
                   />
                 </TableHead>
                 <SortableHead label="USER" sortKey="email" />
-                <TableHead className="hidden md:table-cell text-xs font-semibold text-muted-foreground h-10">STATUS</TableHead>
+                <TableHead className="hidden md:table-cell text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10">STATUS</TableHead>
                 {roleFilter === "OWNER" && <SortableHead label="VEHICLES" sortKey="total_vehicles" className="hidden lg:table-cell" />}
                 <SortableHead label="RESERVATIONS" sortKey="total_reservations" className="hidden sm:table-cell" />
                 <SortableHead label="LOGINS" sortKey="login_count" className="hidden lg:table-cell" />
                 <SortableHead label="JOINED" sortKey="created_at" className="hidden xl:table-cell" />
                 <SortableHead label="LAST LOGIN" sortKey="last_login_at" className="hidden md:table-cell" />
-                <TableHead className="text-right text-xs font-semibold text-muted-foreground h-10">ACTIONS</TableHead>
+                <TableHead className="text-right text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10">ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

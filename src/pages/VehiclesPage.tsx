@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Car, Search, Eye, Filter, Plus } from "lucide-react"
+import { Loader2, Car, Search, Eye, Filter, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 import { api } from "@/lib/api"
 import { getMediaUrl, cn } from "@/lib/utils"
 
@@ -69,13 +69,13 @@ export function VehiclesPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [sortBy, setSortBy] = useState("created_at_desc")
 
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
         setLoading(true)
-        // Attempt reaching backend, fallback if 404
-        const response = await api.get('/admin/vehicles', { params: { limit: 20, skip: 0 } })
+        const response = await api.get('/admin/vehicles', { params: { limit: 100, skip: 0 } })
         setVehicles(response.data.data || [])
         setTotal(response.data.count || 0)
       } catch (error: any) {
@@ -93,6 +93,66 @@ export function VehiclesPage() {
     
     fetchVehicles()
   }, [])
+
+  const filteredAndSorted = useMemo(() => {
+    let result = [...vehicles]
+
+    if (search.trim()) {
+      const q = search.toLowerCase().trim()
+      result = result.filter(v => 
+        (v.name && v.name.toLowerCase().includes(q)) ||
+        (v.general_info?.reg_number && v.general_info.reg_number.toLowerCase().includes(q)) ||
+        (v.general_info?.vin && v.general_info.vin.toLowerCase().includes(q))
+      )
+    }
+
+    result.sort((a, b) => {
+      const isDesc = sortBy.endsWith('_desc')
+      const key = sortBy.replace(/_desc$|_asc$/, '')
+      let comp = 0
+      
+      const aName = a.name || `${a.general_info?.brand} ${a.general_info?.model}`;
+      const bName = b.name || `${b.general_info?.brand} ${b.general_info?.model}`;
+
+      if (key === 'name') comp = String(aName || '').localeCompare(String(bName || ''))
+      else if (key === 'reg_number') comp = String(a.general_info?.reg_number || '').localeCompare(String(b.general_info?.reg_number || ''))
+      else if (key === 'owner') comp = String(a.owner?.full_name || '').localeCompare(String(b.owner?.full_name || ''))
+      else if (key === 'status') comp = (a.status || 0) - (b.status || 0)
+      else if (key === 'price') comp = (a.price || 0) - (b.price || 0)
+      else if (key === 'created_at') comp = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+      
+      return isDesc ? -comp : comp
+    })
+
+    return result
+  }, [vehicles, search, sortBy])
+
+  const SortableHead = ({ label, sortKey, className = "" }: { label: string, sortKey: string, className?: string }) => {
+    const isActive = sortBy.startsWith(sortKey)
+    const isDesc = sortBy.endsWith('_desc')
+    
+    return (
+      <TableHead 
+        className={cn("text-xs font-semibold text-muted-foreground h-10 cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none whitespace-nowrap", className)}
+        onClick={() => {
+          if (isActive) {
+            setSortBy(sortKey + (isDesc ? "_asc" : "_desc"))
+          } else {
+            setSortBy(sortKey + "_desc")
+          }
+        }}
+      >
+        <div className="flex items-center gap-1 text-[11px] uppercase tracking-wider">
+          {label}
+          {isActive ? (
+            isDesc ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowUpDown className="h-3 w-3 opacity-30" />
+          )}
+        </div>
+      </TableHead>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full pb-10">
@@ -136,13 +196,13 @@ export function VehiclesPage() {
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow>
-                <TableHead className="w-[60px] sm:w-[80px] pl-2 sm:pl-4">Photo</TableHead>
-                <TableHead className="pl-2 sm:pl-4">Vehicle Details</TableHead>
-                <TableHead className="hidden md:table-cell">License Plate</TableHead>
-                <TableHead className="hidden sm:table-cell">Owner</TableHead>
-                <TableHead className="hidden sm:table-cell">Status</TableHead>
-                <TableHead className="hidden md:table-cell">Pricing</TableHead>
-                <TableHead className="text-right pr-2 sm:pr-4">Actions</TableHead>
+                <TableHead className="w-[60px] sm:w-[80px] pl-2 sm:pl-4 text-xs font-semibold text-muted-foreground h-10 select-none uppercase tracking-wider">Photo</TableHead>
+                <SortableHead label="Vehicle Details" sortKey="name" className="pl-2 sm:pl-4" />
+                <SortableHead label="License Plate" sortKey="reg_number" className="hidden md:table-cell" />
+                <SortableHead label="Owner" sortKey="owner" className="hidden sm:table-cell" />
+                <SortableHead label="Status" sortKey="status" className="hidden sm:table-cell" />
+                <SortableHead label="Pricing" sortKey="price" className="hidden md:table-cell" />
+                <TableHead className="text-right pr-2 sm:pr-4 text-xs font-semibold text-muted-foreground h-10 select-none uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -152,14 +212,14 @@ export function VehiclesPage() {
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
-              ) : vehicles.length === 0 ? (
+              ) : filteredAndSorted.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                     No vehicles found matching your criteria.
                   </TableCell>
                 </TableRow>
               ) : (
-                vehicles.map((v) => (
+                filteredAndSorted.map((v) => (
                   <TableRow key={v.id} className="hover:bg-muted/20">
                     <TableCell className="pl-2 sm:pl-4">
                       <div className="h-10 w-14 overflow-hidden rounded-md bg-muted flex items-center justify-center">
@@ -248,7 +308,7 @@ export function VehiclesPage() {
         </CardContent>
         {!loading && total > 0 && (
           <div className="px-6 py-4 border-t bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
-            <span>Showing {vehicles.length} of {total} vehicles</span>
+            <span>Showing {filteredAndSorted.length} of {total} vehicles</span>
             {/* Minimal pagination mock */}
             <div className="flex gap-1">
               <Button variant="outline" size="sm" disabled>Previous</Button>

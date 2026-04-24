@@ -1,20 +1,78 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, MoreHorizontal } from "lucide-react"
+import { Search, MoreHorizontal, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const mockRiders = [
-  { id: "1", name: "Alice Williams", email: "alice@example.com", status: "Active", bookings: 3, rating: 4.9 },
-  { id: "2", name: "Charlie Brown", email: "charlie@example.com", status: "Active", bookings: 1, rating: 4.5 },
-  { id: "3", name: "Eve Davis", email: "eve@example.com", status: "Inactive", bookings: 0, rating: 0 },
+  { id: "1", name: "Alice Williams", email: "alice@example.com", status: "Active", bookings: 3, rating: 4.9, registered: "2023-01-15" },
+  { id: "2", name: "Charlie Brown", email: "charlie@example.com", status: "Active", bookings: 1, rating: 4.5, registered: "2023-05-12" },
+  { id: "3", name: "Eve Davis", email: "eve@example.com", status: "Inactive", bookings: 0, rating: 0, registered: "2023-11-01" },
 ]
 
 export function RidersPage() {
   const [search, setSearch] = useState("")
+  const [sortBy, setSortBy] = useState("registered_desc")
+
+  const filteredAndSorted = useMemo(() => {
+    let result = [...mockRiders]
+
+    if (search.trim()) {
+      const q = search.toLowerCase().trim()
+      result = result.filter(r => 
+        (r.name && r.name.toLowerCase().includes(q)) ||
+        (r.email && r.email.toLowerCase().includes(q))
+      )
+    }
+
+    result.sort((a, b) => {
+      const isDesc = sortBy.endsWith('_desc')
+      const key = sortBy.replace(/_desc$|_asc$/, '')
+      let comp = 0
+      
+      if (key === 'name') comp = String(a.name || '').localeCompare(String(b.name || ''))
+      else if (key === 'email') comp = String(a.email || '').localeCompare(String(b.email || ''))
+      else if (key === 'status') comp = String(a.status || '').localeCompare(String(b.status || ''))
+      else if (key === 'bookings') comp = (a.bookings || 0) - (b.bookings || 0)
+      else if (key === 'rating') comp = (a.rating || 0) - (b.rating || 0)
+      else if (key === 'registered') comp = new Date(a.registered || 0).getTime() - new Date(b.registered || 0).getTime()
+      
+      return isDesc ? -comp : comp
+    })
+
+    return result
+  }, [search, sortBy])
+
+  const SortableHead = ({ label, sortKey, className = "" }: { label: string, sortKey: string, className?: string }) => {
+    const isActive = sortBy.startsWith(sortKey)
+    const isDesc = sortBy.endsWith('_desc')
+    
+    return (
+      <TableHead 
+        className={cn("text-xs font-semibold text-muted-foreground h-10 cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none whitespace-nowrap", className)}
+        onClick={() => {
+          if (isActive) {
+            setSortBy(sortKey + (isDesc ? "_asc" : "_desc"))
+          } else {
+            setSortBy(sortKey + "_desc")
+          }
+        }}
+      >
+        <div className="flex items-center gap-1 text-[11px] uppercase tracking-wider">
+          {label}
+          {isActive ? (
+            isDesc ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowUpDown className="h-3 w-3 opacity-30" />
+          )}
+        </div>
+      </TableHead>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -40,18 +98,18 @@ export function RidersPage() {
             </div>
           </div>
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/30">
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="hidden sm:table-cell">Email</TableHead>
-                <TableHead className="hidden md:table-cell">Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Bookings</TableHead>
-                <TableHead className="hidden sm:table-cell">Rating</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <SortableHead label="Name" sortKey="name" />
+                <SortableHead label="Email" sortKey="email" className="hidden sm:table-cell" />
+                <SortableHead label="Status" sortKey="status" className="hidden md:table-cell" />
+                <SortableHead label="Bookings" sortKey="bookings" className="hidden sm:table-cell" />
+                <SortableHead label="Rating" sortKey="rating" className="hidden sm:table-cell" />
+                <TableHead className="text-right text-xs font-semibold text-muted-foreground h-10 select-none uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockRiders.map((rider) => (
+              {filteredAndSorted.map((rider) => (
                 <TableRow key={rider.id}>
                   <TableCell className="font-medium">
                     <div className="flex flex-col">

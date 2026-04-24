@@ -1,19 +1,78 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, MoreHorizontal } from "lucide-react"
+import { Search, MoreHorizontal, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const mockReservations = [
-  { id: "RES-101", vehicle: "Tesla Model 3", rider: "Alice Williams", owner: "John Doe", status: "Confirmed", dates: "Nov 15 - Nov 18", total: 360 },
-  { id: "RES-102", vehicle: "Ford F-150", rider: "Charlie Brown", owner: "Jane Smith", status: "Active", dates: "Nov 10 - Nov 20", total: 1500 },
-  { id: "RES-103", vehicle: "Honda Civic", rider: "Eve Davis", owner: "Bob Johnson", status: "Cancelled", dates: "Nov 01 - Nov 05", total: 320 },
+  { id: "RES-101", vehicle: "Tesla Model 3", rider: "Alice Williams", owner: "John Doe", status: "Confirmed", dates: "Nov 15 - Nov 18", total: 360, created_at: "2023-11-01" },
+  { id: "RES-102", vehicle: "Ford F-150", rider: "Charlie Brown", owner: "Jane Smith", status: "Active", dates: "Nov 10 - Nov 20", total: 1500, created_at: "2023-11-05" },
+  { id: "RES-103", vehicle: "Honda Civic", rider: "Eve Davis", owner: "Bob Johnson", status: "Cancelled", dates: "Nov 01 - Nov 05", total: 320, created_at: "2023-10-25" },
 ]
 
 export function ReservationsPage() {
   const [search, setSearch] = useState("")
+  const [sortBy, setSortBy] = useState("created_at_desc")
+
+  const filteredAndSorted = useMemo(() => {
+    let result = [...mockReservations]
+
+    if (search.trim()) {
+      const q = search.toLowerCase().trim()
+      result = result.filter(r => 
+        (r.id && r.id.toLowerCase().includes(q)) ||
+        (r.vehicle && r.vehicle.toLowerCase().includes(q)) ||
+        (r.rider && r.rider.toLowerCase().includes(q))
+      )
+    }
+
+    result.sort((a, b) => {
+      const isDesc = sortBy.endsWith('_desc')
+      const key = sortBy.replace(/_desc$|_asc$/, '')
+      let comp = 0
+      
+      if (key === 'id') comp = String(a.id || '').localeCompare(String(b.id || ''))
+      else if (key === 'vehicle') comp = String(a.vehicle || '').localeCompare(String(b.vehicle || ''))
+      else if (key === 'rider') comp = String(a.rider || '').localeCompare(String(b.rider || ''))
+      else if (key === 'status') comp = String(a.status || '').localeCompare(String(b.status || ''))
+      else if (key === 'total') comp = (a.total || 0) - (b.total || 0)
+      else if (key === 'created_at') comp = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+      
+      return isDesc ? -comp : comp
+    })
+
+    return result
+  }, [search, sortBy])
+
+  const SortableHead = ({ label, sortKey, className = "" }: { label: string, sortKey: string, className?: string }) => {
+    const isActive = sortBy.startsWith(sortKey)
+    const isDesc = sortBy.endsWith('_desc')
+    
+    return (
+      <TableHead 
+        className={cn("text-xs font-semibold text-muted-foreground h-10 cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none whitespace-nowrap", className)}
+        onClick={() => {
+          if (isActive) {
+            setSortBy(sortKey + (isDesc ? "_asc" : "_desc"))
+          } else {
+            setSortBy(sortKey + "_desc")
+          }
+        }}
+      >
+        <div className="flex items-center gap-1 text-[11px] uppercase tracking-wider">
+          {label}
+          {isActive ? (
+            isDesc ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowUpDown className="h-3 w-3 opacity-30" />
+          )}
+        </div>
+      </TableHead>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -39,19 +98,19 @@ export function ReservationsPage() {
             </div>
           </div>
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/30">
               <TableRow>
-                <TableHead className="hidden sm:table-cell">ID</TableHead>
-                <TableHead>Vehicle</TableHead>
-                <TableHead>Rider</TableHead>
-                <TableHead className="hidden md:table-cell">Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Dates</TableHead>
-                <TableHead className="hidden sm:table-cell">Total</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <SortableHead label="ID" sortKey="id" className="hidden sm:table-cell" />
+                <SortableHead label="Vehicle" sortKey="vehicle" />
+                <SortableHead label="Rider" sortKey="rider" />
+                <SortableHead label="Status" sortKey="status" className="hidden md:table-cell" />
+                <TableHead className="hidden sm:table-cell text-xs font-semibold text-muted-foreground h-10 select-none uppercase tracking-wider">Dates</TableHead>
+                <SortableHead label="Total" sortKey="total" className="hidden sm:table-cell" />
+                <TableHead className="text-right text-xs font-semibold text-muted-foreground h-10 select-none uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockReservations.map((res) => (
+              {filteredAndSorted.map((res) => (
                 <TableRow key={res.id}>
                   <TableCell className="font-medium hidden sm:table-cell">{res.id}</TableCell>
                   <TableCell>

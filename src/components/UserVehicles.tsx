@@ -115,9 +115,14 @@ export function UserVehicles({ userId, ownerCurrency }: { userId: string, ownerC
                     <span className="font-medium text-foreground">
                       {v.name || `${v.general_info?.brand} ${v.general_info?.model}`}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      {v.general_info?.year} • {v.general_info?.vehicle_class || 'Class Unknown'}
-                    </span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-muted-foreground">
+                        {v.general_info?.vehicle_class || 'Class Unknown'}
+                      </span>
+                      <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium truncate max-w-[120px]">
+                        {v.price_templates?.template_name || 'demo'}
+                      </span>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
