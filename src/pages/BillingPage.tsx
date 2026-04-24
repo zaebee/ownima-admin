@@ -46,9 +46,9 @@ export function BillingPage() {
 
   const formatAmount = (amount: number, impact: string) => {
     const formatted = amount.toLocaleString()
-    if (impact === "positive") return <span className="text-emerald-600 dark:text-emerald-500 font-semibold">+{formatted}</span>
-    if (impact === "negative") return <span className="text-rose-600 dark:text-rose-500 font-semibold">-{formatted}</span>
-    return <span className="text-slate-600 dark:text-slate-400 font-semibold">{formatted}</span>
+    if (impact === "positive") return <span className="text-emerald-600 font-semibold">+{formatted}</span>
+    if (impact === "negative") return <span className="text-rose-600 font-semibold">-{formatted}</span>
+    return <span className="text-slate-600 font-semibold">{formatted}</span>
   }
 
   return (
@@ -72,7 +72,7 @@ export function BillingPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
+            <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg">
               <DollarSign className="h-6 w-6" />
             </div>
             <div>
@@ -83,7 +83,7 @@ export function BillingPage() {
         </Card>
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+            <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
               <Wallet className="h-6 w-6" />
             </div>
             <div>
@@ -94,7 +94,7 @@ export function BillingPage() {
         </Card>
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
+            <div className="p-3 bg-amber-100 text-amber-600 rounded-lg">
                <ShieldAlert className="h-6 w-6" />
             </div>
             <div>

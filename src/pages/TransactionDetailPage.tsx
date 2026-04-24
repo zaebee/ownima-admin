@@ -90,29 +90,29 @@ export function TransactionDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4 mb-6">
-                <div className={`p-4 rounded-full bg-slate-100 dark:bg-slate-800 ${impactColor}`}>
+                <div className={`p-4 rounded-full bg-slate-100 ${impactColor}`}>
                   {getTypeIcon(txn.type, txn.net_impact, "h-8 w-8")}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{txn.type}</p>
-                  <h2 className="text-4xl font-bold tracking-tight">
+                  <p className="text-sm font-medium text-slate-500">{txn.type}</p>
+                  <h2 className="text-4xl font-bold tracking-tight text-slate-900">
                     {txn.net_impact === 'positive' ? '+' : txn.net_impact === 'negative' ? '-' : ''}
-                    {txn.amount.toLocaleString()} <span className="text-xl text-muted-foreground font-medium">{txn.currency}</span>
+                    {txn.amount.toLocaleString()} <span className="text-xl text-slate-500 font-medium">{txn.currency}</span>
                   </h2>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">Fee Breakdown</h4>
-                <div className="rounded-lg border bg-slate-50/50 dark:bg-slate-900/50 p-4 space-y-3">
+                <h4 className="text-sm font-medium text-slate-900">Fee Breakdown</h4>
+                <div className="rounded-lg border bg-muted p-4 space-y-3">
                   {txn.fee_breakdown.map((fee, i) => (
                     <div key={i} className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">{fee.label}</span>
-                      <span className="font-medium">{fee.amount.toLocaleString()} {txn.currency}</span>
+                      <span className="text-slate-600">{fee.label}</span>
+                      <span className="font-semibold text-slate-900">{fee.amount.toLocaleString()} {txn.currency}</span>
                     </div>
                   ))}
                   <Separator className="my-2" />
-                  <div className="flex justify-between items-center font-medium text-base">
+                  <div className="flex justify-between items-center font-bold text-base text-slate-900">
                     <span>Total</span>
                     <span>{txn.amount.toLocaleString()} {txn.currency}</span>
                   </div>
@@ -126,7 +126,7 @@ export function TransactionDetailPage() {
                <CardTitle>Description</CardTitle>
              </CardHeader>
              <CardContent>
-               <p className="text-slate-700 dark:text-slate-300">{txn.description}</p>
+               <p className="text-slate-700">{txn.description}</p>
              </CardContent>
           </Card>
         </div>
