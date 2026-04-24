@@ -27,10 +27,10 @@ export function BillingPage() {
       case "Completed":
       case "Processed":
       case "Released":
-        return <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 font-medium">✓ {status}</Badge>
+        return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium border-transparent">✓ {status}</Badge>
       case "Pending":
       case "Active":
-        return <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium">{status}</Badge>
+        return <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-medium border-transparent">{status}</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -40,15 +40,15 @@ export function BillingPage() {
     if (type === "Hold") return <ShieldAlert className="h-4 w-4 text-slate-400" />
     if (type === "Fine") return <Receipt className="h-4 w-4 text-rose-500" />
     if (impact === "positive") return <ArrowDownRight className="h-4 w-4 text-emerald-500" />
-    if (impact === "negative") return <ArrowUpRight className="h-4 w-4 text-blue-500" />
+    if (impact === "negative") return <ArrowUpRight className="h-4 w-4 text-rose-500" />
     return <DollarSign className="h-4 w-4 text-slate-500" />
   }
 
   const formatAmount = (amount: number, impact: string) => {
     const formatted = amount.toLocaleString()
-    if (impact === "positive") return <span className="text-emerald-600 dark:text-emerald-400 font-medium">+{formatted}</span>
-    if (impact === "negative") return <span className="text-slate-900 dark:text-slate-100 font-medium">-{formatted}</span>
-    return <span className="text-slate-500 font-medium">{formatted}</span>
+    if (impact === "positive") return <span className="text-emerald-600 dark:text-emerald-500 font-semibold">+{formatted}</span>
+    if (impact === "negative") return <span className="text-rose-600 dark:text-rose-500 font-semibold">-{formatted}</span>
+    return <span className="text-slate-600 dark:text-slate-400 font-semibold">{formatted}</span>
   }
 
   return (

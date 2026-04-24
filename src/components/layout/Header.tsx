@@ -30,11 +30,11 @@ export function Header({ onMenuClick }: HeaderProps) {
         </button>
       </div>
 
-      <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ml-2 lg:ml-0">
+      <div className="flex flex-1 gap-x-4 self-stretch justify-between lg:gap-x-6 ml-2 lg:ml-0">
         <div className="relative flex flex-1 items-center max-w-md">
           <GlobalSearch />
         </div>
-        <div className="flex items-center gap-x-4 lg:gap-x-6">
+        <div className="flex items-center gap-x-4 lg:gap-x-6 shrink-0">
           <button type="button" className="-m-2.5 p-2.5 text-muted-foreground hover:text-foreground">
             <span className="sr-only">View notifications</span>
             <Bell className="h-6 w-6" aria-hidden="true" />
