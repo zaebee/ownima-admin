@@ -8,34 +8,46 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search, MoreHorizontal, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const mockReservations = [
-  { id: "RES-101", vehicle: "Tesla Model 3", rider: "Alice Williams", owner: "John Doe", status: "Confirmed", dates: "Nov 15 - Nov 18", total: 360, created_at: "2023-11-01" },
-  { id: "RES-102", vehicle: "Ford F-150", rider: "Charlie Brown", owner: "Jane Smith", status: "Active", dates: "Nov 10 - Nov 20", total: 1500, created_at: "2023-11-05" },
-  { id: "RES-103", vehicle: "Honda Civic", rider: "Eve Davis", owner: "Bob Johnson", status: "Cancelled", dates: "Nov 01 - Nov 05", total: 320, created_at: "2023-10-25" },
-]
+import { api } from "@/lib/api"
 
 export function ReservationsPage() {
+  const [reservations, setReservations] = useState<any[]>([])
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("created_at_desc")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 600)
-    return () => clearTimeout(timer)
+    const fetchReservations = async () => {
+      try {
+        setLoading(true)
+        const response = await api.get("/admin/reservations")
+        // Check if data is array or wrapped in an object like { items: [] }, { data: [] }
+        const data = Array.isArray(response.data) ? response.data : 
+                     (response.data?.items ? response.data.items : 
+                     (response.data?.data ? response.data.data : []))
+        setReservations(data)
+      } catch (error) {
+        console.error("Error fetching reservations:", error)
+        // Fallback or empty array on error
+        setReservations([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchReservations()
   }, [])
 
   const filteredAndSorted = useMemo(() => {
-    let result = [...mockReservations]
+    let result = [...reservations]
 
     if (search.trim()) {
       const q = search.toLowerCase().trim()
       result = result.filter(r => 
         (r.id && r.id.toLowerCase().includes(q)) ||
-        (r.vehicle && r.vehicle.toLowerCase().includes(q)) ||
-        (r.rider && r.rider.toLowerCase().includes(q))
+        (r.vehicle && r.vehicle.toString().toLowerCase().includes(q)) || /* toString in case backend sends nested object */
+        (r.rider && r.rider.toString().toLowerCase().includes(q)) ||
+        (r.vehicle?.name && r.vehicle.name.toLowerCase().includes(q)) ||
+        (r.rider?.name && r.rider.name.toLowerCase().includes(q))
       )
     }
 
@@ -44,18 +56,28 @@ export function ReservationsPage() {
       const key = sortBy.replace(/_desc$|_asc$/, '')
       let comp = 0
       
-      if (key === 'id') comp = String(a.id || '').localeCompare(String(b.id || ''))
-      else if (key === 'vehicle') comp = String(a.vehicle || '').localeCompare(String(b.vehicle || ''))
-      else if (key === 'rider') comp = String(a.rider || '').localeCompare(String(b.rider || ''))
-      else if (key === 'status') comp = String(a.status || '').localeCompare(String(b.status || ''))
-      else if (key === 'total') comp = (a.total || 0) - (b.total || 0)
-      else if (key === 'created_at') comp = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+      const valA = key === 'total' ? (a.total_amount || a.total || 0) : 
+                   key === 'vehicle' ? (a.vehicle?.name || a.vehicle || '') : 
+                   key === 'rider' ? (a.rider?.name || a.rider || '') : 
+                   a[key]
+      
+      const valB = key === 'total' ? (b.total_amount || b.total || 0) : 
+                   key === 'vehicle' ? (b.vehicle?.name || b.vehicle || '') : 
+                   key === 'rider' ? (b.rider?.name || b.rider || '') : 
+                   b[key]
+
+      if (key === 'id') comp = String(valA || '').localeCompare(String(valB || ''))
+      else if (key === 'vehicle') comp = String(valA || '').localeCompare(String(valB || ''))
+      else if (key === 'rider') comp = String(valA || '').localeCompare(String(valB || ''))
+      else if (key === 'status') comp = String(valA || '').localeCompare(String(valB || ''))
+      else if (key === 'total') comp = (valA || 0) - (valB || 0)
+      else if (key === 'created_at') comp = new Date(valA || 0).getTime() - new Date(valB || 0).getTime()
       
       return isDesc ? -comp : comp
     })
 
     return result
-  }, [search, sortBy])
+  }, [search, sortBy, reservations])
 
   const SortableHead = ({ label, sortKey, className = "" }: { label: string, sortKey: string, className?: string }) => {
     const isActive = sortBy.startsWith(sortKey)
@@ -157,38 +179,49 @@ export function ReservationsPage() {
                     No reservations found matching your search.
                   </TableCell>
                 </TableRow>
-              ) : filteredAndSorted.map((res) => (
-                <TableRow key={res.id}>
+              ) : filteredAndSorted.map((res) => {
+                const vehicleName = typeof res.vehicle === 'object' && res.vehicle ? (res.vehicle.name || res.vehicle.model || 'Unknown Vehicle') : (res.vehicle || 'Unknown Vehicle')
+                const riderName = typeof res.rider === 'object' && res.rider ? (res.rider.name || res.rider.full_name || 'Unknown Rider') : (res.rider || 'Unknown Rider')
+                // Dates can come as res.start_date / res.end_date or res.dates
+                const datesStr = res.dates || (res.start_date && res.end_date ? `${new Date(res.start_date).toLocaleDateString()} - ${new Date(res.end_date).toLocaleDateString()}` : 'Date not set')
+                const totalAmount = res.total_amount || res.total || res.grand_total || 0
+                const currency = res.currency || res.financials?.currency || 'USD'
+                const status = (res.status || 'Pending').charAt(0).toUpperCase() + (res.status || 'Pending').slice(1).toLowerCase()
+
+                return (
+                 <TableRow key={res.id}>
                   <TableCell className="font-medium hidden sm:table-cell">{res.id}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{res.vehicle}</span>
-                      <span className="text-xs text-muted-foreground sm:hidden">{res.dates}</span>
+                      <span className="font-medium">{vehicleName}</span>
+                      <span className="text-xs text-muted-foreground sm:hidden">{datesStr}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span>{res.rider}</span>
+                      <span>{riderName}</span>
                       <div className="flex items-center gap-2 mt-1 md:hidden">
                         <Badge variant={
-                          res.status === "Confirmed" ? "success" : 
-                          res.status === "Active" ? "default" : "destructive"
+                          status === "Confirmed" ? "success" : 
+                          status === "Active" ? "default" : 
+                          status === "Cancelled" ? "destructive" : "secondary"
                         } className="text-[10px] px-1 py-0 h-4">
-                          {res.status}
+                          {status}
                         </Badge>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Badge variant={
-                      res.status === "Confirmed" ? "success" : 
-                      res.status === "Active" ? "default" : "destructive"
+                      status === "Confirmed" ? "success" : 
+                      status === "Active" ? "default" : 
+                      status === "Cancelled" ? "destructive" : "secondary"
                     }>
-                      {res.status}
+                      {status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">{res.dates}</TableCell>
-                  <TableCell className="hidden sm:table-cell">${res.total}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{datesStr}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{totalAmount.toLocaleString()} {currency}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" asChild>
                       <Link to={`/reservations/${res.id}`}>
@@ -197,7 +230,8 @@ export function ReservationsPage() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+               )
+              })}
             </TableBody>
           </Table>
         </CardContent>
