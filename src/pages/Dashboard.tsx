@@ -59,6 +59,17 @@ const SEARCH_LATENCY_DATA = Array.from({ length: 20 }).map((_, i) => ({
   latency: Math.floor(Math.random() * 30) + 20,
 }))
 
+const ACTIVE_USERS_DATA = Array.from({ length: 30 }).map((_, i) => {
+  const date = new Date()
+  date.setDate(date.getDate() - (29 - i))
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6
+  const base = 4200 + (i * 35)
+  return {
+    date: format(date, 'MMM dd'),
+    active: isWeekend ? base + Math.floor(Math.random() * 500) + 400 : base + Math.floor(Math.random() * 200),
+  }
+})
+
 const VEHICLE_TYPE_DATA = [
   { name: 'Sedan', value: 340, color: '#3b82f6' },
   { name: 'SUV', value: 215, color: '#10b981' },
@@ -325,6 +336,37 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ACTIVE USERS CHART */}
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-500" />
+            Active Users (30 Days)
+          </CardTitle>
+          <CardDescription>Daily unique active users (DAU)</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[300px] flex-1 mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={ACTIVE_USERS_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} minTickGap={30} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} width={80} />
+              <RechartsTooltip 
+                contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                formatter={(value: number) => [`${value.toLocaleString()}`, 'Active Users']}
+              />
+              <Area type="monotone" dataKey="active" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
         {/* Vehicles Status Pie */}
