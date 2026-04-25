@@ -16,17 +16,52 @@ export function ReservationsPage() {
   const [sortBy, setSortBy] = useState("created_at_desc")
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
-  const limit = 10
+  const limit = 20
 
   useEffect(() => {
     const fetchReservations = async () => {
       try {
         setLoading(true)
-        const response = await api.get("/admin/reservations")
-        const data = Array.isArray(response.data) ? response.data : 
-                     (response.data?.items ? response.data.items : 
-                     (response.data?.data ? response.data.data : []))
-        setReservations(data)
+        
+        let fetchedData: any[] = []
+        let currentPage = 1
+        let hasMore = true
+        let loopCount = 0
+
+        while (hasMore && loopCount < 10) {
+          const response = await api.get("/admin/reservations", {
+            params: { page: currentPage, size: 50 },
+            validateStatus: () => true
+          })
+          
+          if (response.status >= 400) {
+            console.error("API error", response.data)
+            hasMore = false
+            break;
+          }
+
+          const rawData = response.data
+          const data = Array.isArray(rawData) ? rawData : 
+                       (rawData?.data ? rawData.data : 
+                       (rawData?.items ? rawData.items : []))
+          
+          fetchedData = [...fetchedData, ...data]
+          
+          if (rawData?.total_pages) {
+            if (currentPage >= rawData.total_pages) {
+              hasMore = false
+            } else {
+              currentPage++
+            }
+          } else {
+            // fallback if total_pages not present
+            if (data.length < 50) hasMore = false
+            else currentPage++
+          }
+          loopCount++
+        }
+        
+        setReservations(fetchedData)
       } catch (error) {
         console.error("Error fetching reservations:", error)
         setReservations([])
@@ -43,11 +78,11 @@ export function ReservationsPage() {
     if (search.trim()) {
       const q = search.toLowerCase().trim()
       result = result.filter(r => 
-        (r.id && r.id.toLowerCase().includes(q)) ||
-        (r.vehicle && r.vehicle.toString().toLowerCase().includes(q)) ||
-        (r.rider && r.rider.toString().toLowerCase().includes(q)) ||
-        (r.vehicle?.name && r.vehicle.name.toLowerCase().includes(q)) ||
-        (r.rider?.name && r.rider.name.toLowerCase().includes(q))
+        (r.id && String(r.id).toLowerCase().includes(q)) ||
+        (r.humanized?.id && String(r.humanized.id).toLowerCase().includes(q)) ||
+        (r.vehicle?.name && String(r.vehicle.name).toLowerCase().includes(q)) ||
+        (r.rider?.name && String(r.rider.name).toLowerCase().includes(q)) ||
+        (r.rider?.full_name && String(r.rider.full_name).toLowerCase().includes(q))
       )
     }
 
@@ -56,21 +91,21 @@ export function ReservationsPage() {
       const key = sortBy.replace(/_desc$|_asc$/, '')
       let comp = 0
       
-      const valA = key === 'total' ? (a.total_amount || a.total || 0) : 
+      const valA = key === 'total' ? (a.total_amount || a.total_price || a.total || 0) : 
                    key === 'vehicle' ? (a.vehicle?.name || a.vehicle || '') : 
-                   key === 'rider' ? (a.rider?.name || a.rider || '') : 
+                   key === 'rider' ? (a.rider?.name || a.rider?.full_name || a.rider || '') : 
                    a[key]
       
-      const valB = key === 'total' ? (b.total_amount || b.total || 0) : 
+      const valB = key === 'total' ? (b.total_amount || b.total_price || b.total || 0) : 
                    key === 'vehicle' ? (b.vehicle?.name || b.vehicle || '') : 
-                   key === 'rider' ? (b.rider?.name || b.rider || '') : 
+                   key === 'rider' ? (b.rider?.name || b.rider?.full_name || b.rider || '') : 
                    b[key]
 
       if (key === 'id') comp = String(valA || '').localeCompare(String(valB || ''))
       else if (key === 'vehicle') comp = String(valA || '').localeCompare(String(valB || ''))
       else if (key === 'rider') comp = String(valA || '').localeCompare(String(valB || ''))
       else if (key === 'status') comp = String(valA || '').localeCompare(String(valB || ''))
-      else if (key === 'total') comp = (valA || 0) - (valB || 0)
+      else if (key === 'total') comp = Number(valA || 0) - Number(valB || 0)
       else if (key === 'created_at') comp = new Date(valA || 0).getTime() - new Date(valB || 0).getTime()
       
       return isDesc ? -comp : comp
@@ -93,7 +128,7 @@ export function ReservationsPage() {
   
     return (
       <TableHead 
-        className={cn("cursor-pointer select-none hover:bg-muted/50 transition-colors", className)}
+        className={cn("cursor-pointer select-none hover:bg-muted/50 transition-colors uppercase tracking-wider text-xs", className)}
         onClick={() => {
           if (isActive) {
             setSortBy(isDesc ? `${sortKey}_asc` : `${sortKey}_desc`)
@@ -116,15 +151,19 @@ export function ReservationsPage() {
     )
   }
 
-  const getStatusStyle = (s: string) => {
-    switch(s.toUpperCase()) {
-      case "CONFIRMED": return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-      case "COMPLETED": return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
-      case "COLLECTED": return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
-      case "PENDING": return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
-      case "ACTIVE": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-      case "CANCELLED": return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-      case "OVERDUE": return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
+  const getStatusColorCls = (statusNum: number | undefined, humanizedStatus: string) => {
+    const s = (humanizedStatus || "").toUpperCase()
+    if (s.includes("CONFIRM")) return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+    if (s.includes("CANCEL")) return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+    if (s.includes("OVERDUE") || s.includes("PENDING") || s.includes("COLLECTED") || s.includes("COMPLETED")) return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
+    if (s.includes("ACTIVE") || s.includes("ONGOING")) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+    
+    switch(statusNum) {
+      case 2: return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+      case 1:
+      case 3:
+      case 5: return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
+      case 9: return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
       default: return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
     }
   }
@@ -139,7 +178,7 @@ export function ReservationsPage() {
       if (date.getFullYear() !== new Date().getFullYear()) {
         yearStr = ` ${date.getFullYear()}`
       }
-      return `${day} ${month}${yearStr}`
+      return `${day} ${month}.${yearStr}`
     } catch {
       return dateString
     }
@@ -167,21 +206,21 @@ export function ReservationsPage() {
 
         <Card className="overflow-hidden border-none shadow-sm min-h-[400px]">
           <CardContent className="p-0">
-            <Table className="text-sm">
-              <TableHeader className="bg-slate-50/80 dark:bg-slate-900/50">
-                <TableRow className="border-b">
-                  <SortableHead label="Booking" sortKey="id" className="w-[300px] pl-4 text-xs font-semibold text-muted-foreground h-11 uppercase tracking-wider" />
-                  <TableHead className="text-xs font-semibold text-muted-foreground h-11 uppercase tracking-wider hidden sm:table-cell">Dates</TableHead>
-                  <SortableHead label="Status & Source" sortKey="status" className="text-xs font-semibold text-muted-foreground h-11 uppercase tracking-wider hidden md:table-cell" />
-                  <SortableHead label="Total Price" sortKey="total" className="text-xs font-semibold text-muted-foreground h-11 uppercase tracking-wider hidden sm:table-cell" />
-                  <TableHead className="text-right pr-4 text-xs font-semibold text-muted-foreground h-11 uppercase tracking-wider">Actions</TableHead>
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <SortableHead label="Booking" sortKey="id" />
+                  <TableHead className="uppercase tracking-wider text-xs hidden sm:table-cell">Dates</TableHead>
+                  <SortableHead label="Status & Source" sortKey="status" className="hidden md:table-cell" />
+                  <SortableHead label="Total Price" sortKey="total" className="hidden sm:table-cell" />
+                  <TableHead className="text-right uppercase tracking-wider text-xs">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: limit }).map((_, i) => (
                     <TableRow key={`skeleton-res-${i}`}>
-                      <TableCell className="pl-4 py-4">
+                      <TableCell className="py-4">
                         <div className="flex flex-col gap-2">
                           <Skeleton className="h-3 w-16" />
                           <Skeleton className="h-4 w-40" />
@@ -199,7 +238,7 @@ export function ReservationsPage() {
                       <TableCell className="py-4 hidden sm:table-cell">
                         <Skeleton className="h-4 w-16" />
                       </TableCell>
-                      <TableCell className="text-right py-4 pr-4">
+                      <TableCell className="text-right py-4">
                         <div className="flex justify-end">
                           <Skeleton className="h-8 w-20 rounded-md" />
                         </div>
@@ -218,64 +257,62 @@ export function ReservationsPage() {
                 ) : paginatedData.map((res) => {
                   const vehicleName = typeof res.vehicle === 'object' && res.vehicle ? (res.vehicle.name || res.vehicle.model || 'Unknown Vehicle') : (res.vehicle || 'Unknown Vehicle')
                   const riderName = typeof res.rider === 'object' && res.rider ? (res.rider.name || res.rider.full_name || 'Unknown Rider') : (res.rider || 'Unknown Rider')
-                  const source = res.source || res.humanized?.source?.replace('SOURCE_', '').replace(/_/g, ' ') || 'WEB PLATFORM'
+                  const source = res.humanized?.source || res.source || 'WEB PLATFORM'
+                  const displaySource = source.replace('SOURCE_', '').replace(/_/g, ' ')
                   
-                  let rawStart = res.dates?.start || res.start_date
-                  let rawEnd = res.dates?.end || res.end_date
-                  let datesLines = []
-                  if (typeof res.dates === 'string') {
-                    datesLines = [res.dates, '']
-                  } else if (rawStart && rawEnd) {
-                    datesLines = [formatDateLabel(rawStart), `to ${formatDateLabel(rawEnd)}`]
-                  } else {
-                    datesLines = ['Date not set', '']
-                  }
+                  let rawStart = res.date_from || res.dates?.start || res.start_date
+                  let rawEnd = res.date_to || res.dates?.end || res.end_date
+                  let startStr = res.humanized?.date_from || formatDateLabel(rawStart)
+                  let endStr = res.humanized?.date_to || formatDateLabel(rawEnd)
 
-                  const totalAmount = res.total_amount || res.total || res.grand_total || 0
+                  const totalAmount = res.total_price || res.total_amount || res.total || res.grand_total || 0
                   const currency = res.currency || res.financials?.currency || 'USD'
-                  const status = typeof res.status === 'string' ? res.status.toUpperCase() : 'PENDING'
-                  const shortId = res.id?.split('-')[0] || res.id?.substring(0, 8) || '...'
+                  const statusStr = res.humanized?.status || (typeof res.status === 'string' ? res.status : 'PENDING')
+                  const displayStatus = statusStr.replace('RESERVATION_', '')
+                  const shortId = res.humanized?.id || res.id?.split('-')[0] || res.id?.substring(0, 8) || '...'
 
                   return (
-                   <TableRow key={res.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-b border-muted transition-colors">
-                    <TableCell className="pl-4 py-4">
+                   <TableRow key={res.id} className="hover:bg-muted/20">
+                    <TableCell>
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-mono text-muted-foreground mb-1 tracking-wider uppercase">#{shortId}</span>
-                        <span className="font-medium text-slate-900 dark:text-slate-100">{vehicleName}</span>
+                        <span className="font-mono text-xs font-semibold tracking-wider text-muted-foreground mb-1 uppercase">#{shortId}</span>
+                        <span className="text-sm font-medium">
+                          {vehicleName}
+                        </span>
                         <span className="text-xs text-muted-foreground mt-0.5">Rider: {riderName}</span>
                         <div className="md:hidden mt-2 flex flex-col gap-2">
                           <div className="flex items-center gap-1.5">
-                            <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider px-2 py-0 border-transparent", getStatusStyle(status))}>
-                              {status}
+                            <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getStatusColorCls(res.status, statusStr))}>
+                              {displayStatus}
                             </Badge>
                           </div>
-                          <span className="text-xs">{datesLines[0]} {datesLines[1]}</span>
+                          <span className="text-xs">{startStr} to {endStr}</span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="py-4 hidden sm:table-cell">
-                      <div className="flex flex-col text-sm text-slate-700 dark:text-slate-300">
-                        <span>{datesLines[0]}</span>
-                        {datesLines[1] && <span className="text-xs text-muted-foreground mt-0.5">{datesLines[1]}</span>}
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex flex-col text-sm">
+                        <span>{startStr}</span>
+                        {endStr && <span className="text-xs text-muted-foreground mt-0.5">to {endStr}</span>}
                       </div>
                     </TableCell>
-                    <TableCell className="py-4 hidden md:table-cell">
+                    <TableCell className="hidden md:table-cell">
                       <div className="flex flex-col items-start gap-1.5">
-                        <Badge variant="outline" className={cn("text-[10.5px] uppercase tracking-wider px-2.5 py-0.5 font-bold shadow-none rounded-md", getStatusStyle(status))}>
-                          {status}
+                        <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getStatusColorCls(res.status, statusStr))}>
+                          {displayStatus}
                         </Badge>
-                        <span className="text-[9.5px] uppercase text-muted-foreground font-semibold tracking-wider">
-                          {source}
+                        <span className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
+                          {displaySource}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-4 hidden sm:table-cell">
-                      <span className="font-medium text-slate-900 dark:text-slate-100">
-                        {totalAmount.toLocaleString()} <span className="text-xs text-muted-foreground ml-0.5 font-normal">{currency}</span>
+                    <TableCell className="hidden sm:table-cell">
+                      <span className="font-medium">
+                        {Number(totalAmount).toLocaleString()} <span className="text-xs text-muted-foreground ml-0.5 font-normal">{currency}</span>
                       </span>
                     </TableCell>
-                    <TableCell className="text-right py-4 pr-4">
-                      <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground font-medium" asChild>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" asChild>
                         <Link to={`/reservations/${res.id}`}>
                           <Eye className="h-4 w-4 mr-1.5" /> View
                         </Link>
@@ -290,7 +327,7 @@ export function ReservationsPage() {
           
           {/* Pagination */}
           {!loading && totalFiltered > limit && (
-            <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
               <div className="text-xs text-muted-foreground">
                 Showing <span className="font-medium text-foreground">{Math.min(totalFiltered, (page - 1) * limit + 1)}</span> to{" "}
                 <span className="font-medium text-foreground">{Math.min(totalFiltered, page * limit)}</span> of{" "}
@@ -326,3 +363,4 @@ export function ReservationsPage() {
     </div>
   )
 }
+
