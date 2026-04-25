@@ -356,18 +356,18 @@ export function Dashboard() {
         <CardContent className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 30 Days Active Card */}
-            <div className="flex flex-col gap-2 p-5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col gap-2 p-5 rounded-xl bg-slate-50 border border-slate-100">
               <span className="text-sm font-medium text-slate-500">Active (Last 30 Days)</span>
               <div className="flex items-end justify-between mt-2">
-                <span className="text-4xl font-bold text-slate-900 dark:text-slate-50">
+                <span className="text-4xl font-bold text-slate-900">
                   {((metrics.users.owners.online_last_30_days || 0) + (metrics.users.riders.online_last_30_days || 0)).toLocaleString()}
                 </span>
-                <span className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                <span className="text-sm text-emerald-600 flex items-center bg-emerald-500/10 px-2 py-0.5 rounded-full">
                   <TrendingUp className="w-3 w-3 mr-1"/>
                   Trending
                 </span>
               </div>
-              <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 flex mt-6 overflow-hidden rounded-full">
+              <div className="h-2 w-full bg-slate-200 flex mt-6 overflow-hidden rounded-full">
                 <div 
                   className="bg-blue-500 h-full transition-all duration-500" 
                   style={{ width: `${((metrics.users.owners.online_last_30_days || 0) / Math.max((metrics.users.owners.online_last_30_days || 0) + (metrics.users.riders.online_last_30_days || 0), 1)) * 100}%` }}
@@ -384,17 +384,17 @@ export function Dashboard() {
             </div>
 
             {/* Logins Today Card */}
-            <div className="flex flex-col gap-2 p-5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col gap-2 p-5 rounded-xl bg-slate-50 border border-slate-100">
               <span className="text-sm font-medium text-slate-500">Logins Today</span>
               <div className="flex items-end justify-between mt-2">
-                <span className="text-4xl font-bold text-slate-900 dark:text-slate-50">
+                <span className="text-4xl font-bold text-slate-900">
                   {((metrics.users.owners.logins_today || 0) + (metrics.users.riders.logins_today || 0)).toLocaleString()}
                 </span>
-                <span className="text-sm text-blue-600 dark:text-blue-400 flex items-center bg-blue-500/10 px-2 py-0.5 rounded-full">
+                <span className="text-sm text-blue-600 flex items-center bg-blue-500/10 px-2 py-0.5 rounded-full">
                   24h window
                 </span>
               </div>
-              <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 flex mt-6 overflow-hidden rounded-full">
+              <div className="h-2 w-full bg-slate-200 flex mt-6 overflow-hidden rounded-full">
                 <div 
                   className="bg-blue-500 h-full transition-all duration-500" 
                   style={{ width: `${((metrics.users.owners.logins_today || 0) / Math.max((metrics.users.owners.logins_today || 0) + (metrics.users.riders.logins_today || 0), 1)) * 100}%` }}
