@@ -182,8 +182,15 @@ export function ReservationsPage() {
               ) : filteredAndSorted.map((res) => {
                 const vehicleName = typeof res.vehicle === 'object' && res.vehicle ? (res.vehicle.name || res.vehicle.model || 'Unknown Vehicle') : (res.vehicle || 'Unknown Vehicle')
                 const riderName = typeof res.rider === 'object' && res.rider ? (res.rider.name || res.rider.full_name || 'Unknown Rider') : (res.rider || 'Unknown Rider')
-                // Dates can come as res.start_date / res.end_date or res.dates
-                const datesStr = res.dates || (res.start_date && res.end_date ? `${new Date(res.start_date).toLocaleDateString()} - ${new Date(res.end_date).toLocaleDateString()}` : 'Date not set')
+                let datesStr = 'Date not set'
+                if (typeof res.dates === 'string') {
+                  datesStr = res.dates
+                } else if (res.dates?.start && res.dates?.end) {
+                  datesStr = `${new Date(res.dates.start).toLocaleDateString()} - ${new Date(res.dates.end).toLocaleDateString()}`
+                } else if (res.start_date && res.end_date) {
+                  datesStr = `${new Date(res.start_date).toLocaleDateString()} - ${new Date(res.end_date).toLocaleDateString()}`
+                }
+
                 const totalAmount = res.total_amount || res.total || res.grand_total || 0
                 const currency = res.currency || res.financials?.currency || 'USD'
                 const status = (res.status || 'Pending').charAt(0).toUpperCase() + (res.status || 'Pending').slice(1).toLowerCase()
