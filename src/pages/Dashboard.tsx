@@ -72,6 +72,10 @@ const RESERVATIONS_HR_DATA = Array.from({ length: 24 }).map((_, i) => ({
   bookings: Math.floor(Math.random() * 15) + (i > 8 && i < 20 ? 10 : 2)
 }))
 
+const SEARCH_LATENCY_DATA = Array.from({ length: 20 }).map((_, i) => ({
+  time: i,
+  latency: Math.floor(Math.random() * 30) + 20,
+}))
 
 const VEHICLE_TYPE_DATA = [
   { name: 'Sedan', value: 340, color: '#3b82f6' },
