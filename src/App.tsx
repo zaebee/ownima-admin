@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Layout } from "./components/layout/Layout"
 import { LoginPage } from "./pages/LoginPage"
 import { Dashboard } from "./pages/Dashboard"
+import { VerificationsPage } from "./pages/VerificationsPage"
 import { UsersPage } from "./pages/UsersPage"
 import { UserDetailPage } from "./pages/UserDetailPage"
 import { RiderDetailPage } from "./pages/RiderDetailPage"
@@ -31,6 +32,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
+              <Route path="verifications" element={<VerificationsPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="vehicles" element={<VehiclesPage />} />
               <Route path="vehicles/:id" element={<VehicleDetailPage />} />
