@@ -153,17 +153,17 @@ export function VerificationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="overflow-hidden border-none shadow-sm shadow-slate-200/50 dark:shadow-slate-900/50">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[80px]">Status</TableHead>
-                  <TableHead>User / ID</TableHead>
-                  <TableHead>Document Type</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Risk Score</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+        <Card className="overflow-hidden border-none shadow-sm min-h-[400px]">
+          <CardContent className="p-0 relative">
+            <Table className="text-sm">
+              <TableHeader className="bg-muted/30">
+                <TableRow className="border-b">
+                  <TableHead className="w-[80px] pl-4 text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10">Status</TableHead>
+                  <TableHead className="text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10">User / ID</TableHead>
+                  <TableHead className="text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10">Document Type</TableHead>
+                  <TableHead className="text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10">Submitted</TableHead>
+                  <TableHead className="text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10">Risk Score</TableHead>
+                  <TableHead className="text-right text-[11px] select-none uppercase tracking-wider font-semibold text-muted-foreground h-10 pr-4">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -175,33 +175,33 @@ export function VerificationsPage() {
                   </TableRow>
                 ) : (
                   filteredVerifications.map((req) => (
-                    <TableRow key={req.id} className="group">
-                      <TableCell>
+                    <TableRow key={req.id} className="hover:bg-muted/10 border-b border-muted/50 group">
+                      <TableCell className="pl-4 py-3">
                         {req.status === 'pending' && <Clock className="h-5 w-5 text-amber-500" />}
                         {req.status === 'approved' && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
                         {req.status === 'rejected' && <XCircle className="h-5 w-5 text-rose-500" />}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-3">
                         <div className="flex flex-col">
-                          <span className="font-medium text-slate-900 dark:text-slate-100">{req.full_name}</span>
+                          <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{req.full_name}</span>
                           <span className="text-xs text-muted-foreground">{req.email}</span>
-                          <span className="text-[10px] text-muted-foreground/70 font-mono mt-0.5">{req.id}</span>
+                          <span className="text-[10px] text-muted-foreground/50 font-mono mt-0.5">{req.id}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+                      <TableCell className="py-3">
+                        <Badge variant="outline" className="bg-muted text-muted-foreground border-transparent font-normal">
                           {req.document_type}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                      <TableCell className="py-3">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {formatDate(req.submitted_at)}
                         </span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-3">
                         <div className="flex items-center gap-2">
                           <div className={cn(
-                            "h-2 w-16 rounded-full overflow-hidden bg-slate-100",
+                            "h-2 w-16 rounded-full overflow-hidden bg-muted",
                           )}>
                             <div 
                               className={cn(
@@ -214,13 +214,13 @@ export function VerificationsPage() {
                           </div>
                           <span className={cn(
                             "text-xs font-semibold",
-                            req.risk_score >= 60 ? "text-rose-600" : "text-slate-500"
+                            req.risk_score >= 60 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"
                           )}>
                             {req.risk_score}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-3 pr-4">
                         <Button 
                           variant={req.status === 'pending' ? "default" : "secondary"} 
                           size="sm"
@@ -238,7 +238,7 @@ export function VerificationsPage() {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </CardContent>
         </Card>
       )}
     </div>

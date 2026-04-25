@@ -4,11 +4,11 @@ import { LayoutDashboard, Users, UserCircle, Car, CalendarDays, Settings, X, Cre
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "KYC / Approvals", href: "/verifications", icon: ShieldCheck },
   { name: "Users", href: "/users", icon: Users },
   { name: "Vehicles", href: "/vehicles", icon: Car },
   { name: "Reservations", href: "/reservations", icon: CalendarDays },
   { name: "Billing & Payouts", href: "/billing", icon: CreditCard },
+  { name: "KYC / Approvals", href: "/verifications", icon: ShieldCheck },
 ]
 
 interface SidebarProps {
