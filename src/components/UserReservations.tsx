@@ -125,7 +125,7 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col items-start gap-1.5">
-                    <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getReservationStatusColor(res.status, res.humanized?.status || ''))}>
+                    <Badge className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2", getReservationStatusColor(res.status, res.humanized?.status || ''))}>
                       {res.humanized?.status?.replace('RESERVATION_', '') || `Status: ${res.status}`}
                     </Badge>
                     {res.humanized?.source && (

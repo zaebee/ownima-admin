@@ -18,6 +18,8 @@ export function ReservationsPage() {
   const [page, setPage] = useState(1)
   const limit = 20
 
+  const [hasMoreBackend, setHasMoreBackend] = useState(false)
+
   useEffect(() => {
     const fetchReservations = async () => {
       try {
@@ -55,7 +57,11 @@ export function ReservationsPage() {
           }
           
           // Deduplicate items just in case the API returned duplicates
-          const newItems = data.filter((item: any) => !fetchedData.find(f => f.id === item.id))
+          const newItems = data.filter((item: any) => {
+            const idToMatch = item.id || item._id || item.humanized?.id;
+            if (!idToMatch) return true; // If no id, just keep it rather than filtering out everything randomly
+            return !fetchedData.find(f => (f.id || f._id || f.humanized?.id) === idToMatch);
+          })
           fetchedData = [...fetchedData, ...newItems]
           
           if (rawData?.total_pages) {
@@ -78,6 +84,7 @@ export function ReservationsPage() {
           loopCount++
         }
         
+        setHasMoreBackend(hasMore)
         setReservations(fetchedData)
       } catch (error) {
         console.error("Error fetching reservations:", error)
@@ -94,13 +101,13 @@ export function ReservationsPage() {
 
     if (search.trim()) {
       const q = search.toLowerCase().trim()
-      result = result.filter(r => 
-        (r.id && String(r.id).toLowerCase().includes(q)) ||
-        (r.humanized?.id && String(r.humanized.id).toLowerCase().includes(q)) ||
-        (r.vehicle?.name && String(r.vehicle.name).toLowerCase().includes(q)) ||
-        (r.rider?.name && String(r.rider.name).toLowerCase().includes(q)) ||
-        (r.rider?.full_name && String(r.rider.full_name).toLowerCase().includes(q))
-      )
+      result = result.filter(r => {
+        const hId = String(r.humanized?.id || '').toLowerCase()
+        const id = String(r.id || '').toLowerCase()
+        const vName = String(typeof r.vehicle === 'object' && r.vehicle ? (r.vehicle.name || r.vehicle.model || r.vehicle) : (r.vehicle || '')).toLowerCase()
+        const rName = String(typeof r.rider === 'object' && r.rider ? (r.rider.name || r.rider.full_name || r.rider) : (r.rider || '')).toLowerCase()
+        return hId.includes(q) || id.includes(q) || vName.includes(q) || rName.includes(q)
+      })
     }
 
     result.sort((a, b) => {
@@ -108,16 +115,20 @@ export function ReservationsPage() {
       const key = sortBy.replace(/_desc$|_asc$/, '')
       let comp = 0
       
-      const valA = key === 'total' ? (a.total_amount || a.total_price || a.total || 0) : 
-                   key === 'vehicle' ? (a.vehicle?.name || a.vehicle || '') : 
-                   key === 'rider' ? (a.rider?.name || a.rider?.full_name || a.rider || '') : 
+      const valA = key === 'total' ? (a.total_amount || a.total_price || a.total || a.grand_total || 0) : 
+                   key === 'dates' ? (a.date_from || a.start_date || a.dates?.start || a.created_at || '') : 
+                   key === 'vehicle' ? (typeof a.vehicle === 'object' && a.vehicle ? (a.vehicle.name || a.vehicle.model || a.vehicle.id) : a.vehicle || '') : 
+                   key === 'rider' ? (typeof a.rider === 'object' && a.rider ? (a.rider.name || a.rider.full_name || a.rider.id) : a.rider || '') : 
                    key === 'status' ? (a.humanized?.status || a.status || '') :
+                   key === 'id' ? (a.humanized?.id || a.id || '') :
                    a[key]
       
-      const valB = key === 'total' ? (b.total_amount || b.total_price || b.total || 0) : 
-                   key === 'vehicle' ? (b.vehicle?.name || b.vehicle || '') : 
-                   key === 'rider' ? (b.rider?.name || b.rider?.full_name || b.rider || '') : 
+      const valB = key === 'total' ? (b.total_amount || b.total_price || b.total || b.grand_total || 0) : 
+                   key === 'dates' ? (b.date_from || b.start_date || b.dates?.start || b.created_at || '') : 
+                   key === 'vehicle' ? (typeof b.vehicle === 'object' && b.vehicle ? (b.vehicle.name || b.vehicle.model || b.vehicle.id) : b.vehicle || '') : 
+                   key === 'rider' ? (typeof b.rider === 'object' && b.rider ? (b.rider.name || b.rider.full_name || b.rider.id) : b.rider || '') : 
                    key === 'status' ? (b.humanized?.status || b.status || '') :
+                   key === 'id' ? (b.humanized?.id || b.id || '') :
                    b[key]
 
       if (key === 'id') comp = String(valA || '').localeCompare(String(valB || ''))
@@ -125,7 +136,7 @@ export function ReservationsPage() {
       else if (key === 'rider') comp = String(valA || '').localeCompare(String(valB || ''))
       else if (key === 'status') comp = String(valA || '').localeCompare(String(valB || ''))
       else if (key === 'total') comp = Number(valA || 0) - Number(valB || 0)
-      else if (key === 'created_at') comp = new Date(valA || 0).getTime() - new Date(valB || 0).getTime()
+      else if (key === 'created_at' || key === 'dates') comp = new Date(valA || 0).getTime() - new Date(valB || 0).getTime()
       
       return isDesc ? -comp : comp
     })
@@ -230,7 +241,7 @@ export function ReservationsPage() {
               <TableHeader className="bg-muted/30">
                 <TableRow>
                   <SortableHead label="Booking" sortKey="id" />
-                  <TableHead className="uppercase tracking-wider text-xs hidden sm:table-cell">Dates</TableHead>
+                  <SortableHead label="Dates" sortKey="dates" className="hidden sm:table-cell" />
                   <SortableHead label="Status & Source" sortKey="status" className="hidden md:table-cell" />
                   <SortableHead label="Total Price" sortKey="total" className="hidden sm:table-cell" />
                   <TableHead className="text-right uppercase tracking-wider text-xs">Actions</TableHead>
@@ -302,7 +313,7 @@ export function ReservationsPage() {
                         <span className="text-xs text-muted-foreground mt-0.5">Rider: {riderName}</span>
                         <div className="md:hidden mt-2 flex flex-col gap-2">
                           <div className="flex items-center gap-1.5">
-                            <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getReservationStatusColor(res.status, statusStr))}>
+                            <Badge className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2", getReservationStatusColor(res.status, statusStr))}>
                               {displayStatus}
                             </Badge>
                           </div>
@@ -318,7 +329,7 @@ export function ReservationsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <div className="flex flex-col items-start gap-1.5">
-                        <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getReservationStatusColor(res.status, statusStr))}>
+                        <Badge className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2", getReservationStatusColor(res.status, statusStr))}>
                           {displayStatus}
                         </Badge>
                         <span className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
@@ -351,7 +362,7 @@ export function ReservationsPage() {
               <div className="text-xs text-muted-foreground">
                 Showing <span className="font-medium text-foreground">{Math.min(totalFiltered, (page - 1) * limit + 1)}</span> to{" "}
                 <span className="font-medium text-foreground">{Math.min(totalFiltered, page * limit)}</span> of{" "}
-                <span className="font-medium text-foreground">{totalFiltered}</span> entries
+                <span className="font-medium text-foreground">{totalFiltered}{hasMoreBackend && !search.trim() ? '+' : ''}</span> entries
               </div>
               <div className="flex items-center gap-1">
                 <Button 
