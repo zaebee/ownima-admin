@@ -5,6 +5,7 @@
 
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
+import { ThemeProvider } from "./contexts/ThemeContext"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Layout } from "./components/layout/Layout"
 import { LoginPage } from "./pages/LoginPage"
@@ -23,9 +24,10 @@ import { NotFoundPage } from "./pages/NotFoundPage"
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+    <ThemeProvider defaultTheme="system" storageKey="ownima-admin-theme">
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
           {/* Публичный маршрут для входа */}
           <Route path="/login" element={<LoginPage />} />
 
@@ -49,5 +51,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   )
 }

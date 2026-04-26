@@ -19,13 +19,13 @@ export function UserEngagementCard({ metrics }: Props) {
       <CardContent className="mt-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 30 Days Active Card */}
-          <div className="flex flex-col gap-2 p-5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800">
-            <span className="text-sm font-medium text-slate-500">Active (Last 30 Days)</span>
+          <div className="flex flex-col gap-2 p-5 rounded-xl bg-muted/30 border border-border">
+            <span className="text-sm font-medium text-muted-foreground">Active (Last 30 Days)</span>
             <div className="flex items-end justify-between mt-2">
-              <span className="text-4xl font-bold text-slate-900 dark:text-white">
+              <span className="text-4xl font-bold text-foreground">
                 {((metrics.users.owners.online_last_30_days || 0) + (metrics.users.riders.online_last_30_days || 0)).toLocaleString()}
               </span>
-              <span className="text-sm text-emerald-600 flex items-center bg-emerald-500/10 px-2 py-0.5 rounded-full">
+              <span className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center bg-emerald-500/10 px-2 py-0.5 rounded-full">
                 <TrendingUp className="w-3 h-3 mr-1"/>
                 Trending
               </span>
@@ -40,20 +40,20 @@ export function UserEngagementCard({ metrics }: Props) {
                 style={{ width: `${((metrics.users.riders.online_last_30_days || 0) / Math.max((metrics.users.owners.online_last_30_days || 0) + (metrics.users.riders.online_last_30_days || 0), 1)) * 100}%` }}
               ></div>
             </div>
-            <div className="flex justify-between text-xs mt-3 text-slate-500">
+            <div className="flex justify-between text-xs mt-3 text-muted-foreground">
               <span className="flex items-center gap-1.5 font-medium"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Owners: {metrics.users.owners.online_last_30_days || 0}</span>
               <span className="flex items-center gap-1.5 font-medium"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Riders: {metrics.users.riders.online_last_30_days || 0}</span>
             </div>
           </div>
 
           {/* Logins Today Card */}
-          <div className="flex flex-col gap-2 p-5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800">
-            <span className="text-sm font-medium text-slate-500">Logins Today</span>
+          <div className="flex flex-col gap-2 p-5 rounded-xl bg-muted/30 border border-border">
+            <span className="text-sm font-medium text-muted-foreground">Logins Today</span>
             <div className="flex items-end justify-between mt-2">
-              <span className="text-4xl font-bold text-slate-900 dark:text-white">
+              <span className="text-4xl font-bold text-foreground">
                 {((metrics.users.owners.logins_today || 0) + (metrics.users.riders.logins_today || 0)).toLocaleString()}
               </span>
-              <span className="text-sm text-blue-600 flex items-center bg-blue-500/10 px-2 py-0.5 rounded-full">
+              <span className="text-sm text-blue-600 dark:text-blue-400 flex items-center bg-blue-500/10 px-2 py-0.5 rounded-full">
                 24h window
               </span>
             </div>
@@ -67,7 +67,7 @@ export function UserEngagementCard({ metrics }: Props) {
                 style={{ width: `${((metrics.users.riders.logins_today || 0) / Math.max((metrics.users.owners.logins_today || 0) + (metrics.users.riders.logins_today || 0), 1)) * 100}%` }}
               ></div>
             </div>
-            <div className="flex justify-between text-xs mt-3 text-slate-500">
+            <div className="flex justify-between text-xs mt-3 text-muted-foreground">
               <span className="flex items-center gap-1.5 font-medium"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Owners: {metrics.users.owners.logins_today || 0}</span>
               <span className="flex items-center gap-1.5 font-medium"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Riders: {metrics.users.riders.logins_today || 0}</span>
             </div>

@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
 import { getMediaUrl } from "@/lib/utils"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { GlobalSearch } from "@/components/GlobalSearch"
 
 interface HeaderProps {
@@ -34,7 +35,8 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="relative flex flex-1 items-center max-w-md">
           <GlobalSearch />
         </div>
-        <div className="flex items-center gap-x-4 lg:gap-x-6 shrink-0">
+        <div className="flex items-center gap-x-2 lg:gap-x-4 shrink-0">
+          <ThemeToggle />
           <button type="button" className="-m-2.5 p-2.5 text-muted-foreground hover:text-foreground">
             <span className="sr-only">View notifications</span>
             <Bell className="h-6 w-6" aria-hidden="true" />
