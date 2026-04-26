@@ -41,7 +41,7 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "N/A";
-    return new Date(dateStr).toLocaleDateString(undefined, { 
+    return new Date(dateStr).toLocaleDateString('en-US', { 
       year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
     })
   }
@@ -95,8 +95,8 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col text-sm">
-                    <span>{res.humanized?.date_from || formatDate(res.date_from)}</span>
-                    <span className="text-xs text-muted-foreground">to {res.humanized?.date_to || formatDate(res.date_to)}</span>
+                    <span>{formatDate(res.date_from) || res.humanized?.date_from || "N/A"}</span>
+                    <span className="text-xs text-muted-foreground">to {formatDate(res.date_to) || res.humanized?.date_to || ""}</span>
                   </div>
                 </TableCell>
                 <TableCell>

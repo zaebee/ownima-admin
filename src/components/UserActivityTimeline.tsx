@@ -311,7 +311,7 @@ export function UserActivityTimeline({
                     {getActivityDescription(activity)}
                     <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground shrink-0 border rounded-md px-2 py-1 bg-muted/20">
                       <Clock className="h-3.5 w-3.5" />
-                      {new Date(activity.timestamp).toLocaleString(undefined, { 
+                      {new Date(activity.timestamp).toLocaleString('en-US', { 
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}
                     </div>

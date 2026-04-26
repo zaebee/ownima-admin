@@ -154,18 +154,13 @@ export function ReservationsPage() {
   }
 
   const formatDateLabel = (dateString: string) => {
-    if (!dateString) return "N/A"
+    if (!dateString) return ""
     try {
       const date = new Date(dateString)
-      const day = date.getDate()
-      const month = date.toLocaleString('default', { month: 'short' })
-      let yearStr = ""
-      if (date.getFullYear() !== new Date().getFullYear()) {
-        yearStr = ` ${date.getFullYear()}`
-      }
-      return `${day} ${month}.${yearStr}`
+      if (isNaN(date.getTime())) return ""
+      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
     } catch {
-      return dateString
+      return ""
     }
   }
 
@@ -247,8 +242,8 @@ export function ReservationsPage() {
                   
                   let rawStart = res.date_from || res.dates?.start || res.start_date
                   let rawEnd = res.date_to || res.dates?.end || res.end_date
-                  let startStr = res.humanized?.date_from || formatDateLabel(rawStart)
-                  let endStr = res.humanized?.date_to || formatDateLabel(rawEnd)
+                  let startStr = formatDateLabel(rawStart) || res.humanized?.date_from || "N/A"
+                  let endStr = formatDateLabel(rawEnd) || res.humanized?.date_to || ""
 
                   const totalAmount = res.total_price || res.total_amount || res.total || res.grand_total || 0
                   const currency = res.currency || res.financials?.currency || 'USD'
