@@ -23,13 +23,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Если токен истек или недействителен, удаляем его и перенаправляем на логин
+      // Если токен истек или недействителен, удаляем его
       localStorage.removeItem("admin_token");
       
-      // Избегаем бесконечного цикла редиректов, если мы уже на странице логина
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
+      // Диспатчим кастомное событие, чтобы AuthContext или Router могли мягко перенаправить пользователя
+      window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     }
     return Promise.reject(error);
   }
