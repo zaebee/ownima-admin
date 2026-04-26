@@ -5,41 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Car, Search, Eye, Filter, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { Car, Search, Eye, Filter, Plus, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api"
 import { getMediaUrl, cn } from "@/lib/utils"
-
-// Fallback mock data in case backend endpoint is not ready yet
-const MOCK_VEHICLES = [
-  {
-    id: "mock-v-1",
-    name: "Tesla Model 3 Standard Range",
-    general_info: { reg_number: "AA 1234 CT", year: 2023, vehicle_class: "Sedan", brand: "Tesla", model: "Model 3" },
-    status: 2, // FREE
-    price: 3500,
-    currency: "THB",
-    owner: { id: "5fd5a990-756d-45e4-b4ae-8ade802f11c7", full_name: "Demo Account" }
-  },
-  {
-    id: "mock-v-2",
-    name: null,
-    general_info: { reg_number: "BC 9988 XZ", year: 2021, vehicle_class: "SUV", brand: "Toyota", model: "Fortuner" },
-    status: 4, // COLLECTED
-    price: 1800,
-    currency: "THB",
-    owner: { id: "mock-owner-2", full_name: "John Doe" }
-  },
-  {
-    id: "mock-v-3",
-    name: "Yamaha NMAX 155",
-    general_info: { reg_number: "PKT 555", year: 2022, vehicle_class: "Scooter", brand: "Yamaha", model: "NMAX" },
-    status: 3, // MAINTENANCE
-    price: 300,
-    currency: "THB",
-    owner: { id: "mock-owner-3", full_name: "Phuket Rentals" }
-  }
-]
+import { VehicleListItem } from "@/types/vehicle"
 
 const getStatusString = (status: number) => {
   switch (status) {
@@ -66,8 +36,11 @@ const getStatusVariant = (status: number) => {
 }
 
 export function VehiclesPage() {
-  const [vehicles, setVehicles] = useState<any[]>([])
+  const [vehicles, setVehicles] = useState<VehicleListItem[]>([])
   const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(25)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("created_at_desc")
@@ -76,24 +49,23 @@ export function VehiclesPage() {
     const fetchVehicles = async () => {
       try {
         setLoading(true)
-        const response = await api.get('/admin/vehicles', { params: { limit: 100, skip: 0 } })
+        const response = await api.get('/api/v1/admin/vehicles', { 
+          params: { page: currentPage, size: pageSize } 
+        })
         setVehicles(response.data.data || [])
         setTotal(response.data.count || 0)
+        setTotalPages(response.data.total_pages || 1)
       } catch (error: any) {
-        if (error?.response?.status === 404 || error?.response?.status === 403) {
-          console.log("Endpoint not found or forbidden, using mock data")
-          setVehicles(MOCK_VEHICLES)
-          setTotal(MOCK_VEHICLES.length)
-        } else {
-          console.error("Failed to fetch vehicles:", error)
-        }
+        console.error("Failed to fetch vehicles:", error)
+        setVehicles([])
+        setTotal(0)
       } finally {
         setLoading(false)
       }
     }
     
     fetchVehicles()
-  }, [])
+  }, [currentPage, pageSize])
 
   const filteredAndSorted = useMemo(() => {
     let result = [...vehicles]
@@ -287,7 +259,7 @@ export function VehiclesPage() {
                         <div className="flex flex-wrap items-center gap-2 mt-1 sm:hidden">
                           <span className="text-[10px] font-mono bg-muted px-1 rounded">{v.general_info?.reg_number || 'N/A'}</span>
                           <span className="text-[10px] items-center flex gap-0.5">
-                            <div className={cn("h-1.5 w-1.5 rounded-full", v.status === "ACTIVE" ? "bg-green-500" : "bg-muted-foreground")} />
+                            <div className={cn("h-1.5 w-1.5 rounded-full", v.status === 2 ? "bg-green-500" : (v.status === 4 ? "bg-blue-500" : "bg-muted-foreground"))} />
                             {getStatusString(v.status)}
                           </span>
                         </div>
@@ -344,11 +316,25 @@ export function VehiclesPage() {
         </CardContent>
         {!loading && total > 0 && (
           <div className="px-6 py-4 border-t bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
-            <span>Showing {filteredAndSorted.length} of {total} vehicles</span>
-            {/* Minimal pagination mock */}
-            <div className="flex gap-1">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm" disabled>Next</Button>
+            <span>Showing {vehicles.length} of {total} vehicles</span>
+            <div className="flex gap-1 items-center">
+              <span className="mr-2">Page {currentPage} of {totalPages}</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}

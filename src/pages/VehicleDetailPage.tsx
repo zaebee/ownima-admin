@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Loader2, Car, ChevronLeft, CalendarDays, Key, MapPin, Share2, Wrench, Settings2, Gauge, ShieldCheck, Route, FileText, Zap, Edit, CheckCircle2, Check, X, PlusCircle, Star } from "lucide-react"
 import { api } from "@/lib/api"
+import { VehicleDetail } from "@/types/vehicle"
+
+import { getMediaUrl } from "@/lib/utils"
 
 const getStatusString = (status: number) => {
   switch (status) {
@@ -33,81 +36,21 @@ const getStatusVariant = (status: number) => {
 
 export function VehicleDetailPage() {
   const { id } = useParams()
-  const [vehicle, setVehicle] = useState<any>(null)
+  const [vehicle, setVehicle] = useState<VehicleDetail | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchVehicle = async () => {
       try {
         setLoading(true)
-        const response = await api.get(`/admin/vehicles/${id}`)
-        setVehicle(response.data.data)
-        setLoading(false)
+        const response = await api.get(`/api/v1/admin/vehicles/${id}`)
+        setVehicle(response.data)
       } catch (error: any) {
-        if (error?.response?.status === 404 || error?.response?.status === 403 || !error.response) {
-          // Provide mock data 
-          setTimeout(() => {
-            setVehicle({
-              id,
-              name: "BMW 420d Cabriolet 2018",
-              owner_id: "5fd5a990-756d-45e4-b4ae-8ade802f11c7",
-              status: 2,
-              picture: {
-                cover: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=2000&q=80"
-              },
-              general_info: { 
-                reg_number: "SHOW-0015", 
-                brand: "BMW", 
-                model: "420d Cabriolet", 
-                year: 2018,
-                vehicle_class: "premium",
-                body_type: "sedan",
-                vin: "1G1YZ2C81C510XXXX"
-              },
-              specification_info: {
-                transmission: "auto",
-                doors: 4,
-                number_of_seats: 5,
-                fuel_type: "FUEL_GASOLINE",
-                mileage: 45000,
-                engine_capacity: 2.0
-              },
-              additional_info: {
-                insurance_included: true,
-                anti_hijack: false,
-                full_wheel_drive: false,
-                auto_transmission: true,
-                bluetooth_audio: true,
-                cruise_control: false,
-                airbags: true,
-                wheelchair_accessible: false
-              },
-              price_templates: {
-                deposit_amount: 30000.0,
-                minimal_rent_period: 1,
-                template_name: "Premium Template"
-              },
-              extra_options_details: [
-                { id: "baby_seat_100", name: "Baby Seat/Booster", price: 100.0, is_mandatory: false, description: "Optional baby seat/booster service" },
-                { id: "car_wash_1000", name: "Car Wash", price: 1000.0, is_mandatory: false, description: "Optional car wash service" },
-                { id: "delivery_within_the_city_default", name: "Delivery within the city", price: 0.0, is_mandatory: false, description: "Optional delivery within the city service" }
-              ],
-              price: 13000,
-              currency: "THB",
-              owner: { id: "5fd5a990-756d-45e4-b4ae-8ade802f11c7", full_name: "Demo Account", email: "demo@ownima.com" },
-              rating_stats: {
-                average_rating: 4.8,
-                rating_count: 14
-              },
-              created_at: new Date().toISOString()
-            })
-            setLoading(false)
-          }, 800)
-        } else {
-          console.error("Failed to fetch vehicle", error)
-          setLoading(false)
-        }
-      } 
+        console.error("Failed to fetch vehicle", error)
+        setVehicle(null)
+      } finally {
+        setLoading(false)
+      }
     }
     fetchVehicle()
   }, [id])
@@ -161,10 +104,10 @@ export function VehicleDetailPage() {
     )
   }
 
-  const vInfo = vehicle.general_info || {}
-  const specInfo = vehicle.specification_info || {}
-  const addInfo = vehicle.additional_info || {}
-  const imgUrl = vehicle.picture?.cover || vehicle.images?.[0]
+  const vInfo: Partial<VehicleDetail['general_info']> = vehicle.general_info || {}
+  const specInfo: Partial<VehicleDetail['specification_info']> = vehicle.specification_info || {}
+  const addInfo: Partial<VehicleDetail['additional_info']> = vehicle.additional_info || {}
+  const imgUrl = vehicle.picture?.cover ? getMediaUrl(vehicle.picture.cover) : null
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-10 animate-in fade-in duration-500">
