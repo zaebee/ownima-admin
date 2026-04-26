@@ -15,51 +15,40 @@ This project is an administrative dashboard built for managing an EV Fleet and R
 
 ## ✨ Implemented Features
 - **Authentication:** Protected routes with mock JWT-based auth flow (`AuthContext`).
-- **Dashboard:** Comprehensive BI overview with charts (Revenue, Reservations, Vehicle Status, OpenSearch Stats).
+- **Dashboard:** Comprehensive BI overview with charts (Revenue, Reservations, Vehicle Status, OpenSearch Stats). Modularized metric cards and dashboard components.
 - **Entities Management:**
-  - Users (Owners & Riders) listing and details.
-  - Vehicles listing and details.
+  - Users (Owners & Riders) listing, details, and dynamic avatar/image parsing via `getMediaUrl`.
+  - Vehicles listing and details with dynamic server-side pagination.
   - Reservations listing and details.
   - Billing & Transactions.
   - Verification processing page.
 - **Global Search:** Command palette (`cmd+k`) style quick search.
 - **Responsive Layout:** Sidebar navigation with responsive breakpoints.
+- **Real API Integration:** Connected live endpoints for Dashboard metrics, Users, Vehicles, and Reservations using dynamic environment variables (`VITE_API_URL`).
+- **Data Modeling:** Extracted fully typed interfaces into dedicated files (`src/types/`).
+- **Theming:** Full System/Dark/Light theme toggle support applied via Tailwind context.
 
 ---
 
-## 🔍 Code Review & Refactoring Opportunities
+## 🔍 Pending Refactoring & Improvements
 
-During the recent code review, several structural and functional areas were identified for refactoring to improve maintainability, performance, and scalability.
-
-### 1. Component Refactoring (Dashboard.tsx)
-- **Issue:** The `Dashboard.tsx` file is overly complex (> 600 lines) and handles data fetching, business logic, and multiple complex UI renderings (Charts, Bento boxes, Data lists).
-- **Improvement:**
-  - Extract charts into separate dedicated components (e.g., `components/dashboard/RevenueChart.tsx`, `components/dashboard/FleetStatusPie.tsx`).
-  - Extract metric cards into reusable components.
-  - Separate mock data definitions into a dedicated `tests/mocks/` or `lib/mockData.ts` file until the real backend replaces it.
-
-### 2. State & Data Fetching Management
+### 1. State & Data Fetching Management
 - **Issue:** Standard `useEffect` and `useState` are used for fetching data. This lacks built-in caching, automatic retries, background refetching, and pagination optimization.
 - **Improvement:** 
   - Introduce **TanStack Query (React Query)** in the future. This will heavily clean up loading states, error handling, and simplify the components.
 
-### 3. API Layer Refactoring (`src/lib/api.ts`)
+### 2. API Layer Refactoring (`src/lib/api.ts`)
 - **Issue:** The `api.ts` has a hardcoded redirect logic inside the Axios interceptor (`window.location.href = "/login"`).
 - **Improvement:** 
   - This is an anti-pattern as it breaks React Router's SPA lifecycle. Instead, we should dispatch an event or use a central Error Boundary / Context state to trigger the logout gracefully using `useNavigate()`.
-
-### 4. Reusable Type Definitions
-- **Issue:** Types (like `MetricsData` in `Dashboard.tsx`) are defined directly inside component files.
-- **Improvement:**
-  - Create a dedicated `src/types/` folder (e.g., `src/types/api.ts`, `src/types/models.ts`) and export interfaces globally so they can be reused across pages and the API layer.
 
 ---
 
 ## 🐛 Known Bugs & Technical Debt
 
-- **Missing Real Backend:** Most pages are currently simulating data or using a mock API based on the `TASK-*.md` documents. A real backend (Node.js/Firebase) needs to be wired up.
-- **Pagination & Filtering:** The UI lists (`UsersPage`, `VehiclesPage`) currently assume all data is fetched at once. Server-side pagination, sorting, and filtering logic must be implemented both in the UI tables and the API requests.
-- **Auth Flow Security:** Current authentication uses `localStorage` for the raw `admin_token` which is vulnerable to XSS. Need to transition to HttpOnly cookies or a more secure JWT storage strategy when connecting the real API.
+- **Partial Mock Fallbacks:** While most lists and details pages are connected to the live API, some peripheral features or edge-cases might still rely on UI mock data if the server endpoints are WIP.
+- **Server Sorting & Filtering:** Advanced filtering and multi-column sorting need full implementation matching API specs.
+- **Auth Flow Security:** Current authentication uses `localStorage` for the raw `admin_token` which is vulnerable to XSS. Need to transition to HttpOnly cookies or a more secure JWT storage strategy.
 - **Route Error Handling:** Missing a global `NotFound` (404) page component. Unmatched routes currently render blank or crash.
 
 ---
