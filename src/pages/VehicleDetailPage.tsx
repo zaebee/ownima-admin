@@ -379,7 +379,7 @@ export function VehicleDetailPage() {
                     </div>
                   </div>
                   <Button variant="ghost" size="sm" className="h-8" asChild>
-                    <Link to={`/users/${vehicle.owner.id}`}>Profile</Link>
+                    <Link to={`/owners/${vehicle.owner?.id || vehicle.owner_id}`}>Profile</Link>
                   </Button>
                 </div>
               ) : (

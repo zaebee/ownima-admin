@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -182,9 +183,11 @@ export function UserVehicles({ userId, ownerCurrency }: { userId: string, ownerC
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm">
-                    <Eye className="h-4 w-4 mr-1.5" />
-                    View
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to={`/vehicles/${v.id}`}>
+                      <Eye className="h-4 w-4 mr-1.5" />
+                      View
+                    </Link>
                   </Button>
                 </TableCell>
               </TableRow>
