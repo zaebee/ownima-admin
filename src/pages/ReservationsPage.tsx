@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search, ArrowUp, ArrowDown, ArrowUpDown, Eye, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, getReservationStatusColor } from "@/lib/utils"
 import { api } from "@/lib/api"
 
 export function ReservationsPage() {
@@ -94,11 +94,13 @@ export function ReservationsPage() {
       const valA = key === 'total' ? (a.total_amount || a.total_price || a.total || 0) : 
                    key === 'vehicle' ? (a.vehicle?.name || a.vehicle || '') : 
                    key === 'rider' ? (a.rider?.name || a.rider?.full_name || a.rider || '') : 
+                   key === 'status' ? (a.humanized?.status || a.status || '') :
                    a[key]
       
       const valB = key === 'total' ? (b.total_amount || b.total_price || b.total || 0) : 
                    key === 'vehicle' ? (b.vehicle?.name || b.vehicle || '') : 
                    key === 'rider' ? (b.rider?.name || b.rider?.full_name || b.rider || '') : 
+                   key === 'status' ? (b.humanized?.status || b.status || '') :
                    b[key]
 
       if (key === 'id') comp = String(valA || '').localeCompare(String(valB || ''))
@@ -149,23 +151,6 @@ export function ReservationsPage() {
         </div>
       </TableHead>
     )
-  }
-
-  const getStatusColorCls = (statusNum: number | undefined, humanizedStatus: string) => {
-    const s = (humanizedStatus || "").toUpperCase()
-    if (s.includes("CONFIRM")) return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-    if (s.includes("CANCEL")) return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-    if (s.includes("OVERDUE") || s.includes("PENDING") || s.includes("COLLECTED") || s.includes("COMPLETED")) return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
-    if (s.includes("ACTIVE") || s.includes("ONGOING")) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-    
-    switch(statusNum) {
-      case 2: return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-      case 1:
-      case 3:
-      case 5: return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
-      case 9: return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-      default: return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
-    }
   }
 
   const formatDateLabel = (dateString: string) => {
@@ -282,7 +267,7 @@ export function ReservationsPage() {
                         <span className="text-xs text-muted-foreground mt-0.5">Rider: {riderName}</span>
                         <div className="md:hidden mt-2 flex flex-col gap-2">
                           <div className="flex items-center gap-1.5">
-                            <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getStatusColorCls(res.status, statusStr))}>
+                            <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getReservationStatusColor(res.status, statusStr))}>
                               {displayStatus}
                             </Badge>
                           </div>
@@ -298,7 +283,7 @@ export function ReservationsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <div className="flex flex-col items-start gap-1.5">
-                        <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getStatusColorCls(res.status, statusStr))}>
+                        <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getReservationStatusColor(res.status, statusStr))}>
                           {displayStatus}
                         </Badge>
                         <span className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">

@@ -6,24 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ChevronLeft, CalendarDays, MapPin, CreditCard, User, Car, ShieldAlert, MessageSquare, CheckCircle2, History } from "lucide-react"
 import { api } from "@/lib/api"
-
-// Quick utility for status colors
-const getStatusClasses = (status: string) => {
-  switch (status) {
-    case "Active":
-      return "bg-blue-500 text-white"
-    case "Confirmed":
-      return "bg-emerald-500 text-white"
-    case "Completed":
-      return "bg-slate-500 text-white"
-    case "Cancelled":
-      return "bg-rose-500 text-white"
-    case "Pending":
-      return "bg-amber-500 text-white"
-    default:
-      return "bg-slate-500 text-white"
-  }
-}
+import { cn, getReservationStatusColor } from "@/lib/utils"
 
 export function ReservationDetailPage() {
   const { id } = useParams()
@@ -128,9 +111,9 @@ export function ReservationDetailPage() {
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Reservation {reservation.id}
+            Reservation {reservation.id?.split('-')[0] || reservation.id}
           </h1>
-          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusClasses(status)}`}>
+          <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider", getReservationStatusColor(reservation.status, status))}>
             {status}
           </span>
         </div>

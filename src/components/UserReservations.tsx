@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, CalendarDays, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { api } from "@/lib/api"
-import { cn } from "@/lib/utils"
+import { cn, getReservationStatusColor } from "@/lib/utils"
 
 export function UserReservations({ userId, userType }: { userId: string, userType: "OWNER" | "RIDER" }) {
   const [reservations, setReservations] = useState<any[]>([])
@@ -44,27 +44,6 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
     return new Date(dateStr).toLocaleDateString(undefined, { 
       year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
     })
-  }
-
-  const getStatusColorCls = (status: number, humanizedStatus: string) => {
-    const s = (humanizedStatus || "").toUpperCase()
-    if (s.includes("CONFIRM")) return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-    if (s.includes("CANCEL")) return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-    if (s.includes("OVERDUE") || s.includes("PENDING") || s.includes("COLLECTED") || s.includes("COMPLETED")) return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
-    if (s.includes("ACTIVE") || s.includes("ONGOING")) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-    
-    switch(status) {
-      case 2: // Completed / Confirmed
-        return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-      case 1: // Pending
-      case 3: // Ongoing / Collected
-      case 5: // Completed
-        return "bg-slate-900 text-slate-50 dark:bg-slate-100 dark:text-slate-900 border-transparent"
-      case 9: // Cancelled
-        return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-      default: 
-        return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
-    }
   }
 
   if (loading) {
@@ -122,7 +101,7 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col items-start gap-1.5">
-                    <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getStatusColorCls(res.status, res.humanized?.status || ''))}>
+                    <Badge variant="outline" className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2 border-transparent", getReservationStatusColor(res.status, res.humanized?.status || ''))}>
                       {res.humanized?.status?.replace('RESERVATION_', '') || `Status: ${res.status}`}
                     </Badge>
                     {res.humanized?.source && (
