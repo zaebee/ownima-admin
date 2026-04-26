@@ -102,11 +102,23 @@ export function ReservationsPage() {
     if (search.trim()) {
       const q = search.toLowerCase().trim()
       result = result.filter(r => {
-        const hId = String(r.humanized?.id || '').toLowerCase()
-        const id = String(r.id || '').toLowerCase()
-        const vName = String(typeof r.vehicle === 'object' && r.vehicle ? (r.vehicle.name || r.vehicle.model || r.vehicle) : (r.vehicle || '')).toLowerCase()
-        const rName = String(typeof r.rider === 'object' && r.rider ? (r.rider.name || r.rider.full_name || r.rider) : (r.rider || '')).toLowerCase()
-        return hId.includes(q) || id.includes(q) || vName.includes(q) || rName.includes(q)
+        // Deep search check
+        const idMatches = String(r.id || '').toLowerCase().includes(q) || 
+                          String(r.humanized?.id || '').toLowerCase().includes(q)
+                          
+        const vNameMatches = String(typeof r.vehicle === 'object' && r.vehicle ? (r.vehicle.name || r.vehicle.model || r.vehicle.id || '') : (r.vehicle || '')).toLowerCase().includes(q)
+        
+        const rNameMatches = String(typeof r.rider === 'object' && r.rider ? (r.rider.name || r.rider.full_name || r.rider.email || r.rider.phone || r.rider.id || '') : (r.rider || '')).toLowerCase().includes(q)
+        
+        const sourceMatches = String(r.source || '').toLowerCase().includes(q) || 
+                              String(r.humanized?.source || '').toLowerCase().includes(q)
+                              
+        const statusMatches = String(r.status || '').toLowerCase().includes(q) || 
+                              String(r.humanized?.status || '').toLowerCase().includes(q)
+                              
+        const ownerMatches = String(typeof r.owner === 'object' && r.owner ? (r.owner.name || r.owner.full_name || r.owner.email || r.owner.phone || r.owner.id || '') : (r.owner || '')).toLowerCase().includes(q)
+        
+        return idMatches || vNameMatches || rNameMatches || sourceMatches || statusMatches || ownerMatches
       })
     }
 
