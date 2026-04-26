@@ -43,7 +43,7 @@ export function VehicleDetailPage() {
     const fetchVehicle = async () => {
       try {
         setLoading(true)
-        const response = await api.get(`/api/v1/admin/vehicles/${id}`)
+        const response = await api.get(`/admin/vehicles/${id}`)
         setVehicle(response.data)
       } catch (error: any) {
         console.error("Failed to fetch vehicle", error)

@@ -49,7 +49,7 @@ export function VehiclesPage() {
     const fetchVehicles = async () => {
       try {
         setLoading(true)
-        const response = await api.get('/api/v1/admin/vehicles', { 
+        const response = await api.get('/admin/vehicles', { 
           params: { page: currentPage, size: pageSize } 
         })
         setVehicles(response.data.data || [])
