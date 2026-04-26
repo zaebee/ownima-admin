@@ -44,7 +44,7 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
       if (dateStr) {
         const date = new Date(dateStr)
         if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+          return date.toLocaleDateString('en-US', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' })
         }
       }
     } catch {}

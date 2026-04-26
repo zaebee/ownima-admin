@@ -57,8 +57,8 @@ export function ReservationDetailPage() {
   const endDate = reservation.dates?.end ? new Date(reservation.dates.end) : new Date()
   const createdAt = reservation.created_at ? new Date(reservation.created_at) : new Date()
 
-  const formatShort = (d: Date) => { try { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) } catch(e) { return "" } }
-  const formatTime = (d: Date) => { try { return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) } catch(e) { return "" } }
+  const formatShort = (d: Date) => { try { return d.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' }) } catch(e) { return "" } }
+  const formatTime = (d: Date) => { try { return d.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit' }) } catch(e) { return "" } }
 
   const status = (reservation.status || "Pending").charAt(0).toUpperCase() + (reservation.status || "Pending").slice(1).toLowerCase()
   
