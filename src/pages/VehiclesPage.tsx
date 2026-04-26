@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Car, Search, Eye, Filter, Plus, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { api } from "@/lib/api"
 import { getMediaUrl, cn } from "@/lib/utils"
 import { VehicleListItem } from "@/types/vehicle"
@@ -315,28 +316,14 @@ export function VehiclesPage() {
           </Table>
         </CardContent>
         {!loading && total > 0 && (
-          <div className="px-6 py-4 border-t bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
-            <span>Showing {vehicles.length} of {total} vehicles</span>
-            <div className="flex gap-1 items-center">
-              <span className="mr-2">Page {currentPage} of {totalPages}</span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={total}
+            currentItemsCount={vehicles.length}
+            onPageChange={setCurrentPage}
+            disabled={loading}
+          />
         )}
       </Card>
     </div>

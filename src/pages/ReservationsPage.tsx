@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { Search, ArrowUp, ArrowDown, ArrowUpDown, Eye, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn, getReservationStatusColor } from "@/lib/utils"
 import { api } from "@/lib/api"
@@ -371,37 +372,15 @@ export function ReservationsPage() {
           </CardContent>
           
           {/* Pagination */}
-          {!loading && totalFiltered > limit && (
-            <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
-              <div className="text-xs text-muted-foreground">
-                Showing <span className="font-medium text-foreground">{Math.min(totalFiltered, (page - 1) * limit + 1)}</span> to{" "}
-                <span className="font-medium text-foreground">{Math.min(totalFiltered, page * limit)}</span> of{" "}
-                <span className="font-medium text-foreground">{totalFiltered}{hasMoreBackend && !search.trim() ? '+' : ''}</span> entries
-              </div>
-              <div className="flex items-center gap-1">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="text-xs font-medium px-2">
-                  Page {page} of {totalPages}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+          {!loading && totalFiltered > 0 && (
+            <PaginationControls
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalFiltered}
+              currentItemsCount={paginatedData.length}
+              onPageChange={setPage}
+              disabled={loading}
+            />
           )}
         </Card>
     </div>
