@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ChevronLeft, CalendarDays, MapPin, CreditCard, User, Car, ShieldAlert, MessageSquare, CheckCircle2, History } from "lucide-react"
 import { api } from "@/lib/api"
-import { cn, getReservationStatusColor } from "@/lib/utils"
+import { cn, getReservationStatusColor, getMediaUrl } from "@/lib/utils"
 
 export function ReservationDetailPage() {
   const { id } = useParams()
@@ -64,7 +64,8 @@ export function ReservationDetailPage() {
   
   const vehicleName = typeof reservation.vehicle === 'object' && reservation.vehicle ? (reservation.vehicle.name || reservation.vehicle.model || 'Unknown Vehicle') : (reservation.vehicle || 'Unknown Vehicle')
   const vehicleId = typeof reservation.vehicle === 'object' && reservation.vehicle ? reservation.vehicle.id : null
-  const vehicleImage = typeof reservation.vehicle === 'object' && reservation.vehicle ? reservation.vehicle.image : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=400&q=80'
+  const vehicleImageRaw = typeof reservation.vehicle === 'object' && reservation.vehicle ? (reservation.vehicle.image || reservation.vehicle?.picture?.cover) : null
+  const vehicleImage = vehicleImageRaw ? getMediaUrl(vehicleImageRaw) : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=400&q=80'
   const vehicleReg = typeof reservation.vehicle === 'object' && reservation.vehicle ? reservation.vehicle.reg_number : ''
 
   const riderName = typeof reservation.rider === 'object' && reservation.rider ? (reservation.rider.name || reservation.rider.full_name || 'Unknown Rider') : (reservation.rider || 'Unknown Rider')
