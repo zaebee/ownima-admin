@@ -39,11 +39,35 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
     if (userId) fetchReservations()
   }, [userId, userType, page])
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "N/A";
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-    })
+  const formatDate = (dateStr: string, humanizedString?: string) => {
+    try {
+      if (dateStr) {
+        const date = new Date(dateStr)
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+        }
+      }
+    } catch {}
+
+    if (humanizedString) {
+      let s = humanizedString.replace(/\./g, '').trim()
+      const ruMonths: Record<string, string> = {
+        'янв': 'Jan', 'фев': 'Feb', 'мар': 'Mar', 'апр': 'Apr', 'май': 'May', 'июн': 'Jun',
+        'июл': 'Jul', 'авг': 'Aug', 'сен': 'Sep', 'окт': 'Oct', 'ноя': 'Nov', 'дек': 'Dec'
+      }
+      for (const [ru, en] of Object.entries(ruMonths)) {
+        if (s.toLowerCase().includes(ru)) {
+          s = s.toLowerCase().replace(ru, en)
+          break
+        }
+      }
+      const parts = s.split(' ')
+      if (parts.length >= 2) {
+        return `${parts[0]} ${parts[1].charAt(0).toUpperCase() + parts[1].slice(1)}`
+      }
+      return humanizedString.replace(/\./g, '')
+    }
+    return "N/A";
   }
 
   if (loading) {
@@ -95,8 +119,8 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col text-sm">
-                    <span>{formatDate(res.date_from) || res.humanized?.date_from || "N/A"}</span>
-                    <span className="text-xs text-muted-foreground">to {formatDate(res.date_to) || res.humanized?.date_to || ""}</span>
+                    <span>{formatDate(res.date_from, res.humanized?.date_from)}</span>
+                    <span className="text-xs text-muted-foreground">to {formatDate(res.date_to, res.humanized?.date_to).replace("N/A", "")}</span>
                   </div>
                 </TableCell>
                 <TableCell>

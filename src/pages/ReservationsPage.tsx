@@ -30,7 +30,12 @@ export function ReservationsPage() {
 
         while (hasMore && loopCount < 10) {
           const response = await api.get("/admin/reservations", {
-            params: { page: currentPage, size: 50 },
+            params: { 
+              page: currentPage, 
+              size: 50,
+              limit: 50,
+              skip: (currentPage - 1) * 50
+            },
             validateStatus: () => true
           })
           
@@ -45,7 +50,13 @@ export function ReservationsPage() {
                        (rawData?.data ? rawData.data : 
                        (rawData?.items ? rawData.items : []))
           
-          fetchedData = [...fetchedData, ...data]
+          if (loopCount === 0 && data.length > 0) {
+            console.log("SAMPLE RESERVATION:", data[0]);
+          }
+          
+          // Deduplicate items just in case the API returned duplicates
+          const newItems = data.filter((item: any) => !fetchedData.find(f => f.id === item.id))
+          fetchedData = [...fetchedData, ...newItems]
           
           if (rawData?.total_pages) {
             if (currentPage >= rawData.total_pages) {
@@ -53,8 +64,14 @@ export function ReservationsPage() {
             } else {
               currentPage++
             }
+          } else if (rawData?.count) {
+            if (fetchedData.length >= rawData.count || data.length === 0) {
+              hasMore = false
+            } else {
+              currentPage++
+            }
           } else {
-            // fallback if total_pages not present
+            // fallback
             if (data.length < 50) hasMore = false
             else currentPage++
           }
@@ -153,15 +170,38 @@ export function ReservationsPage() {
     )
   }
 
-  const formatDateLabel = (dateString: string) => {
-    if (!dateString) return ""
+  const formatDateLabel = (dateString: string, humanizedString?: string) => {
     try {
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return ""
-      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-    } catch {
-      return ""
+      if (dateString) {
+        const date = new Date(dateString)
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+        }
+      }
+    } catch {}
+
+    if (humanizedString) {
+      // It might be like "29 апр." or "7 май."
+      let s = humanizedString.replace(/\./g, '').trim()
+      const ruMonths = {
+        'янв': 'Jan', 'фев': 'Feb', 'мар': 'Mar', 'апр': 'Apr', 'май': 'May', 'июн': 'Jun',
+        'июл': 'Jul', 'авг': 'Aug', 'сен': 'Sep', 'окт': 'Oct', 'ноя': 'Nov', 'дек': 'Dec'
+      }
+      for (const [ru, en] of Object.entries(ruMonths)) {
+        if (s.toLowerCase().includes(ru)) {
+          s = s.toLowerCase().replace(ru, en)
+          break
+        }
+      }
+      
+      const parts = s.split(' ')
+      if (parts.length >= 2) {
+        return `${parts[0]} ${parts[1].charAt(0).toUpperCase() + parts[1].slice(1)}`
+      }
+      return humanizedString.replace(/\./g, '')
     }
+
+    return ""
   }
 
   return (
@@ -242,8 +282,8 @@ export function ReservationsPage() {
                   
                   let rawStart = res.date_from || res.dates?.start || res.start_date
                   let rawEnd = res.date_to || res.dates?.end || res.end_date
-                  let startStr = formatDateLabel(rawStart) || res.humanized?.date_from || "N/A"
-                  let endStr = formatDateLabel(rawEnd) || res.humanized?.date_to || ""
+                  let startStr = formatDateLabel(rawStart, res.humanized?.date_from) || "N/A"
+                  let endStr = formatDateLabel(rawEnd, res.humanized?.date_to) || ""
 
                   const totalAmount = res.total_price || res.total_amount || res.total || res.grand_total || 0
                   const currency = res.currency || res.financials?.currency || 'USD'
