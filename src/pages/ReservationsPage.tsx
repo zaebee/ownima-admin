@@ -236,19 +236,21 @@ export function ReservationsPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search by ID, vehicle, or rider..." 
-            className="pl-9 bg-slate-50 border-slate-200 focus-visible:bg-white"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <Card className="overflow-hidden border-none shadow-sm min-h-[400px]">
+        <div className="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/20">
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="search"
+              placeholder="Search by ID, vehicle, or rider..." 
+              className="pl-9 bg-background"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
 
-        <Card className="overflow-hidden border-none shadow-sm min-h-[400px]">
-          <CardContent className="p-0">
+        <CardContent className="p-0">
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow>
@@ -402,7 +404,6 @@ export function ReservationsPage() {
             </div>
           )}
         </Card>
-      </div>
     </div>
   )
 }

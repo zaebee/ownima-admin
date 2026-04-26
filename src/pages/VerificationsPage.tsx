@@ -122,21 +122,22 @@ export function VerificationsPage() {
         </div>
       </div>
 
-      {/* Filters & Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search by name, email or ID..." 
-            className="pl-9 bg-muted/50 border-transparent focus-visible:bg-background"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <Card className="overflow-hidden border border-border shadow-sm min-h-[400px]">
+        {/* Header/Controls */}
+        <div className="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/20">
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="search"
+              placeholder="Search by name, email or ID..." 
+              className="pl-9 bg-background"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
-      </div>
 
       {loading ? (
-        <Card>
           <CardContent className="p-0">
             <div className="p-4 space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -151,9 +152,7 @@ export function VerificationsPage() {
               ))}
             </div>
           </CardContent>
-        </Card>
       ) : (
-        <Card className="overflow-hidden border-none shadow-sm min-h-[400px]">
           <CardContent className="p-0 relative">
             <Table className="text-sm">
               <TableHeader className="bg-muted/30">
@@ -239,8 +238,8 @@ export function VerificationsPage() {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
       )}
+      </Card>
     </div>
   )
 }

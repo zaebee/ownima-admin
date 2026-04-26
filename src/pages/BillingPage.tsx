@@ -106,26 +106,24 @@ export function BillingPage() {
       </div>
 
       <Card>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle>Transactions Explorer</CardTitle>
-            <div className="flex w-full sm:w-auto items-center gap-2">
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search TXN, user, reservations..."
-                  className="pl-8 !ring-0"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
+        <div className="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/20">
+          <CardTitle className="text-lg">Transactions Explorer</CardTitle>
+          <div className="flex w-full sm:w-auto items-center gap-2">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search TXN, user, reservations..."
+                className="pl-9 bg-background"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
+            <Button variant="outline" size="icon" className="shrink-0 bg-background h-9 w-9">
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
-        </CardHeader>
+        </div>
         <Tabs defaultValue="all" className="w-full">
           <div className="px-6 border-b">
             <TabsList className="bg-transparent h-12 p-0 -mb-px flex justify-start gap-6">

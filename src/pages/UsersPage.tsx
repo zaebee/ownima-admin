@@ -307,61 +307,59 @@ export function UsersPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-24">
-      {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="text-sm text-muted-foreground flex items-center gap-2 min-w-[150px]">
-            <span>Showing {displayedUsers.length} of {total} {roleFilter.toLowerCase()}s</span>
-          </div>
-          <div className="relative w-full sm:w-56 lg:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              type="text" 
-              placeholder="Search by name or email..." 
-              className="pl-9 h-9 w-full bg-background/50 focus-visible:ring-1"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-3 self-end sm:self-auto">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={exportCSV} 
-            disabled={isExporting || displayedUsers.length === 0}
-            className="flex items-center gap-2"
-          >
-            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Export CSV
-          </Button>
-          <div className="h-4 w-px bg-border hidden sm:block"></div>
-          <div className="flex items-center gap-1 text-sm bg-muted/50 p-1 rounded-lg">
-            <button 
-              onClick={() => handleRoleChange("OWNER")}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
-                roleFilter === "OWNER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-              <span>Owners</span>
-            </button>
-            <button 
-              onClick={() => handleRoleChange("RIDER")}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
-                roleFilter === "RIDER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              <span>Riders</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       <Card className="overflow-hidden border-none shadow-sm min-h-[400px]">
+        <div className="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/20">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="text-sm text-muted-foreground flex items-center gap-2 min-w-[150px]">
+              <span>Showing {displayedUsers.length} of {total} {roleFilter.toLowerCase()}s</span>
+            </div>
+            <div className="relative w-full max-w-sm sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                type="search" 
+                placeholder="Search by name or email..." 
+                className="pl-9 bg-background"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportCSV} 
+              disabled={isExporting || displayedUsers.length === 0}
+              className="flex items-center gap-2 h-9"
+            >
+              {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Export CSV
+            </Button>
+            <div className="h-4 w-px bg-border hidden sm:block"></div>
+            <div className="flex items-center gap-1 text-sm bg-muted/50 p-1 rounded-lg">
+              <button 
+                onClick={() => handleRoleChange("OWNER")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
+                  roleFilter === "OWNER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <span>Owners</span>
+              </button>
+              <button 
+                onClick={() => handleRoleChange("RIDER")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all font-medium",
+                  roleFilter === "RIDER" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <span>Riders</span>
+              </button>
+            </div>
+          </div>
+        </div>
         <CardContent className="p-0 relative">
           <Table className="text-sm">
             <TableHeader className="bg-muted/30">
