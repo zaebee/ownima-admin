@@ -27,7 +27,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUser = async () => {
     try {
       const response = await api.get('/users/me');
-      setUser(response.data);
+      const userData = response.data;
+      
+      const userRole = userData?.role;
+      const isSuperuser = userData?.is_superuser;
+      
+      if (userRole !== "SUPERUSER" && userRole !== "ADMIN" && isSuperuser !== true) {
+        logout();
+        return;
+      }
+      
+      setUser(userData);
     } catch (error) {
       console.error("Failed to fetch user:", error);
       // Если 401, интерцептор api.ts сам сделает logout и редирект

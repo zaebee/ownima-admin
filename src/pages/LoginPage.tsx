@@ -40,8 +40,25 @@ export function LoginPage() {
         },
       })
 
+      const token = response.data.access_token;
+
+      // Получаем профиль пользователя для проверки роли
+      const userResponse = await api.get('/users/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const userRole = userResponse.data?.role;
+      const isSuperuser = userResponse.data?.is_superuser;
+      
+      if (userRole !== "SUPERUSER" && userRole !== "ADMIN" && isSuperuser !== true) {
+        setError("Access denied. Admin privileges required.")
+        return
+      }
+
       // Сохраняем токен и перенаправляем
-      login(response.data.access_token)
+      login(token)
       navigate("/")
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
