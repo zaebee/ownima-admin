@@ -22,13 +22,31 @@ export function ActivityFeedPage() {
       try {
         setIsLoading(true)
         const skip = (page - 1) * limit
-        const endpoint = activeTab === "all" ? "/admin/activity/all" : `/admin/activity/${activeTab}`
-        const response = await api.get(endpoint, {
-          params: { skip, limit }
-        })
-        const rawItems = response.data.data || []
+        let rawItems = []
+        let totalCount = 0
+        if (activeTab === "all") {
+          const [usersRes, vehiclesRes, resRes] = await Promise.all([
+             api.get('/admin/activity/users', { params: { skip, limit: limit } }).catch(() => ({ data: { data: [], count: 0 } })),
+             api.get('/admin/activity/vehicles', { params: { skip, limit: limit } }).catch(() => ({ data: { data: [], count: 0 } })),
+             api.get('/admin/activity/reservations', { params: { skip, limit: limit } }).catch(() => ({ data: { data: [], count: 0 } }))
+          ])
+          
+          rawItems = [...(usersRes.data.data || []), ...(vehiclesRes.data.data || []), ...(resRes.data.data || [])]
+          rawItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          
+          // Slice down to limit since we merged three limit-sized arrays
+          rawItems = rawItems.slice(0, limit)
+          totalCount = (usersRes.data.count || 0) + (vehiclesRes.data.count || 0) + (resRes.data.count || 0)
+        } else {
+          const response = await api.get(`/admin/activity/${activeTab}`, {
+            params: { skip, limit }
+          })
+          rawItems = response.data.data || []
+          totalCount = response.data.count || 0
+        }
+        
         setActivities(groupActivities(rawItems))
-        setTotal(response.data.count || 0)
+        setTotal(totalCount)
       } catch (error) {
         console.error("Failed to fetch activities:", error)
       } finally {

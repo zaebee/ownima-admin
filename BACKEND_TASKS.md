@@ -39,9 +39,14 @@ Provides data to render "Revenue Flow (Last 7 Days)" dashboard widget.
 - **Parameters:** `skip`, `limit`
 - **Response:** Paginated list combining any `ActivityItem` record across the platform, exactly matching the schema of partial `/users`, `/vehicles` endpoints.
 
+## 9. Admin Audit Trail
+- **Issue:** Now that Admins can impersonate users and reset showcase data, we must log admin-initiated actions in a separate audit trail.
+- **Endpoint:** `GET /api/v1/admin/audit-logs`
+- **Response:** Similar to Activity Feed but strictly tracks `ADMIN` role actions (Impersonation started, Dashboard viewed, Data deleted, User suspended).
+
 ## Future Insights & Improvement Ideas (For Discussion)
+- **WebSockets for Live Dashboard:** Integrating websockets/SSE so the Activity Feed and Dashboard charts update in true real-time.
 - **Bulk Actions:** Add functionality for Admin to bulk-verify users or bulk suspend/deactivate accounts to improve operation speed.
 - **Dynamic Date Range Analytics:** Currently, widgets like Revenue Flow hardcode '7 days'. Allowing `start_date` and `end_date` parameters will allow admin date-picker filtering.
 - **Refund & Dispute Management:** Need endpoints to initiate, track, and log stripe refunds/disputes for reservations directly from Admin panel (e.g. `POST /api/v1/admin/reservations/{id}/refund`).
 - **KYC Document Viewer Engine:** For KYC verifications, generating secure, short-lived signed URLs for reviewing driver licenses without downloading.
-- **Admin Audit Trail Protection:** The activity feed currently tracks normal user events; it is critical we also track actions performed by *Admins* themselves (e.g., who suspended an owner? who verified a Document?).

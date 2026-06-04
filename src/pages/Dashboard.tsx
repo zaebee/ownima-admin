@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react"
-import { Activity } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Activity, Server, RotateCcw } from "lucide-react"
 import { api } from "@/lib/api"
 import { subDays, format } from "date-fns"
 import { MetricsData } from "@/types/dashboard"
+import { Button } from "@/components/ui/button"
 
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 import { StatCards } from "@/components/dashboard/StatCards"
@@ -18,6 +19,21 @@ import { VehicleDemandChart } from "@/components/dashboard/VehicleDemandChart"
 export function Dashboard() {
   const [metrics, setMetrics] = useState<MetricsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [systemInfo, setSystemInfo] = useState<any>(null)
+  const [isResetting, setIsResetting] = useState(false)
+  const [sysInfoOpen, setSysInfoOpen] = useState(false)
+  const sysInfoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    // Close dropdown on outside click
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sysInfoRef.current && !sysInfoRef.current.contains(event.target as Node)) {
+        setSysInfoOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -26,14 +42,20 @@ export function Dashboard() {
         const endDate = new Date()
         const startDate = subDays(endDate, 30)
         
-        const response = await api.get('/admin/metrics/blocks', {
-          params: {
-            date_start: format(startDate, 'yyyy-MM-dd'),
-            date_end: format(endDate, 'yyyy-MM-dd')
-          }
-        })
+        const [metricsResponse, systemResponse] = await Promise.all([
+           api.get('/admin/metrics/blocks', {
+            params: {
+              date_start: format(startDate, 'yyyy-MM-dd'),
+              date_end: format(endDate, 'yyyy-MM-dd')
+            }
+          }),
+          api.get('/admin/system/info').catch(() => ({ data: null }))
+        ])
         
-        setMetrics(response.data)
+        setMetrics(metricsResponse.data)
+        if (systemResponse?.data) {
+          setSystemInfo(systemResponse.data)
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard metrics:", error)
       } finally {
@@ -43,6 +65,20 @@ export function Dashboard() {
     
     fetchMetrics()
   }, [])
+
+  const handleResetShowcase = async () => {
+    if (!window.confirm("Are you SURE you want to completely reset the showcase account? This action deletes vehicles, price templates, and extra options associated with the demo account, and imports clean CSV data. This cannot be undone.")) return
+    
+    try {
+      setIsResetting(true)
+      await api.post('/showcase/reset')
+      alert("Showcase reset job enqueued successfully.")
+    } catch (error: any) {
+      alert("Failed to enqueue showcase reset.\n" + (error.response?.data?.detail || error.message))
+    } finally {
+      setIsResetting(false)
+    }
+  }
 
   if (loading || !metrics) {
     return <DashboardSkeleton />
@@ -57,9 +93,43 @@ export function Dashboard() {
           <h2 className="text-3xl font-bold tracking-tight">Control Center</h2>
           <p className="text-muted-foreground">Platform operations, analytics, and security.</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-md border text-slate-800 dark:text-slate-200">
-          <Activity className="h-4 w-4 text-green-500 animate-pulse" />
-          <span>System Healthy</span>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={handleResetShowcase} disabled={isResetting} className="h-8">
+             <RotateCcw className={`mr-2 h-3.5 w-3.5 ${isResetting ? "animate-spin" : ""}`} />
+             {isResetting ? "Resetting Demo..." : "Reset Showcase Data"}
+          </Button>
+
+          <div className="relative" ref={sysInfoRef}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setSysInfoOpen(!sysInfoOpen)}
+              className="h-8 gap-2 border-green-200 bg-green-50/10 hover:bg-green-50/50"
+            >
+               <Activity className="h-3.5 w-3.5 text-green-500 animate-pulse" />
+               <span className="text-xs text-green-700 dark:text-green-400 font-medium tracking-wide">System Online</span>
+            </Button>
+            
+            {sysInfoOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 rounded-md border shadow-lg overflow-hidden z-50 bg-background text-foreground animate-in fade-in slide-in-from-top-2 duration-200">
+                 <div className="bg-slate-900 border-b p-3 flex items-center justify-between">
+                   <span className="text-slate-100 font-mono text-sm tracking-tight flex items-center gap-2">
+                     <Server className="w-4 h-4 text-emerald-400"/> System Diagnostics
+                   </span>
+                 </div>
+                 <div className="p-3 bg-slate-950 text-slate-400 text-xs font-mono space-y-2 flex flex-col pt-4 pb-4">
+                    <div className="flex justify-between"><span>API VER:</span> <span className="text-slate-200">{systemInfo?.api_version || "local"}</span></div>
+                    <div className="flex justify-between"><span>APP BUILD:</span> <span className="text-slate-200 text-[10px]">{systemInfo?.git_commit || "dev"}</span></div>
+                    <div className="flex justify-between"><span>ENV:</span> <span className="text-slate-200">{systemInfo?.environment || "development"}</span></div>
+                    <div className="flex justify-between"><span>PYTHON:</span> <span className="text-slate-200">{systemInfo?.python_version || "unknown"}</span></div>
+                    <div className="flex justify-between mt-3 pt-3 border-t border-slate-800">
+                      <span>UPTIME:</span> 
+                      <span className="text-slate-200">{systemInfo?.uptime_seconds ? Math.floor(systemInfo.uptime_seconds / 3600) + ' hrs ' + Math.floor((systemInfo.uptime_seconds % 3600) / 60) + ' min' : "unknown"}</span>
+                    </div>
+                 </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
