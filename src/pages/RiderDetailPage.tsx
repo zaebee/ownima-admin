@@ -178,7 +178,7 @@ export function RiderDetailPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Last Login</span>
                   <span className="font-semibold text-sm">
-                    {rider.last_login_at ? new Date(rider.last_login_at).toLocaleDateString() : "Never"}
+                    {rider.last_login_at || rider.created_at ? new Date(rider.last_login_at || rider.created_at).toLocaleDateString() : "Never"}
                   </span>
                 </div>
               </CardContent>

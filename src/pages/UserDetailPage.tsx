@@ -73,11 +73,10 @@ export function UserDetailPage() {
   if (owner.average_rating !== null && owner.average_rating < 4.0 && owner.rating_count >= 1) {
     redFlags.push(`Low average rating (${owner.average_rating.toFixed(1)} ⭐) from ${owner.rating_count} reviews`)
   }
-  const daysSinceLogin = owner.last_login_at 
-    ? Math.floor((new Date().getTime() - new Date(owner.last_login_at).getTime()) / (1000 * 3600 * 24))
-    : 999
+  const lastActiveDate = new Date(owner.last_login_at || owner.created_at || new Date())
+  const daysSinceLogin = Math.floor((new Date().getTime() - lastActiveDate.getTime()) / (1000 * 3600 * 24))
   if (daysSinceLogin > 30) {
-    redFlags.push(`Account dormant for ${daysSinceLogin} days (Last login: ${new Date(owner.last_login_at).toLocaleDateString()})`)
+    redFlags.push(`Account dormant for ${daysSinceLogin} days (Last activity: ${lastActiveDate.toLocaleDateString()})`)
   }
   if (owner.total_vehicles > 0 && owner.total_reservations === 0 && daysSinceLogin > 7) {
     redFlags.push("Has listed vehicles but zero reservations (Platform churn risk)")
@@ -149,7 +148,7 @@ export function UserDetailPage() {
                 {owner.booking_website_published && owner.username && (
                   <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] h-5 px-0 uppercase tracking-wider hover:bg-emerald-500/20 transition-colors">
                     <a href={`https://booking.ownima.com/${owner.username}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-1.5 w-full h-full">
-                      Public Web
+                      Public Website
                     </a>
                   </Badge>
                 )}
@@ -283,7 +282,7 @@ export function UserDetailPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-muted-foreground">Last online</span>
                   <span className="font-mono text-xs">
-                    {owner.last_login_at ? new Date(owner.last_login_at).toLocaleDateString() : "Never"}
+                    {owner.last_login_at || owner.created_at ? new Date(owner.last_login_at || owner.created_at).toLocaleDateString() : "Never"}
                   </span>
                 </div>
               </CardContent>

@@ -500,11 +500,11 @@ export function UsersPage() {
                   <TableCell className="py-2 hidden md:table-cell">
                     <div className="flex flex-col">
                       <span className="text-xs font-medium text-foreground whitespace-nowrap">
-                        {user.last_login_at ? formatDate(user.last_login_at) : "Never"}
+                        {user.last_login_at || user.created_at ? formatDate(user.last_login_at || user.created_at) : "Never"}
                       </span>
-                      {user.last_login_at && (
+                      {(user.last_login_at || user.created_at) && (
                         <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-0.5">
-                          {new Date(user.last_login_at).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(user.last_login_at || user.created_at).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       )}
                     </div>
