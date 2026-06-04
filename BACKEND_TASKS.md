@@ -32,3 +32,16 @@ Provides data to render "Revenue Flow (Last 7 Days)" dashboard widget.
 - **Issue:** Ensure we have an endpoint to list reservations for a given rider to display in the rider's details page.
 - **Expected Endpoint:** `GET /api/v1/admin/riders/{id}/reservations` 
 *(Alternatively, update `GET /api/v1/admin/reservations` to accept the query parameter `rider_id={id}` and inform frontend)*.
+
+## 8. Unified Activity Feed
+- **Issue:** The UI now requires an endpoint that aggregates all activities (users, vehicles, reservations) across the platform sorted globally by timestamp.
+- **Endpoint:** `GET /api/v1/admin/activity/all`
+- **Parameters:** `skip`, `limit`
+- **Response:** Paginated list combining any `ActivityItem` record across the platform, exactly matching the schema of partial `/users`, `/vehicles` endpoints.
+
+## Future Insights & Improvement Ideas (For Discussion)
+- **Bulk Actions:** Add functionality for Admin to bulk-verify users or bulk suspend/deactivate accounts to improve operation speed.
+- **Dynamic Date Range Analytics:** Currently, widgets like Revenue Flow hardcode '7 days'. Allowing `start_date` and `end_date` parameters will allow admin date-picker filtering.
+- **Refund & Dispute Management:** Need endpoints to initiate, track, and log stripe refunds/disputes for reservations directly from Admin panel (e.g. `POST /api/v1/admin/reservations/{id}/refund`).
+- **KYC Document Viewer Engine:** For KYC verifications, generating secure, short-lived signed URLs for reviewing driver licenses without downloading.
+- **Admin Audit Trail Protection:** The activity feed currently tracks normal user events; it is critical we also track actions performed by *Admins* themselves (e.g., who suspended an owner? who verified a Document?).

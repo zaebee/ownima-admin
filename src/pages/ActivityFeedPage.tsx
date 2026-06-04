@@ -10,7 +10,7 @@ import { groupActivities, GroupedActivityItem } from "@/lib/activityGrouping"
 import { cn } from "@/lib/utils"
 
 export function ActivityFeedPage() {
-  const [activeTab, setActiveTab] = useState("users")
+  const [activeTab, setActiveTab] = useState("all")
   const [activities, setActivities] = useState<GroupedActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -22,7 +22,8 @@ export function ActivityFeedPage() {
       try {
         setIsLoading(true)
         const skip = (page - 1) * limit
-        const response = await api.get(`/admin/activity/${activeTab}`, {
+        const endpoint = activeTab === "all" ? "/admin/activity/all" : `/admin/activity/${activeTab}`
+        const response = await api.get(endpoint, {
           params: { skip, limit }
         })
         const rawItems = response.data.data || []
@@ -49,7 +50,8 @@ export function ActivityFeedPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setPage(1); }} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-[400px] mb-6">
+        <TabsList className="grid w-full grid-cols-4 max-w-[500px] mb-6">
+          <TabsTrigger value="all" className="flex items-center gap-2"><Clock className="h-4 w-4" /> All</TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2"><User className="h-4 w-4" /> Users</TabsTrigger>
           <TabsTrigger value="vehicles" className="flex items-center gap-2"><Car className="h-4 w-4" /> Vehicles</TabsTrigger>
           <TabsTrigger value="reservations" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Reservations</TabsTrigger>
