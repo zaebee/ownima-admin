@@ -186,7 +186,7 @@ export function UsersPage() {
       let comp = 0
       
       if (key === 'created_at') comp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      else if (key === 'last_login_at') comp = (a.last_login_at ? new Date(a.last_login_at).getTime() : 0) - (b.last_login_at ? new Date(b.last_login_at).getTime() : 0)
+      else if (key === 'last_login_at') comp = (a.last_login_at ? new Date(a.last_login_at).getTime() : new Date(a.created_at).getTime()) - (b.last_login_at ? new Date(b.last_login_at).getTime() : new Date(b.created_at).getTime())
       else if (key === 'total_vehicles') comp = (a.total_vehicles || 0) - (b.total_vehicles || 0)
       else if (key === 'total_reservations') comp = (a.total_reservations || 0) - (b.total_reservations || 0)
       else if (key === 'login_count') comp = (a.login_count || 0) - (b.login_count || 0)
@@ -258,7 +258,7 @@ export function UsersPage() {
           
           row.push(String(u.total_reservations || 0))
           row.push(String(u.login_count || 0))
-          row.push(`"${u.last_login_at ? new Date(u.last_login_at).toISOString() : ''}"`)
+          row.push(`"${(u.last_login_at || u.created_at) ? new Date(u.last_login_at || u.created_at).toISOString() : ''}"`)
           
           return row.join(",")
         })
@@ -504,7 +504,7 @@ export function UsersPage() {
                       </span>
                       {(user.last_login_at || user.created_at) && (
                         <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-0.5">
-                          {new Date(user.last_login_at || user.created_at).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(user.last_login_at || user.created_at).toLocaleTimeString("en-US", { timeZone: 'UTC', hour: '2-digit', minute: '2-digit' })}
                         </span>
                       )}
                     </div>

@@ -21,6 +21,7 @@ import { ReservationDetailPage } from "./pages/ReservationDetailPage"
 import { BillingPage } from "./pages/BillingPage"
 import { TransactionDetailPage } from "./pages/TransactionDetailPage"
 import { NotFoundPage } from "./pages/NotFoundPage"
+import { ActivityFeedPage } from "./pages/ActivityFeedPage"
 
 export default function App() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
               <Route path="transactions/:id" element={<TransactionDetailPage />} />
               <Route path="owners/:id" element={<UserDetailPage />} />
               <Route path="riders/:id" element={<RiderDetailPage />} />
+              <Route path="activity" element={<ActivityFeedPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Route>

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, UserCircle, Car, CalendarDays, Settings, X, CreditCard, ShieldCheck } from "lucide-react"
+import { LayoutDashboard, Users, UserCircle, Car, CalendarDays, Settings, X, CreditCard, ShieldCheck, Activity } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -9,6 +9,7 @@ const navigation = [
   { name: "Reservations", href: "/reservations", icon: CalendarDays },
   { name: "Billing & Payouts", href: "/billing", icon: CreditCard },
   { name: "KYC / Approvals", href: "/verifications", icon: ShieldCheck },
+  { name: "Activity Feed", href: "/activity", icon: Activity },
 ]
 
 interface SidebarProps {

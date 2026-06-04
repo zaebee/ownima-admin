@@ -15,6 +15,22 @@ export function RiderDetailPage() {
   const [rider, setRider] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"overview" | "reservations">("overview")
+  const [isImpersonating, setIsImpersonating] = useState(false)
+
+  const handleImpersonate = async () => {
+    try {
+      if (!window.confirm(`Are you sure you want to impersonate ${rider.full_name || rider.email}? You will be logged into their account.`)) return;
+      setIsImpersonating(true)
+      const response = await api.post(`/admin/users/${id}/impersonate`)
+      if (response.data.access_token) {
+        alert(`Impersonation successful. New token received: ${response.data.access_token.substring(0, 10)}... (Implementation for app-wide token swap required)`)
+      }
+    } catch (error: any) {
+      alert("Failed to impersonate user. Has the backend endpoint been deployed?\n" + (error.response?.data?.detail || error.message))
+    } finally {
+      setIsImpersonating(false)
+    }
+  }
 
   useEffect(() => {
     const fetchRider = async () => {
@@ -67,6 +83,9 @@ export function RiderDetailPage() {
           <h2 className="text-3xl font-bold tracking-tight">Rider Details</h2>
         </div>
         <div className="flex gap-2">
+          <Button variant="secondary" onClick={handleImpersonate} disabled={isImpersonating}>
+            {isImpersonating ? "..." : "Impersonate"}
+          </Button>
           <Button variant="outline">Edit Profile</Button>
           <Button variant={rider.is_active ? "destructive" : "default"}>
             {rider.is_active ? "Deactivate" : "Activate"}
