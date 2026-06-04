@@ -326,33 +326,33 @@ export function VehicleDetailPage() {
         <div className="flex flex-col gap-6 lg:gap-8">
           
           {/* Pricing Highlight Card */}
-          <Card className="bg-slate-900 border-slate-800 text-slate-50 relative overflow-hidden">
-            <div className="absolute -right-6 -top-6 opacity-5 pointer-events-none">
+          <Card className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-foreground relative overflow-hidden">
+            <div className="absolute -right-6 -top-6 opacity-5 pointer-events-none text-muted-foreground dark:text-slate-50">
               <DollarSignIcon className="w-32 h-32" />
             </div>
             <CardHeader className="pb-2">
-              <CardDescription className="text-slate-400 font-medium uppercase tracking-wider text-xs">Standard Daily Rate</CardDescription>
+              <CardDescription className="text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider text-xs">Standard Daily Rate</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-5xl font-bold tracking-tight text-emerald-400">
+                <span className="text-5xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
                   {Number(vehicle.price || 0).toLocaleString()}
                 </span>
-                <span className="text-lg font-medium text-slate-400 uppercase">
+                <span className="text-lg font-medium text-slate-500 dark:text-slate-400 uppercase">
                   {vehicle.currency || "RUB"}
                 </span>
               </div>
-              <div className="flex flex-col gap-2 pt-4 pb-2 border-t border-slate-800 mb-4">
+              <div className="flex flex-col gap-2 pt-4 pb-2 border-t border-slate-200 dark:border-slate-800 mb-4">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-400">Security Deposit</span>
-                  <span className="font-medium text-slate-50">{vehicle.price_templates?.deposit_amount ? `${vehicle.price_templates.deposit_amount.toLocaleString()} ${vehicle.currency}` : "N/A"}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Security Deposit</span>
+                  <span className="font-semibold text-foreground">{vehicle.price_templates?.deposit_amount ? `${vehicle.price_templates.deposit_amount.toLocaleString()} ${vehicle.currency}` : "N/A"}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-400">Minimum Rent</span>
-                  <span className="font-medium text-slate-50">{vehicle.price_templates?.minimal_rent_period || 1} day(s)</span>
+                  <span className="text-slate-500 dark:text-slate-400">Minimum Rent</span>
+                  <span className="font-semibold text-foreground">{vehicle.price_templates?.minimal_rent_period || 1} day(s)</span>
                 </div>
               </div>
-              <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-900 border-none font-semibold">
+              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white dark:text-slate-900 border-none font-semibold">
                 Adjust Pricing
               </Button>
             </CardContent>

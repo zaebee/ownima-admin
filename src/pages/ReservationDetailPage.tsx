@@ -251,15 +251,15 @@ export function ReservationDetailPage() {
         <div className="flex flex-col gap-6 lg:gap-8">
           
           {/* Financials */}
-          <Card className="bg-slate-900 border-slate-800 text-slate-50 relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-5 pointer-events-none">
+          <Card className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-foreground relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-5 pointer-events-none text-muted-foreground dark:text-slate-50">
               <CreditCard className="w-32 h-32" />
             </div>
             <CardHeader className="pb-2 relative z-10">
               <CardTitle className="text-base flex items-center justify-between">
                 Payment Summary
                 {paymentStatus === "Paid" && (
-                  <Badge className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30">
+                  <Badge className="bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30">
                     <CheckCircle2 className="h-3 w-3 mr-1" /> Paid
                   </Badge>
                 )}
@@ -268,32 +268,32 @@ export function ReservationDetailPage() {
             <CardContent className="relative z-10 pt-4">
               <div className="flex flex-col gap-3 text-sm">
                 
-                <div className="flex justify-between items-center text-slate-300">
+                <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
                   <span>Base Rate ({durationDays} days)</span>
                   <span>{baseTotal.toLocaleString()} {currency}</span>
                 </div>
                 
                 {extras.map((extra: any) => (
-                  <div key={extra.id || extra.name} className="flex justify-between items-center text-slate-400 text-xs pl-2 border-l border-slate-700">
+                  <div key={extra.id || extra.name} className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs pl-2 border-l border-slate-200 dark:border-slate-700">
                     <span>+ {extra.name}</span>
                     <span>{extra.price > 0 ? `${extra.price.toLocaleString()} ${currency}` : "Free"}</span>
                   </div>
                 ))}
                 
-                <div className="border-t border-slate-800 my-2" />
+                <div className="border-t border-slate-200 dark:border-slate-800 my-2" />
                 
                 <div className="flex justify-between items-end">
-                  <span className="text-sm font-medium text-slate-300">Grand Total</span>
-                  <div className="flex items-baseline gap-1 text-emerald-400">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Grand Total</span>
+                  <div className="flex items-baseline gap-1 text-emerald-600 dark:text-emerald-400">
                      <span className="text-2xl font-bold">{grandTotal.toLocaleString()}</span>
                      <span className="text-xs uppercase">{currency}</span>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-800">
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400 flex items-center gap-1.5"><ShieldAlert className="h-3.5 w-3.5"/> Security Deposit</span>
-                    <span className="font-medium text-slate-50">{deposit ? deposit.toLocaleString() : 0} {currency}</span>
+                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><ShieldAlert className="h-3.5 w-3.5"/> Security Deposit</span>
+                    <span className="font-semibold text-foreground">{deposit ? deposit.toLocaleString() : 0} {currency}</span>
                   </div>
                 </div>
               </div>
