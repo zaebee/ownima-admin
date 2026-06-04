@@ -50,12 +50,17 @@ export function VehiclesPage() {
     const fetchVehicles = async () => {
       try {
         setLoading(true)
+        const skip = (currentPage - 1) * pageSize
         const response = await api.get('/admin/vehicles', { 
-          params: { page: currentPage, size: pageSize } 
+          params: { skip, limit: pageSize } 
         })
         setVehicles(response.data.data || [])
         setTotal(response.data.count || 0)
-        setTotalPages(response.data.total_pages || 1)
+        
+        // Calculate total pages in case backend doesn't return total_pages correctly
+        const totalItems = response.data.count || 0
+        const calculatedTotalPages = Math.ceil(totalItems / pageSize) || 1
+        setTotalPages(response.data.total_pages || calculatedTotalPages)
       } catch (error: any) {
         console.error("Failed to fetch vehicles:", error)
         setVehicles([])
