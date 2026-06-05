@@ -21,7 +21,6 @@ export function ActivityFeedPage() {
   const [auditDateFilter, setAuditDateFilter] = useState("all")
 
   const [userLookup, setUserLookup] = useState<Record<string, { full_name: string; email: string; role?: string }>>({})
-  const [loadingUserIds, setLoadingUserIds] = useState<Record<string, boolean>>({})
 
   // Prefetch active users & riders lists on mount to populate the cache
   useEffect(() => {
@@ -64,61 +63,6 @@ export function ActivityFeedPage() {
 
     fetchUsersCache()
   }, [])
-
-  // Dynamic on-demand resolver for missing user ids
-  const fetchSingleUser = useCallback(async (userId: string) => {
-    if (userLookup[userId] || loadingUserIds[userId]) return
-
-    setLoadingUserIds(prev => ({ ...prev, [userId]: true }))
-
-    try {
-      // First attempt standard users endpoint
-      const response = await api.get(`/admin/users/${userId}`).catch(() => null)
-      if (response?.data) {
-        const u = response.data
-        setUserLookup(prev => ({
-          ...prev,
-          [userId]: {
-            full_name: u.full_name || '',
-            email: u.email || '',
-            role: 'owner'
-          }
-        }))
-      } else {
-        // Fallback to riders endpoint
-        const riderResponse = await api.get(`/admin/riders/${userId}`).catch(() => null)
-        if (riderResponse?.data) {
-          const r = riderResponse.data
-          setUserLookup(prev => ({
-            ...prev,
-            [userId]: {
-              full_name: r.full_name || '',
-              email: r.email || '',
-              role: 'rider'
-            }
-          }))
-        }
-      }
-    } catch (err) {
-      console.error(`Failed to lazy fetch user ${userId}:`, err)
-    } finally {
-      setLoadingUserIds(prev => ({ ...prev, [userId]: false }))
-    }
-  }, [userLookup, loadingUserIds])
-
-  // Look for any missing users in the active rawActivities list & load them
-  useEffect(() => {
-    if (!rawActivities.length) return
-    const uniqueIds = Array.from(new Set(
-      rawActivities.map(act => act.user_id).filter((uid): uid is string => !!uid)
-    ))
-
-    uniqueIds.forEach(uid => {
-      if (!userLookup[uid] && !loadingUserIds[uid]) {
-        fetchSingleUser(uid)
-      }
-    })
-  }, [rawActivities, userLookup, loadingUserIds, fetchSingleUser])
 
   useEffect(() => {
     const fetchActivities = async () => {
