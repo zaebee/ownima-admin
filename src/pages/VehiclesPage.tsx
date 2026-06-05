@@ -297,8 +297,9 @@ export function VehiclesPage() {
                       <div className="flex items-center gap-1 text-sm font-medium">
                         {Number(v.price || 0).toLocaleString()} 
                         <span className="text-[10px] uppercase text-muted-foreground border border-border/50 px-1 py-0.5 rounded ml-1">
-                          {v.currency || "RUB"}/d
+                          {v.currency || (v.owner as any)?.currency || "RUB"}
                         </span>
+                        <span className="text-xs text-muted-foreground">/d</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right pr-2 sm:pr-4">

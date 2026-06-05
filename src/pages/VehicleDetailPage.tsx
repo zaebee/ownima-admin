@@ -311,7 +311,7 @@ export function VehicleDetailPage() {
                         {opt.description && <p className="text-xs text-muted-foreground line-clamp-1">{opt.description}</p>}
                       </div>
                       <div className="text-sm font-semibold whitespace-nowrap">
-                        {opt.price === 0 ? "Free" : `+${opt.price} ${vehicle.currency || 'THB'}`}
+                        {opt.price === 0 ? "Free" : `+${opt.price} ${vehicle.currency || (vehicle.owner as any)?.currency || 'THB'}`}
                       </div>
                     </div>
                   ))}
@@ -339,13 +339,13 @@ export function VehicleDetailPage() {
                   {Number(vehicle.price || 0).toLocaleString()}
                 </span>
                 <span className="text-lg font-medium text-slate-500 dark:text-slate-400 uppercase">
-                  {vehicle.currency || "RUB"}
+                  {vehicle.currency || (vehicle.owner as any)?.currency || "RUB"}
                 </span>
               </div>
               <div className="flex flex-col gap-2 pt-4 pb-2 border-t border-slate-200 dark:border-slate-800 mb-4">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-500 dark:text-slate-400">Security Deposit</span>
-                  <span className="font-semibold text-foreground">{vehicle.price_templates?.deposit_amount ? `${vehicle.price_templates.deposit_amount.toLocaleString()} ${vehicle.currency}` : "N/A"}</span>
+                  <span className="font-semibold text-foreground">{vehicle.price_templates?.deposit_amount ? `${vehicle.price_templates.deposit_amount.toLocaleString()} ${vehicle.currency || (vehicle.owner as any)?.currency || 'RUB'}` : "N/A"}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-500 dark:text-slate-400">Minimum Rent</span>

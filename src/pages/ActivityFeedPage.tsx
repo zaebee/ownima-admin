@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { api } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,6 +19,106 @@ export function ActivityFeedPage() {
 
   const [auditActionFilter, setAuditActionFilter] = useState("all")
   const [auditDateFilter, setAuditDateFilter] = useState("all")
+
+  const [userLookup, setUserLookup] = useState<Record<string, { full_name: string; email: string; role?: string }>>({})
+  const [loadingUserIds, setLoadingUserIds] = useState<Record<string, boolean>>({})
+
+  // Prefetch active users & riders lists on mount to populate the cache
+  useEffect(() => {
+    const fetchUsersCache = async () => {
+      try {
+        const [ownersRes, ridersRes] = await Promise.all([
+          api.get('/admin/users', { params: { limit: 150 } }).catch(() => ({ data: { data: [] } })),
+          api.get('/admin/riders', { params: { limit: 150 } }).catch(() => ({ data: { data: [] } }))
+        ])
+
+        const lookup: Record<string, { full_name: string; email: string; role?: string }> = {}
+        const ownersList = ownersRes.data?.data || []
+        const ridersList = ridersRes.data?.data || []
+
+        ownersList.forEach((owner: any) => {
+          if (owner.id) {
+            lookup[owner.id] = {
+              full_name: owner.full_name || '',
+              email: owner.email || '',
+              role: 'owner'
+            }
+          }
+        })
+
+        ridersList.forEach((rider: any) => {
+          if (rider.id) {
+            lookup[rider.id] = {
+              full_name: rider.full_name || '',
+              email: rider.email || '',
+              role: 'rider'
+            }
+          }
+        })
+
+        setUserLookup(prev => ({ ...prev, ...lookup }))
+      } catch (err) {
+        console.error("Failed to build user lookups:", err)
+      }
+    }
+
+    fetchUsersCache()
+  }, [])
+
+  // Dynamic on-demand resolver for missing user ids
+  const fetchSingleUser = useCallback(async (userId: string) => {
+    if (userLookup[userId] || loadingUserIds[userId]) return
+
+    setLoadingUserIds(prev => ({ ...prev, [userId]: true }))
+
+    try {
+      // First attempt standard users endpoint
+      const response = await api.get(`/admin/users/${userId}`).catch(() => null)
+      if (response?.data) {
+        const u = response.data
+        setUserLookup(prev => ({
+          ...prev,
+          [userId]: {
+            full_name: u.full_name || '',
+            email: u.email || '',
+            role: 'owner'
+          }
+        }))
+      } else {
+        // Fallback to riders endpoint
+        const riderResponse = await api.get(`/admin/riders/${userId}`).catch(() => null)
+        if (riderResponse?.data) {
+          const r = riderResponse.data
+          setUserLookup(prev => ({
+            ...prev,
+            [userId]: {
+              full_name: r.full_name || '',
+              email: r.email || '',
+              role: 'rider'
+            }
+          }))
+        }
+      }
+    } catch (err) {
+      console.error(`Failed to lazy fetch user ${userId}:`, err)
+    } finally {
+      setLoadingUserIds(prev => ({ ...prev, [userId]: false }))
+    }
+  }, [userLookup, loadingUserIds])
+
+  // Look for any missing users in the active rawActivities list & load them
+  useEffect(() => {
+    if (!rawActivities.length) return
+    const uniqueIds = Array.from(new Set(
+      rawActivities.map(act => act.user_id).filter((uid): uid is string => !!uid)
+    ))
+
+    uniqueIds.forEach(uid => {
+      if (!userLookup[uid] && !loadingUserIds[uid]) {
+        fetchSingleUser(uid)
+      }
+    })
+  }, [rawActivities, userLookup, loadingUserIds, fetchSingleUser])
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -193,13 +293,40 @@ export function ActivityFeedPage() {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 py-1">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                          {activity.user_id && (
-                            <Link to={`/owners/${activity.user_id}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted hover:bg-muted/80 text-xs font-medium text-foreground transition-colors border shadow-sm">
-                              <User className="h-3 w-3 text-muted-foreground" />
-                              <span className="font-mono text-muted-foreground">usr_{activity.user_id.split('-')[0]}</span>
-                              {activity.details?.user_email && <span className="hidden md:inline ml-1 text-muted-foreground font-sans truncate max-w-[150px]">({activity.details.user_email})</span>}
-                            </Link>
-                          )}
+                          {activity.user_id && (() => {
+                            const resolved = userLookup[activity.user_id];
+                            const linkPath = resolved?.role === 'rider' ? `/riders/${activity.user_id}` : `/owners/${activity.user_id}`;
+                            const displayName = resolved 
+                              ? (resolved.full_name || resolved.email || `usr_${activity.user_id.split('-')[0]}`)
+                              : `usr_${activity.user_id.split('-')[0]}`;
+                            
+                            const mailInfo = resolved?.full_name && resolved?.email && resolved.full_name !== resolved.email
+                              ? resolved.email 
+                              : (activity.details?.user_email || '');
+
+                            const roleLabelColors = resolved?.role === 'owner' 
+                              ? "text-blue-600 bg-blue-500/10 border-blue-500/15" 
+                              : "text-emerald-600 bg-emerald-500/10 border-emerald-500/15";
+
+                            return (
+                              <Link to={linkPath} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted hover:bg-muted/80 text-xs font-medium text-foreground transition-colors border shadow-sm">
+                                <User className="h-3 w-3 text-muted-foreground/80" />
+                                <span className={resolved ? "font-semibold text-foreground/90" : "font-mono text-muted-foreground"}>
+                                  {displayName}
+                                </span>
+                                {mailInfo && (
+                                  <span className="hidden md:inline text-[10px] text-muted-foreground font-sans truncate max-w-[150px]">
+                                    ({mailInfo})
+                                  </span>
+                                )}
+                                {resolved?.role && (
+                                  <span className={`text-[9px] px-1.5 py-0.5 rounded border ${roleLabelColors} scale-90 capitalize font-medium leading-none`}>
+                                    {resolved.role}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })()}
                           {activity.count > 1 && (
                             <span className="inline-flex items-center justify-center bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
                               {activity.count}x TIMES
