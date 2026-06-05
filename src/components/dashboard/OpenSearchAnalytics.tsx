@@ -1,13 +1,42 @@
 import { useState, useEffect } from "react"
-import { Server, Loader2, HelpCircle } from "lucide-react"
+import { Server, Loader2, HelpCircle, Database, Cpu, Activity } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from "recharts"
-import { SEARCH_LATENCY_DATA } from "@/lib/mockData"
 import { api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 
+interface OpenSearchIndex {
+  name: string;
+  docs: number;
+  size_bytes: number;
+}
+
+interface OpenSearchResponse {
+  cluster_status: string;
+  total_docs: number;
+  index_size_bytes: number;
+  avg_latency_ms: number;
+  heap_used_percent: number;
+  per_index: OpenSearchIndex[];
+}
+
+const MOCK_OPENSEARCH_DATA: OpenSearchResponse = {
+  cluster_status: "green",
+  total_docs: 284120,
+  index_size_bytes: 1975680000, // ~1.84 GB
+  avg_latency_ms: 42.5,
+  heap_used_percent: 54.0,
+  per_index: [
+    { name: "vehicles", docs: 12410, size_bytes: 84000000 },
+    { name: "reservations", docs: 4520, size_bytes: 35000000 },
+    { name: "price-templates", docs: 310, size_bytes: 4000000 },
+    { name: "events", docs: 260480, size_bytes: 1840000000 },
+    { name: "extra-options", docs: 450, size_bytes: 5200000 },
+    { name: "confirmations", docs: 1150, size_bytes: 7480000 }
+  ]
+}
+
 export function OpenSearchAnalytics() {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<OpenSearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [isMock, setIsMock] = useState(true)
 
@@ -16,14 +45,20 @@ export function OpenSearchAnalytics() {
       try {
         setLoading(true)
         const response = await api.get('/admin/analytics/opensearch')
-        if (response.data) {
-          setData(response.data)
-          setIsMock(false)
+        if (response.data && typeof response.data === 'object') {
+          // Validate required structure
+          const res = response.data
+          if ('cluster_status' in res) {
+            setData(res)
+            setIsMock(false)
+          } else {
+            setIsMock(true)
+          }
         } else {
           setIsMock(true)
         }
       } catch (e) {
-        console.info("OpenSearch API not yet active or returned error, using fallback dashboard stats.")
+        console.info("OpenSearch API returned error or is uninitialized, using fallback simulator.")
         setIsMock(true)
       } finally {
         setLoading(false)
@@ -32,93 +67,155 @@ export function OpenSearchAnalytics() {
     fetchOpenSearchData()
   }, [])
 
-  const searches24h = data?.searches_24h ?? 8420
-  const avgLatency = data?.avg_latency_ms ?? 42.5
-  const indexSizeGB = data?.index_size_bytes 
-    ? (data.index_size_bytes / (1024 * 1024 * 1024)).toFixed(2) 
-    : "1.84"
-  const totalDocs = data?.total_docs 
-    ? (data.total_docs >= 1000 ? `${(data.total_docs / 1000).toFixed(1)}K` : data.total_docs)
-    : "284.1K"
-  const liveTraffic = data?.live_traffic_req_s ?? 1.2
-  const series = data?.traffic_series ?? SEARCH_LATENCY_DATA
-  
+  const osData = isMock ? MOCK_OPENSEARCH_DATA : (data || MOCK_OPENSEARCH_DATA)
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return "0 B"
+    const k = 1024
+    const sizes = ["B", "KB", "MB", "GB", "TB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
+  }
+
+  const formatDocs = (count: number): string => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M docs`
+    }
+    if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K docs`
+    }
+    return `${count} docs`
+  }
+
+  // Determine status color and text for indicator
+  const getStatusConfig = (status: string) => {
+    const s = status.toLowerCase()
+    if (s === "green") {
+      return {
+        color: "text-emerald-500",
+        bg: "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400Icon",
+        label: "HEALTHY",
+        dot: "bg-emerald-500"
+      }
+    }
+    if (s === "yellow") {
+      return {
+        color: "text-amber-500",
+        bg: "bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400",
+        label: "RE-SHARDING",
+        dot: "bg-amber-500 animate-pulse"
+      }
+    }
+    return {
+      color: "text-rose-500",
+      bg: "bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400",
+      label: "DEGRADED",
+      dot: "bg-rose-500 animate-bounce"
+    }
+  }
+
+  const statusConfig = getStatusConfig(osData.cluster_status)
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-1">
-          <CardTitle className="text-sm font-semibold flex items-center gap-1 text-indigo-600 dark:text-indigo-400 group cursor-help"
-                     title="Метрики работы поискового движка OpenSearch: скорость поиска машин клиентами, объем проиндексированных документов и нагрузка на поисковую ноду.">
+          <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 group cursor-help"
+                     title="Метрики поискового кластера OpenSearch. Отвечает за мгновенную фильтрацию машин, автозаполнение адресов и поиск бронирований.">
             <Server className="h-4 w-4 text-indigo-500" />
-            OpenSearch Telemetry
+            OpenSearch Cluster
             <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
           </CardTitle>
           <div className="flex items-center gap-1.5 shrink-0">
             {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
             <Badge variant="outline" className={`text-[8.5px] font-semibold px-1 py-0 ${isMock ? "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-50/5" : "text-emerald-600 dark:text-emerald-400 border-emerald-500/20 bg-emerald-50/5"}`}>
-              {isMock ? "API Sandbox Derived" : "Core Backend"}
+              {isMock ? "API Sandbox Derived" : "Live Cluster Node"}
             </Badge>
           </div>
         </div>
         <CardDescription className="text-xs">
-          Производительность поиска предложений аренды и индексы базы XML/JSON
+          Мониторинг поисковых индексов, занятой памяти JVM и задержки запросов
         </CardDescription>
       </CardHeader>
+      
       <CardContent className="pt-4">
-        <div className="grid grid-cols-2 gap-4 mb-5">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Searches (24h)</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-mono font-bold text-emerald-600 dark:text-emerald-400">{searches24h.toLocaleString()}</span>
+        {/* Core Cluster Health Metrics Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          {/* Cluster Status */}
+          <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+            <span className="text-[10px] font-medium text-muted-foreground block uppercase tracking-wider">Cluster State</span>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className={`h-2.5 w-2.5 rounded-full ${statusConfig.dot}`} />
+              <span className="text-sm font-mono font-bold tracking-tight text-foreground uppercase">{osData.cluster_status}</span>
             </div>
+            <span className="text-[10px] text-muted-foreground mt-1 block">Статус репликации шардов</span>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Avg Latency</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-mono font-bold text-blue-600 dark:text-blue-400">{avgLatency}</span>
-              <span className="text-xs text-muted-foreground">ms</span>
+
+          {/* Average Latency */}
+          <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+            <span className="text-[10px] font-medium text-muted-foreground block uppercase tracking-wider">Avg Latency</span>
+            <div className="flex items-baseline gap-0.5 mt-1">
+              <span className="text-base font-mono font-bold text-indigo-600 dark:text-indigo-400">{osData.avg_latency_ms.toFixed(2)}</span>
+              <span className="text-xs font-semibold text-muted-foreground">ms</span>
             </div>
+            <span className="text-[10px] text-muted-foreground mt-1 block">Среднее время отклика поиска</span>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Index Size</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-mono font-semibold text-foreground">{indexSizeGB}</span>
-              <span className="text-xs text-muted-foreground">GB</span>
+
+          {/* Memory Heap */}
+          <div className="p-3 rounded-lg bg-muted/40 border border-border/60 col-span-2">
+            <div className="flex justify-between items-center text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
+              <span className="flex items-center gap-1">
+                <Cpu className="h-3 w-3 text-indigo-500" /> JVM Heap Memory
+              </span>
+              <span className="font-mono text-foreground font-bold">{osData.heap_used_percent.toFixed(1)}%</span>
             </div>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Total Docs</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-mono font-semibold text-foreground">{totalDocs}</span>
+            <div className="w-full bg-muted-foreground/10 rounded-full h-1.5 overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-300 ${
+                  osData.heap_used_percent > 85 ? 'bg-rose-500' : osData.heap_used_percent > 70 ? 'bg-amber-500' : 'bg-indigo-500'
+                }`}
+                style={{ width: `${osData.heap_used_percent}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[9px] text-muted-foreground mt-1">
+              <span>Загрузка памяти контейнера</span>
+              <span>Total size: {formatBytes(osData.index_size_bytes)}</span>
             </div>
           </div>
         </div>
-        
-        <div className="space-y-2 pt-3 border-t">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Live Traffic (Req/s)</span>
-            <span className="text-indigo-600 dark:text-indigo-400 font-mono font-semibold">{liveTraffic}</span>
+
+        {/* Individual Indices registry list */}
+        <div className="pt-3 border-t">
+          <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground mb-3">
+            <span className="flex items-center gap-1">
+              <Database className="h-3 w-3 text-indigo-500" /> Index Registries
+            </span>
+            <span className="font-mono text-[10px]">
+              {osData.per_index.length} indexes • {formatDocs(osData.total_docs)}
+            </span>
           </div>
-          <div className="h-10 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#818cf8" stopOpacity={0.5}/>
-                    <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Tooltip 
-                  contentStyle={{ fontSize: '10px', padding: '4px' }} 
-                  formatter={(val: any) => [`${val}ms`, 'Latency']}
-                  labelFormatter={(lbl) => `Time: ${lbl}`}
-                />
-                <Area type="monotone" dataKey="latency" stroke="#818cf8" strokeWidth={1.5} fillOpacity={1} fill="url(#colorLatency)" />
-              </AreaChart>
-            </ResponsiveContainer>
+
+          <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+            {osData.per_index.map((index, idx) => (
+              <div 
+                key={index.name} 
+                className="flex items-center justify-between text-[11px] p-2 rounded-md bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors"
+              >
+                <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-[130px] sm:max-w-xs">{index.name}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant="secondary" className="bg-muted/60 text-[9.5px] px-1 py-0 pointer-events-none text-foreground font-mono">
+                    {formatDocs(index.docs)}
+                  </Badge>
+                  <span className="text-[10px] font-mono text-muted-foreground w-[55px] text-right">
+                    {formatBytes(index.size_bytes)}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </CardContent>
     </Card>
   )
 }
+
