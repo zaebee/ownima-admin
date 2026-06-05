@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react"
-import { DollarSign, Loader2 } from "lucide-react"
+import { DollarSign, Loader2, HelpCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts"
 import { api } from "@/lib/api"
 import { REVENUE_DATA } from "@/lib/mockData"
+import { Badge } from "@/components/ui/badge"
 
 export function RevenueChart() {
   const [data, setData] = useState<any[]>(REVENUE_DATA)
   const [loading, setLoading] = useState(false)
+  const [isMock, setIsMock] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,9 +18,13 @@ export function RevenueChart() {
         const response = await api.get('/admin/analytics/revenue', { params: { days: 7 } })
         if (response.data && response.data.length > 0) {
           setData(response.data)
+          setIsMock(false)
+        } else {
+          setIsMock(true)
         }
       } catch (e) {
         console.info("Revenue API not yet available, falling back to mock data.")
+        setIsMock(true)
       } finally {
         setLoading(false)
       }
@@ -30,13 +36,22 @@ export function RevenueChart() {
     <Card className="md:col-span-5 flex flex-col hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2 group cursor-help"
+                     title="Общий оборот платежей за последние 7 дней. Включает в себя общую стоимость оплаченной аренды и сервисный сбор платформы.">
             <DollarSign className="h-5 w-5 text-emerald-500" />
             Revenue Flow (Last 7 Days)
+            <HelpCircle className="h-4 w-4 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
           </CardTitle>
-          {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+          <div className="flex items-center gap-2">
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+            <Badge variant="outline" className={`text-[9px] font-semibold tracking-wide px-1.5 py-0 ${isMock ? "text-amber-600 dark:text-amber-400 border-amber-500/20" : "text-emerald-600 dark:text-emerald-400 border-emerald-500/20"}`}>
+              {isMock ? "API Sandbox Derived" : "Live Real-Time Data"}
+            </Badge>
+          </div>
         </div>
-        <CardDescription>Daily gross volume across all processed payments and platform fees</CardDescription>
+        <CardDescription className="text-xs">
+          Дневной оборот арендной платы и сервисных комиссий платформы (Gross Volume & Platform Fees)
+        </CardDescription>
       </CardHeader>
       <CardContent className="h-[300px] flex-1 mt-4">
         <ResponsiveContainer width="100%" height="100%">

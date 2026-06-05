@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react"
-import { Server, Loader2 } from "lucide-react"
+import { Server, Loader2, HelpCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from "recharts"
 import { SEARCH_LATENCY_DATA } from "@/lib/mockData"
 import { api } from "@/lib/api"
+import { Badge } from "@/components/ui/badge"
 
 export function OpenSearchAnalytics() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [isMock, setIsMock] = useState(true)
 
   useEffect(() => {
     const fetchOpenSearchData = async () => {
@@ -16,9 +18,13 @@ export function OpenSearchAnalytics() {
         const response = await api.get('/admin/analytics/opensearch')
         if (response.data) {
           setData(response.data)
+          setIsMock(false)
+        } else {
+          setIsMock(true)
         }
       } catch (e) {
         console.info("OpenSearch API not yet active or returned error, using fallback dashboard stats.")
+        setIsMock(true)
       } finally {
         setLoading(false)
       }
@@ -40,16 +46,23 @@ export function OpenSearchAnalytics() {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
-          <Server className="h-4 w-4" />
-          OpenSearch Analytics
-          {loading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground ml-auto" />
-          ) : (
-            <span className="text-[9px] uppercase tracking-wider bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded-sm ml-auto">Core Backend</span>
-          )}
-        </CardTitle>
-        <CardDescription className="text-muted-foreground text-xs">Search engine metrics & throughput</CardDescription>
+        <div className="flex items-center justify-between gap-1">
+          <CardTitle className="text-sm font-semibold flex items-center gap-1 text-indigo-600 dark:text-indigo-400 group cursor-help"
+                     title="Метрики работы поискового движка OpenSearch: скорость поиска машин клиентами, объем проиндексированных документов и нагрузка на поисковую ноду.">
+            <Server className="h-4 w-4 text-indigo-500" />
+            OpenSearch Telemetry
+            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
+          </CardTitle>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+            <Badge variant="outline" className={`text-[8.5px] font-semibold px-1 py-0 ${isMock ? "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-50/5" : "text-emerald-600 dark:text-emerald-400 border-emerald-500/20 bg-emerald-50/5"}`}>
+              {isMock ? "API Sandbox Derived" : "Core Backend"}
+            </Badge>
+          </div>
+        </div>
+        <CardDescription className="text-xs">
+          Производительность поиска предложений аренды и индексы базы XML/JSON
+        </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
         <div className="grid grid-cols-2 gap-4 mb-5">
