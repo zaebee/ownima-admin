@@ -36,7 +36,7 @@ export function RevenueChart() {
           </CardTitle>
           {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
         </div>
-        <CardDescription>Daily gross volume across all processed payments</CardDescription>
+        <CardDescription>Daily gross volume across all processed payments and platform fees</CardDescription>
       </CardHeader>
       <CardContent className="h-[300px] flex-1 mt-4">
         <ResponsiveContainer width="100%" height="100%">
@@ -46,16 +46,42 @@ export function RevenueChart() {
                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
               </linearGradient>
+              <linearGradient id="colorFee" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-            <XAxis dataKey={data[0]?.date ? "date" : "day"} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} width={80} tickFormatter={(v: number) => `$${v}`} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" className="dark:stroke-slate-800" />
+            <XAxis 
+              dataKey={data[0]?.date ? "date" : "day"} 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 11, fill: '#6b7280' }} 
+              dy={10} 
+              tickFormatter={(val) => {
+                if (!val) return "";
+                if (typeof val === 'string' && val.includes('-')) {
+                  try {
+                    const d = new Date(val);
+                    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                  } catch {
+                    return val;
+                  }
+                }
+                return val;
+              }}
+            />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6b7280' }} width={80} tickFormatter={(v: number) => `$${v}`} />
             <RechartsTooltip 
               contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              formatter={(value: number) => [`$${value}`, 'Revenue']}
+              formatter={(value: number, name: string) => {
+                const formattedName = name === 'platform_fee' ? 'Platform Fee' : 'Revenue';
+                return [`$${value.toLocaleString()}`, formattedName];
+              }}
               labelFormatter={(label) => `Date: ${label}`}
             />
-            <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+            <Area type="monotone" dataKey="revenue" name="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+            <Area type="monotone" dataKey="platform_fee" name="platform_fee" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorFee)" />
           </AreaChart>
         </ResponsiveContainer>
       </CardContent>

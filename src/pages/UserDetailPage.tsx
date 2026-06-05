@@ -10,6 +10,7 @@ import { UserVehicles } from "@/components/UserVehicles"
 import { UserReservations } from "@/components/UserReservations"
 import { api } from "@/lib/api"
 import { getMediaUrl, cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 
 const formatTime = (seconds: number | null | undefined) => {
   if (seconds === null || seconds === undefined) return "N/A"
@@ -23,6 +24,7 @@ export function UserDetailPage() {
   const [owner, setOwner] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"overview" | "vehicles" | "reservations">("overview")
+  const { impersonateUser } = useAuth()
 
   useEffect(() => {
     const fetchOwner = async () => {
@@ -41,19 +43,30 @@ export function UserDetailPage() {
   }, [id])
 
   const [isImpersonating, setIsImpersonating] = useState(false)
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false)
+
+  const handleStatusChange = async (newStatus: "ACTIVE" | "SUSPENDED") => {
+    try {
+      if (!window.confirm(`Are you sure you want to change user status to ${newStatus}?`)) return;
+      setIsStatusUpdating(true)
+      await api.post(`/admin/users/${id}/status`, { status: newStatus })
+      // Refresh user details
+      const response = await api.get(`/admin/users/${id}`)
+      setOwner(response.data)
+    } catch (error: any) {
+      alert("Failed to update status: " + (error.response?.data?.detail || error.message))
+    } finally {
+      setIsStatusUpdating(false)
+    }
+  }
 
   const handleImpersonate = async () => {
     try {
-      if (!window.confirm(`Are you sure you want to impersonate ${owner.full_name || owner.email}? You will be logged into their account.`)) return;
+      if (!window.confirm(`Are you sure you want to impersonate ${owner.full_name || owner.email}?`)) return;
       setIsImpersonating(true)
-      const response = await api.post(`/admin/users/${id}/impersonate`)
-      if (response.data.access_token) {
-        // Here you would normally update the auth context token.
-        // For security, you might also want to open this in a new tab or store original admin token to return later.
-        alert(`Impersonation successful. New token received: ${response.data.access_token.substring(0, 10)}... (Implementation for app-wide token swap required)`)
-      }
+      await impersonateUser(id!, owner.email, owner.full_name || "Unnamed")
     } catch (error: any) {
-      alert("Failed to impersonate user. Has the backend endpoint been deployed?\n" + (error.response?.data?.detail || error.message))
+      alert("Failed to impersonate user: " + (error.response?.data?.detail || error.message))
     } finally {
       setIsImpersonating(false)
     }
@@ -117,9 +130,15 @@ export function UserDetailPage() {
             {isImpersonating ? "..." : "Impersonate"}
           </Button>
           <Button variant="outline">Edit Profile</Button>
-          <Button variant={owner.is_active ? "destructive" : "default"}>
-            {owner.is_active ? "Deactivate" : "Activate"}
-          </Button>
+          {owner.status === "SUSPENDED" ? (
+            <Button variant="default" onClick={() => handleStatusChange("ACTIVE")} disabled={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700">
+              {isStatusUpdating ? "..." : "Activate Account"}
+            </Button>
+          ) : (
+            <Button variant="destructive" onClick={() => handleStatusChange("SUSPENDED")} disabled={isStatusUpdating}>
+              {isStatusUpdating ? "..." : "Suspend Account"}
+            </Button>
+          )}
         </div>
       </div>
 

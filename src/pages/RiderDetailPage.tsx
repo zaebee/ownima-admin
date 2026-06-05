@@ -9,24 +9,39 @@ import { UserActivityTimeline } from "@/components/UserActivityTimeline"
 import { UserReservations } from "@/components/UserReservations"
 import { api } from "@/lib/api"
 import { getMediaUrl, cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function RiderDetailPage() {
   const { id } = useParams()
   const [rider, setRider] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"overview" | "reservations">("overview")
+  const { impersonateUser } = useAuth()
   const [isImpersonating, setIsImpersonating] = useState(false)
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false)
+
+  const handleStatusChange = async (newStatus: "ACTIVE" | "SUSPENDED") => {
+    try {
+      if (!window.confirm(`Are you sure you want to change user status to ${newStatus}?`)) return;
+      setIsStatusUpdating(true)
+      await api.post(`/admin/users/${id}/status`, { status: newStatus })
+      // Refresh user details
+      const response = await api.get(`/admin/riders/${id}`)
+      setRider(response.data)
+    } catch (error: any) {
+      alert("Failed to update status: " + (error.response?.data?.detail || error.message))
+    } finally {
+      setIsStatusUpdating(false)
+    }
+  }
 
   const handleImpersonate = async () => {
     try {
-      if (!window.confirm(`Are you sure you want to impersonate ${rider.full_name || rider.email}? You will be logged into their account.`)) return;
+      if (!window.confirm(`Are you sure you want to impersonate ${rider.full_name || rider.email}?`)) return;
       setIsImpersonating(true)
-      const response = await api.post(`/admin/users/${id}/impersonate`)
-      if (response.data.access_token) {
-        alert(`Impersonation successful. New token received: ${response.data.access_token.substring(0, 10)}... (Implementation for app-wide token swap required)`)
-      }
+      await impersonateUser(id!, rider.email, rider.full_name || "Unnamed")
     } catch (error: any) {
-      alert("Failed to impersonate user. Has the backend endpoint been deployed?\n" + (error.response?.data?.detail || error.message))
+      alert("Failed to impersonate user: " + (error.response?.data?.detail || error.message))
     } finally {
       setIsImpersonating(false)
     }
@@ -87,9 +102,15 @@ export function RiderDetailPage() {
             {isImpersonating ? "..." : "Impersonate"}
           </Button>
           <Button variant="outline">Edit Profile</Button>
-          <Button variant={rider.is_active ? "destructive" : "default"}>
-            {rider.is_active ? "Deactivate" : "Activate"}
-          </Button>
+          {rider.status === "SUSPENDED" ? (
+            <Button variant="default" onClick={() => handleStatusChange("ACTIVE")} disabled={isStatusUpdating} className="bg-emerald-600 hover:bg-emerald-700">
+              {isStatusUpdating ? "..." : "Activate Account"}
+            </Button>
+          ) : (
+            <Button variant="destructive" onClick={() => handleStatusChange("SUSPENDED")} disabled={isStatusUpdating}>
+              {isStatusUpdating ? "..." : "Suspend Account"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -183,8 +204,12 @@ export function RiderDetailPage() {
                   <span className="font-semibold">{rider.total_reservations || 0}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b">
+                  <span className="text-sm text-muted-foreground">Completed Bookings</span>
+                  <span className="font-semibold text-emerald-600">{rider.completed_reservations ?? 0}</span>
+                </div>
+                <div className="flex justify-between items-center pb-3 border-b">
                   <span className="text-sm text-muted-foreground">Completion Rate</span>
-                  <span className="font-semibold text-green-600">{rider.completion_rate !== undefined ? Number(rider.completion_rate).toFixed(1) + "%" : "0%"}</span>
+                  <span className="font-semibold text-green-600 font-mono">{rider.completion_rate !== undefined ? Number(rider.completion_rate).toFixed(1) + "%" : "0%"}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b">
                   <span className="text-sm text-muted-foreground">Logins</span>

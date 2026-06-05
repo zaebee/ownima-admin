@@ -1,43 +1,45 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { api } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, User, Car, CalendarDays, Clock } from "lucide-react"
+import { Loader2, User, Car, CalendarDays, Clock, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { getActivityIcon, getActivityColor, getActivityDescription } from "@/lib/activityUtils"
-import { groupActivities, GroupedActivityItem } from "@/lib/activityGrouping"
+import { groupActivities } from "@/lib/activityGrouping"
 import { cn } from "@/lib/utils"
 
 export function ActivityFeedPage() {
-  const [activeTab, setActiveTab] = useState("all")
-  const [activities, setActivities] = useState<GroupedActivityItem[]>([])
+  const [activeTab, setActiveTab ] = useState("all")
+  const [rawActivities, setRawActivities] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const limit = 50
+
+  const [auditActionFilter, setAuditActionFilter] = useState("all")
+  const [auditDateFilter, setAuditDateFilter] = useState("all")
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
         setIsLoading(true)
         const skip = (page - 1) * limit
-        let rawItems = []
+        let rawItems: any[] = []
         let totalCount = 0
+        
         if (activeTab === "all") {
-          const [usersRes, vehiclesRes, resRes] = await Promise.all([
-             api.get('/admin/activity/users', { params: { skip, limit: limit } }).catch(() => ({ data: { data: [], count: 0 } })),
-             api.get('/admin/activity/vehicles', { params: { skip, limit: limit } }).catch(() => ({ data: { data: [], count: 0 } })),
-             api.get('/admin/activity/reservations', { params: { skip, limit: limit } }).catch(() => ({ data: { data: [], count: 0 } }))
-          ])
-          
-          rawItems = [...(usersRes.data.data || []), ...(vehiclesRes.data.data || []), ...(resRes.data.data || [])]
-          rawItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          
-          // Slice down to limit since we merged three limit-sized arrays
-          rawItems = rawItems.slice(0, limit)
-          totalCount = (usersRes.data.count || 0) + (vehiclesRes.data.count || 0) + (resRes.data.count || 0)
+          // Unified Activity Feed!
+          const response = await api.get('/admin/activity/all', { params: { skip, limit } })
+          rawItems = response.data.data || response.data || []
+          totalCount = response.data.count || response.data.total || rawItems.length
+        } else if (activeTab === "audit") {
+          // Admin Audit Trail!
+          const response = await api.get('/admin/audit-logs', { params: { skip, limit } })
+          rawItems = response.data.data || response.data || []
+          totalCount = response.data.count || response.data.total || rawItems.length
         } else {
+          // Legacy individual filters
           const response = await api.get(`/admin/activity/${activeTab}`, {
             params: { skip, limit }
           })
@@ -45,7 +47,7 @@ export function ActivityFeedPage() {
           totalCount = response.data.count || 0
         }
         
-        setActivities(groupActivities(rawItems))
+        setRawActivities(rawItems)
         setTotal(totalCount)
       } catch (error) {
         console.error("Failed to fetch activities:", error)
@@ -56,6 +58,44 @@ export function ActivityFeedPage() {
     fetchActivities()
   }, [activeTab, page])
   
+  const activities = useMemo(() => {
+    let result = [...rawActivities]
+
+    if (activeTab === "audit") {
+      result = result.filter(item => {
+        // Filter by auditActionFilter
+        if (auditActionFilter !== "all") {
+          const itemType = String(item.activity_type || item.type || "").toUpperCase()
+          if (!itemType.includes(auditActionFilter.toUpperCase())) {
+            return false
+          }
+        }
+        
+        // Filter by auditDateFilter
+        if (auditDateFilter !== "all") {
+          const timestamp = item.timestamp || item.latest_timestamp
+          if (timestamp) {
+            const itemDate = new Date(timestamp)
+            const now = new Date()
+            if (auditDateFilter === "today") {
+              const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+              if (itemDate < today) return false
+            } else if (auditDateFilter === "week") {
+              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+              if (itemDate < weekAgo) return false
+            } else if (auditDateFilter === "month") {
+              const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+              if (itemDate < monthAgo) return false
+            }
+          }
+        }
+        return true
+      })
+    }
+
+    return groupActivities(result)
+  }, [rawActivities, activeTab, auditActionFilter, auditDateFilter])
+  
   const totalPages = Math.ceil(total / limit)
 
   return (
@@ -63,17 +103,51 @@ export function ActivityFeedPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Activity Feed</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Monitor system events and user actions.</p>
+          <p className="text-muted-foreground mt-1 text-sm">Monitor system events, user actions, and administrative audits.</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setPage(1); }} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-[500px] mb-6">
+        <TabsList className="flex flex-wrap h-auto w-full max-w-[650px] mb-6 p-1 gap-1">
           <TabsTrigger value="all" className="flex items-center gap-2"><Clock className="h-4 w-4" /> All</TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2"><User className="h-4 w-4" /> Users</TabsTrigger>
           <TabsTrigger value="vehicles" className="flex items-center gap-2"><Car className="h-4 w-4" /> Vehicles</TabsTrigger>
           <TabsTrigger value="reservations" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Reservations</TabsTrigger>
+          <TabsTrigger value="audit" className="flex items-center gap-2"><Shield className="h-4 w-4 text-emerald-500" /> Audit Log</TabsTrigger>
         </TabsList>
+
+        {activeTab === "audit" && (
+          <div className="flex flex-wrap gap-4 items-center bg-muted/30 p-4 rounded-xl border mb-4">
+            <div className="flex flex-col gap-1.5 min-w-[180px]">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Action Type</span>
+              <select 
+                value={auditActionFilter} 
+                onChange={(e) => setAuditActionFilter(e.target.value)}
+                className="bg-background border rounded-md px-3 py-1.5 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                <option value="all">All actions</option>
+                <option value="impersonate">Impersonation</option>
+                <option value="suspend">Suspend / Activate</option>
+                <option value="reset">Data Reset</option>
+                <option value="vehicle">Vehicles Adjust</option>
+              </select>
+            </div>
+            
+            <div className="flex flex-col gap-1.5 min-w-[180px]">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date History</span>
+              <select 
+                value={auditDateFilter} 
+                onChange={(e) => setAuditDateFilter(e.target.value)}
+                className="bg-background border rounded-md px-3 py-1.5 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                <option value="all">All time</option>
+                <option value="today">Today</option>
+                <option value="week">Past 7 days</option>
+                <option value="month">Past 30 days</option>
+              </select>
+            </div>
+          </div>
+        )}
 
         <Card className="border shadow-sm">
           <CardContent className="p-6">
@@ -84,7 +158,7 @@ export function ActivityFeedPage() {
               </div>
             ) : activities.length === 0 ? (
               <div className="py-24 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                No activities found.
+                No activities found matching criteria.
               </div>
             ) : (
               <div className="space-y-6">

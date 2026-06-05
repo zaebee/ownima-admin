@@ -9,11 +9,20 @@ interface User {
   role: string;
 }
 
+interface ImpersonatedUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   login: (token: string) => void;
   logout: () => void;
+  impersonatedUser: ImpersonatedUser | null;
+  impersonateUser: (userId: string, email: string, name: string) => Promise<void>;
+  stopImpersonating: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,6 +32,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return !!localStorage.getItem('admin_token');
   });
   const [user, setUser] = useState<User | null>(null);
+  const [impersonatedUser, setImpersonatedUser] = useState<ImpersonatedUser | null>(() => {
+    const info = localStorage.getItem('impersonated_user_info');
+    return info ? JSON.parse(info) : null;
+  });
 
   const fetchUser = async () => {
     try {
@@ -32,7 +45,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userRole = userData?.role;
       const isSuperuser = userData?.is_superuser;
       
-      if (userRole !== "SUPERUSER" && userRole !== "ADMIN" && isSuperuser !== true) {
+      const isCurrentlyImpersonating = !!localStorage.getItem('impersonate_token');
+      
+      // If we are impersonating, we don't demand the impersonated user be a SUPERUSER or ADMIN.
+      if (!isCurrentlyImpersonating && userRole !== "SUPERUSER" && userRole !== "ADMIN" && isSuperuser !== true) {
         logout();
         return;
       }
@@ -50,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setUser(null);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, impersonatedUser]);
 
   useEffect(() => {
     const handleUnauthorized = () => {
@@ -70,12 +86,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('impersonate_token');
+    localStorage.removeItem('impersonated_user_info');
     setIsAuthenticated(false);
     setUser(null);
+    setImpersonatedUser(null);
+  };
+
+  const impersonateUser = async (userId: string, email: string, name: string) => {
+    try {
+      const response = await api.post(`/admin/users/${userId}/impersonate`);
+      const token = response.data.access_token;
+      if (token) {
+        localStorage.setItem('impersonate_token', token);
+        const userInfo = { id: userId, email, name };
+        localStorage.setItem('impersonated_user_info', JSON.stringify(userInfo));
+        setImpersonatedUser(userInfo);
+      }
+    } catch (error) {
+      console.error("Failed to impersonate:", error);
+      throw error;
+    }
+  };
+
+  const stopImpersonating = () => {
+    localStorage.removeItem('impersonate_token');
+    localStorage.removeItem('impersonated_user_info');
+    setImpersonatedUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      user, 
+      login, 
+      logout, 
+      impersonatedUser, 
+      impersonateUser, 
+      stopImpersonating 
+    }}>
       {children}
     </AuthContext.Provider>
   );

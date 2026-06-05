@@ -42,6 +42,7 @@ interface AdminUser {
   phone_number: string | null
   role: string
   is_active: boolean
+  status?: string
   created_at: string
   last_login_at: string | null
   login_count: number
@@ -121,6 +122,7 @@ export function UsersPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [roleFilter, setRoleFilter] = useState<"OWNER" | "RIDER">("OWNER")
+  const [includeDeleted, setIncludeDeleted] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState("created_at_desc")
@@ -144,7 +146,7 @@ export function UsersPage() {
 
         while (hasMore && loopCount < 10) { // Max 10k users limit for safety
           const response = await api.get(endpoint, {
-            params: { limit: fetchLimit, skip: currentSkip }
+            params: { limit: fetchLimit, skip: currentSkip, include_deleted: includeDeleted }
           })
           const chunk = response.data.data || []
           fetchedData = [...fetchedData, ...chunk]
@@ -166,7 +168,7 @@ export function UsersPage() {
     }
     
     fetchAllUsers()
-  }, [roleFilter])
+  }, [roleFilter, includeDeleted])
 
   const filteredAndSorted = useMemo(() => {
     let result = [...allUsers]
@@ -324,6 +326,16 @@ export function UsersPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            <div className="flex items-center gap-2 select-none pl-1 sm:pl-3">
+              <Checkbox 
+                id="show-deleted-toggle"
+                checked={includeDeleted}
+                onChange={() => setIncludeDeleted(!includeDeleted)}
+              />
+              <label htmlFor="show-deleted-toggle" className="text-xs font-semibold text-muted-foreground cursor-pointer uppercase tracking-wider">
+                Show Deleted
+              </label>
+            </div>
           </div>
           <div className="flex items-center gap-3 self-end sm:self-auto">
             <Button 
@@ -465,9 +477,18 @@ export function UsersPage() {
                   {/* STATUS COLUMN */}
                   <TableCell className="py-2 hidden md:table-cell">
                     <div className="flex items-center gap-1.5">
-                      <div className={cn("h-2 w-2 rounded-full", user.is_active ? "bg-green-500" : "bg-muted-foreground")} />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {user.is_active ? "Active" : "Inactive"}
+                      <div className={cn(
+                        "h-2 w-2 rounded-full", 
+                        user.status === "DELETED" ? "bg-red-500" :
+                        user.status === "SUSPENDED" ? "bg-amber-500" :
+                        user.is_active ? "bg-green-500" : "bg-muted-foreground"
+                      )} />
+                      <span className="text-xs font-medium">
+                        {user.status === "DELETED" ? (
+                          <Badge variant="destructive" className="px-1.5 py-0 text-[10px] leading-3 uppercase bg-red-600">Deleted</Badge>
+                        ) : user.status === "SUSPENDED" ? (
+                          <Badge variant="outline" className="text-amber-600 border-amber-500/30 px-1.5 py-0 text-[10px] leading-3 uppercase">Suspended</Badge>
+                        ) : user.is_active ? "Active" : "Inactive"}
                       </span>
                     </div>
                   </TableCell>

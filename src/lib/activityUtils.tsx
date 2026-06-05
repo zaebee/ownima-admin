@@ -1,4 +1,3 @@
-import { ActivityItem } from "@/types" // We will create or use inline types
 import { CheckCircle2, XCircle, Calendar, Car, LogIn, Star, CreditCard, User, Bell } from "lucide-react"
 import { Link } from "react-router-dom"
 
