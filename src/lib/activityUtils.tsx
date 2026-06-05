@@ -1,8 +1,8 @@
 import { CheckCircle2, XCircle, Calendar, Car, LogIn, Star, CreditCard, User, Bell } from "lucide-react"
 import { Link } from "react-router-dom"
 
-export const getActivityIcon = (type: string) => {
-  const upperType = type.toUpperCase()
+export const getActivityIcon = (type: string | undefined | null) => {
+  const upperType = (type || "").toUpperCase()
   if (upperType.includes("COMPLETED")) return <CheckCircle2 className="h-4 w-4" />
   if (upperType.includes("CANCELLED")) return <XCircle className="h-4 w-4" />
   if (upperType.includes("RESERVATION") || upperType.includes("BOOKING")) return <Calendar className="h-4 w-4" />
@@ -14,8 +14,8 @@ export const getActivityIcon = (type: string) => {
   return <Bell className="h-4 w-4" />
 }
 
-export const getActivityColor = (type: string) => {
-  const upperType = type.toUpperCase()
+export const getActivityColor = (type: string | undefined | null) => {
+  const upperType = (type || "").toUpperCase()
   if (upperType.includes("CREATE") || upperType.includes("COMPLETED") || upperType.includes("SUCCESS")) return "bg-green-500"
   if (upperType.includes("DELETE") || upperType.includes("CANCEL") || upperType.includes("FAIL") || upperType.includes("ERROR")) return "bg-red-500"
   if (upperType.includes("PUBLISHED")) return "bg-emerald-500"
@@ -27,9 +27,10 @@ export const getActivityColor = (type: string) => {
 }
 
 export const getActivityDescription = (activity: any) => {
-  const { activity_type, details } = activity
+  const activity_type = activity?.activity_type || activity?.action_type || activity?.type || "UNKNOWN"
+  const details = activity?.details || {}
   
-  const formattedType = activity_type.replace(/_/g, ' ').toLowerCase()
+  const formattedType = String(activity_type).replace(/_/g, ' ').toLowerCase()
   const capitalizedType = formattedType.replace(/\b\w/g, (c: string) => c.toUpperCase())
   
   let context = []

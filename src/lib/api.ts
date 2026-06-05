@@ -34,13 +34,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Обрабатываем ошибки авторизации (401)
+// Обрабатываем ошибки авторизации (401 и 403)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+    if (error.response && (error.response.status === 401 || error.response.status === 403) && !originalRequest._retry) {
       const isImpersonating = !!localStorage.getItem("impersonate_token");
       const refreshToken = localStorage.getItem("admin_refresh_token");
 

@@ -93,7 +93,13 @@ export function ActivityFeedPage() {
         } else if (activeTab === "audit") {
           // Admin Audit Trail!
           const response = await api.get('/admin/audit-logs', { params: { skip, limit } })
-          rawItems = response.data.data || response.data || []
+          const fetchedItems = response.data.data || response.data || []
+          rawItems = fetchedItems.map((item: any) => ({
+            ...item,
+            activity_type: item.activity_type || item.action_type || "audit_log",
+            user_id: item.user_id || item.admin_id || "",
+            timestamp: item.timestamp || new Date().toISOString()
+          }))
           totalCount = response.data.count || response.data.total || rawItems.length
         } else {
           // Legacy individual filters
