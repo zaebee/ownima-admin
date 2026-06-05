@@ -105,51 +105,73 @@ export function UserReservations({ userId, userType }: { userId: string, userTyp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {reservations.map((res) => (
-              <TableRow key={res.id} className="hover:bg-muted/20">
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-mono text-xs font-semibold tracking-wider text-muted-foreground mb-1">
-                      #{res.humanized?.id || res.id.substring(0, 8)}
-                    </span>
-                    <span className="text-sm font-medium">
-                      {res.vehicle?.name || "Unknown Vehicle"}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col text-sm">
-                    <span>{formatDate(res.date_from, res.humanized?.date_from)}</span>
-                    <span className="text-xs text-muted-foreground">to {formatDate(res.date_to, res.humanized?.date_to).replace("N/A", "")}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col items-start gap-1.5">
-                    <Badge className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2", getReservationStatusColor(res.status, res.humanized?.status || ''))}>
-                      {res.humanized?.status?.replace('RESERVATION_', '') || `Status: ${res.status}`}
-                    </Badge>
-                    {res.humanized?.source && (
-                      <span className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
-                        {res.humanized.source.replace('SOURCE_', '').replace(/_/g, ' ')}
+            {reservations.map((res) => {
+              const shortId = res.humanized_id || res.humanized?.id || res.id?.split('-')[0] || res.id?.substring(0, 8) || '...'
+              
+              const vehicleName = typeof res.vehicle === 'object' && res.vehicle 
+                ? (res.vehicle.name || res.vehicle.model || 'Unknown Vehicle') 
+                : (res.vehicle || 'Unknown Vehicle')
+              
+              let rawStart = res.date_from || res.dates?.start || res.start_date
+              let rawEnd = res.date_to || res.dates?.end || res.end_date
+              let startStr = formatDate(rawStart, res.humanized?.date_from) || "N/A"
+              let endStr = formatDate(rawEnd, res.humanized?.date_to) || ""
+
+              const statusStr = res.humanized?.status || (typeof res.status === 'string' ? res.status : 'PENDING')
+              const displayStatus = statusStr.replace('RESERVATION_', '')
+
+              const source = res.humanized?.source || res.source || ''
+              const displaySource = source.replace('SOURCE_', '').replace(/_/g, ' ')
+
+              const totalAmount = res.total_price || res.total_amount || res.total || res.grand_total || 0
+              const currency = res.currency || res.financials?.currency || 'RUB'
+
+              return (
+                <TableRow key={res.id} className="hover:bg-muted/20">
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-mono text-xs font-semibold tracking-wider text-muted-foreground mb-1 uppercase">
+                        #{shortId}
                       </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="font-medium">
-                    {Number(res.total_price || 0).toLocaleString()} {res.currency || "RUB"}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/reservations/${res.id}`}>
-                      <Eye className="h-4 w-4 mr-1.5" />
-                      View
-                    </Link>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+                      <span className="text-sm font-medium">
+                        {vehicleName}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col text-sm">
+                      <span>{startStr}</span>
+                      {endStr && <span className="text-xs text-muted-foreground mt-0.5">to {endStr}</span>}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col items-start gap-1.5">
+                      <Badge className={cn("rounded-md text-[10px] uppercase font-bold tracking-wider px-2", getReservationStatusColor(res.status, statusStr))}>
+                        {displayStatus}
+                      </Badge>
+                      {displaySource && (
+                        <span className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
+                          {displaySource}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-medium">
+                      {Number(totalAmount).toLocaleString()} {currency}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to={`/reservations/${res.id}`}>
+                        <Eye className="h-4 w-4 mr-1.5" />
+                        View
+                      </Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </CardContent>
