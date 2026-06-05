@@ -3,6 +3,7 @@ import { Server, Loader2, HelpCircle, Database, Cpu, Activity } from "lucide-rea
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
+import { useTranslation } from "@/contexts/LanguageContext"
 
 interface OpenSearchIndex {
   name: string;
@@ -36,6 +37,7 @@ const MOCK_OPENSEARCH_DATA: OpenSearchResponse = {
 }
 
 export function OpenSearchAnalytics() {
+  const { t, language } = useTranslation()
   const [data, setData] = useState<OpenSearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [isMock, setIsMock] = useState(true)
@@ -78,13 +80,14 @@ export function OpenSearchAnalytics() {
   }
 
   const formatDocs = (count: number): string => {
+    const docLabel = language === 'ru' ? 'док.' : 'docs'
     if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M docs`
+      return `${(count / 1000000).toFixed(1)}M ${docLabel}`
     }
     if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K docs`
+      return `${(count / 1000).toFixed(1)}K ${docLabel}`
     }
-    return `${count} docs`
+    return `${count} ${docLabel}`
   }
 
   // Determine status color and text for indicator
@@ -94,7 +97,7 @@ export function OpenSearchAnalytics() {
       return {
         color: "text-emerald-500",
         bg: "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400Icon",
-        label: "HEALTHY",
+        label: t('healthy', 'opensearch'),
         dot: "bg-emerald-500"
       }
     }
@@ -102,14 +105,14 @@ export function OpenSearchAnalytics() {
       return {
         color: "text-amber-500",
         bg: "bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400",
-        label: "RE-SHARDING",
+        label: t('re_sharding', 'opensearch'),
         dot: "bg-amber-500 animate-pulse"
       }
     }
     return {
       color: "text-rose-500",
       bg: "bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400",
-      label: "DEGRADED",
+      label: t('degraded', 'opensearch'),
       dot: "bg-rose-500 animate-bounce"
     }
   }
@@ -121,20 +124,20 @@ export function OpenSearchAnalytics() {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-1">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 group cursor-help"
-                     title="Метрики поискового кластера OpenSearch. Отвечает за мгновенную фильтрацию машин, автозаполнение адресов и поиск бронирований.">
+                     title={t('desc', 'opensearch')}>
             <Server className="h-4 w-4 text-indigo-500" />
-            OpenSearch Cluster
+            {t('title', 'opensearch')}
             <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
           </CardTitle>
           <div className="flex items-center gap-1.5 shrink-0">
             {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
             <Badge variant="outline" className={`text-[8.5px] font-semibold px-1 py-0 ${isMock ? "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-50/5" : "text-emerald-600 dark:text-emerald-400 border-emerald-500/20 bg-emerald-50/5"}`}>
-              {isMock ? "API Sandbox Derived" : "Live Cluster Node"}
+              {isMock ? t('sandboxBadge') : "Live Cluster Node"}
             </Badge>
           </div>
         </div>
         <CardDescription className="text-xs">
-          Мониторинг поисковых индексов, занятой памяти JVM и задержки запросов
+          {t('desc', 'opensearch')}
         </CardDescription>
       </CardHeader>
       
@@ -143,29 +146,29 @@ export function OpenSearchAnalytics() {
         <div className="grid grid-cols-2 gap-3 mb-5">
           {/* Cluster Status */}
           <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
-            <span className="text-[10px] font-medium text-muted-foreground block uppercase tracking-wider">Cluster State</span>
+            <span className="text-[10px] font-medium text-muted-foreground block uppercase tracking-wider">{t('statusHeader', 'opensearch')}</span>
             <div className="flex items-center gap-1.5 mt-1">
               <span className={`h-2.5 w-2.5 rounded-full ${statusConfig.dot}`} />
-              <span className="text-sm font-mono font-bold tracking-tight text-foreground uppercase">{osData.cluster_status}</span>
+              <span className="text-sm font-mono font-bold tracking-tight text-foreground uppercase">{statusConfig.label}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground mt-1 block">Статус репликации шардов</span>
+            <span className="text-[10px] text-muted-foreground mt-1 block">{t('metricsSub', 'opensearch')}</span>
           </div>
 
           {/* Average Latency */}
           <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
-            <span className="text-[10px] font-medium text-muted-foreground block uppercase tracking-wider">Avg Latency</span>
+            <span className="text-[10px] font-medium text-muted-foreground block uppercase tracking-wider">{t('latencyHeader', 'opensearch')}</span>
             <div className="flex items-baseline gap-0.5 mt-1">
               <span className="text-base font-mono font-bold text-indigo-600 dark:text-indigo-400">{osData.avg_latency_ms.toFixed(2)}</span>
-              <span className="text-xs font-semibold text-muted-foreground">ms</span>
+              <span className="text-xs font-semibold text-muted-foreground">{language === 'ru' ? 'мс' : 'ms'}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground mt-1 block">Среднее время отклика поиска</span>
+            <span className="text-[10px] text-muted-foreground mt-1 block">{t('latencySub', 'opensearch')}</span>
           </div>
 
           {/* Memory Heap */}
           <div className="p-3 rounded-lg bg-muted/40 border border-border/60 col-span-2">
             <div className="flex justify-between items-center text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
               <span className="flex items-center gap-1">
-                <Cpu className="h-3 w-3 text-indigo-500" /> JVM Heap Memory
+                <Cpu className="h-3 w-3 text-indigo-500" /> {t('heapHeader', 'opensearch')}
               </span>
               <span className="font-mono text-foreground font-bold">{osData.heap_used_percent.toFixed(1)}%</span>
             </div>
@@ -178,8 +181,8 @@ export function OpenSearchAnalytics() {
               />
             </div>
             <div className="flex justify-between text-[9px] text-muted-foreground mt-1">
-              <span>Загрузка памяти контейнера</span>
-              <span>Total size: {formatBytes(osData.index_size_bytes)}</span>
+              <span>{t('heapSub', 'opensearch')}</span>
+              <span>{t('totalSize', 'opensearch')}: {formatBytes(osData.index_size_bytes)}</span>
             </div>
           </div>
         </div>
@@ -188,10 +191,10 @@ export function OpenSearchAnalytics() {
         <div className="pt-3 border-t">
           <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground mb-3">
             <span className="flex items-center gap-1">
-              <Database className="h-3 w-3 text-indigo-500" /> Index Registries
+              <Database className="h-3 w-3 text-indigo-500" /> {t('registriesHeader', 'opensearch')}
             </span>
             <span className="font-mono text-[10px]">
-              {osData.per_index.length} indexes • {formatDocs(osData.total_docs)}
+              {osData.per_index.length} {t('indexesCount', 'opensearch')} • {formatDocs(osData.total_docs)}
             </span>
           </div>
 
@@ -200,7 +203,7 @@ export function OpenSearchAnalytics() {
               <div 
                 key={index.name} 
                 className="flex items-center justify-between text-[11px] p-2 rounded-md bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors"
-              >
+               >
                 <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-[130px] sm:max-w-xs">{index.name}</span>
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge variant="secondary" className="bg-muted/60 text-[9.5px] px-1 py-0 pointer-events-none text-foreground font-mono">

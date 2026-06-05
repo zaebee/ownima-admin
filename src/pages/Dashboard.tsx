@@ -4,6 +4,7 @@ import { api } from "@/lib/api"
 import { subDays, format } from "date-fns"
 import { MetricsData } from "@/types/dashboard"
 import { Button } from "@/components/ui/button"
+import { useTranslation } from "@/contexts/LanguageContext"
 
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 import { StatCards } from "@/components/dashboard/StatCards"
@@ -18,6 +19,7 @@ import { ReservationsVelocityChart } from "@/components/dashboard/ReservationsVe
 import { VehicleDemandChart } from "@/components/dashboard/VehicleDemandChart"
 
 export function Dashboard() {
+  const { t } = useTranslation()
   const [metrics, setMetrics] = useState<MetricsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [systemInfo, setSystemInfo] = useState<any>(null)
@@ -91,13 +93,13 @@ export function Dashboard() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-4">
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold tracking-tight">Control Center</h2>
-          <p className="text-muted-foreground">Platform operations, analytics, and security.</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t("controlCenter")}</h2>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={handleResetShowcase} disabled={isResetting} className="h-8">
              <RotateCcw className={`mr-2 h-3.5 w-3.5 ${isResetting ? "animate-spin" : ""}`} />
-             {isResetting ? "Resetting Demo..." : "Reset Showcase Data"}
+             {isResetting ? t("resettingDemo") : t("resetDemo")}
           </Button>
 
           <div className="relative" ref={sysInfoRef}>
@@ -108,24 +110,27 @@ export function Dashboard() {
               className="h-8 gap-2 border-green-200 bg-green-50/10 hover:bg-green-50/50"
             >
                <Activity className="h-3.5 w-3.5 text-green-500 animate-pulse" />
-               <span className="text-xs text-green-700 dark:text-green-400 font-medium tracking-wide">System Online</span>
+               <span className="text-xs text-green-700 dark:text-green-400 font-medium tracking-wide">{t("systemOnline")}</span>
             </Button>
             
             {sysInfoOpen && (
                <div className="absolute right-0 top-full mt-2 w-80 rounded-md border shadow-lg overflow-hidden z-50 bg-popover text-popover-foreground animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="bg-slate-50 dark:bg-slate-900 border-b p-3 flex items-center justify-between">
                     <span className="text-foreground font-semibold font-mono text-sm tracking-tight flex items-center gap-2">
-                      <Server className="w-4 h-4 text-emerald-500 dark:text-emerald-400"/> System Diagnostics
+                      <Server className="w-4 h-4 text-emerald-500 dark:text-emerald-400"/> {t("systemDiagnostics")}
                     </span>
                   </div>
                   <div className="p-4 space-y-2.5 flex flex-col pt-4 pb-4 text-xs font-mono">
-                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">API VER:</span> <span className="text-foreground font-medium">{systemInfo?.api_version || "local"}</span></div>
-                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">APP BUILD:</span> <span className="text-foreground font-medium text-[10px]">{systemInfo?.git_commit || "dev"}</span></div>
-                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">ENV:</span> <span className="text-foreground font-medium">{systemInfo?.environment || "development"}</span></div>
-                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">PYTHON:</span> <span className="text-foreground font-medium">{systemInfo?.python_version || "unknown"}</span></div>
+                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">{t("apiVer")}:</span> <span className="text-foreground font-medium">{systemInfo?.api_version || "local"}</span></div>
+                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">{t("appBuild")}:</span> <span className="text-foreground font-medium text-[10px]">{systemInfo?.git_commit || "dev"}</span></div>
+                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">{t("env")}:</span> <span className="text-foreground font-medium">{systemInfo?.environment || "development"}</span></div>
+                     <div className="flex justify-between items-center text-muted-foreground"><span className="text-[10px] uppercase font-semibold">{t("python")}:</span> <span className="text-foreground font-medium">{systemInfo?.python_version || "unknown"}</span></div>
                      <div className="flex justify-between items-center text-muted-foreground mt-3 pt-3 border-t">
-                       <span className="text-[10px] uppercase font-semibold">UPTIME:</span> 
-                       <span className="text-foreground font-semibold">{systemInfo?.uptime_seconds ? Math.floor(systemInfo.uptime_seconds / 3600) + ' hrs ' + Math.floor((systemInfo.uptime_seconds % 3600) / 60) + ' min' : "unknown"}</span>
+                       <span className="text-[10px] uppercase font-semibold">{t("uptime")}:</span> 
+                       <span className="text-foreground font-semibold">
+                         {systemInfo?.uptime_seconds ? 
+                           `${Math.floor(systemInfo.uptime_seconds / 3600)} ${t("hrs")} ${Math.floor((systemInfo.uptime_seconds % 3600) / 60)} ${t("min")}` : "unknown"}
+                       </span>
                      </div>
                   </div>
                </div>

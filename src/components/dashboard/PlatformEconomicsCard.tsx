@@ -2,12 +2,14 @@ import { Clock, TrendingUp, CircleDollarSign, HelpCircle, Users, Car, Calendar, 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MetricsData } from "@/types/dashboard"
 import { Badge } from "@/components/ui/badge"
+import { useTranslation } from "@/contexts/LanguageContext"
 
 interface Props {
   metrics: MetricsData;
 }
 
 export function PlatformEconomicsCard({ metrics }: Props) {
+  const { t } = useTranslation()
   // 1. Vehicles per Operator (Машин на оператора)
   const totalOwners = metrics.users.owners.total || 1
   
@@ -58,16 +60,16 @@ export function PlatformEconomicsCard({ metrics }: Props) {
         <CardTitle className="text-base font-semibold flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CircleDollarSign className="h-5 w-5 text-indigo-500" />
-            Unit Economics & Fleet Efficiency
+            {t('title', 'economics')}
           </div>
           {!isApiActiveOwnersValid && (
             <Badge variant="outline" className="text-[9px] font-semibold text-amber-600 dark:text-amber-400 border-amber-500/20 px-1.5 py-0">
-              API Sandbox Derived
+              {t('sandboxBadge')}
             </Badge>
           )}
         </CardTitle>
         <CardDescription>
-          Эффективность партнеров-операторов, востребованность машин и финансовые проекции
+          {t('desc', 'economics')}
         </CardDescription>
       </CardHeader>
       <CardContent className="mt-4">
@@ -76,24 +78,24 @@ export function PlatformEconomicsCard({ metrics }: Props) {
           {/* Vehicles per Operator */}
           <div 
             className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
-            title="Машин на оператора: Показывает средний размер автопарка у партнеров-владельцев. Помогает оценивать концентрацию активов у крупных субарендаторов."
+            title={t('tooltipVehiclesPerOwner', 'economics')}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Vehicles / Operator</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">{t('vehiclesPerOperator', 'economics')}</span>
                 <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Машин на одного оператора</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t('vehiclesPerOperatorSub', 'economics')}</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-3xl font-mono font-bold text-foreground">{avgVehiclesPerOwner}</span>
-                <span className="text-xs text-muted-foreground">avg</span>
+                <span className="text-xs text-muted-foreground">{t('avg', 'economics')}</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
               <div className="flex justify-between items-center">
-                <span>Active Operators:</span>
+                <span>{t('activeOperators', 'economics')}:</span>
                 <span className="font-semibold text-foreground flex items-center gap-1">
-                  {isApiActiveOwnersValid ? activeOwners : `~${activeOwners}`} active
+                  {isApiActiveOwnersValid ? activeOwners : `~${activeOwners}`} {t('activeLabel', 'economics')}
                   {!isApiActiveOwnersValid && (
                     <span className="text-amber-500" title="Interpolated based on active vehicles database table. Real-time API query is pending backend implementation.">
                       <HelpCircle className="h-3 w-3 inline" />
@@ -102,8 +104,8 @@ export function PlatformEconomicsCard({ metrics }: Props) {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Avg for Active:</span>
-                <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">{avgVehiclesPerActiveOwner} cars</span>
+                <span>{t('avgForActive', 'economics')}:</span>
+                <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">{avgVehiclesPerActiveOwner} {t('cars', 'economics')}</span>
               </div>
             </div>
           </div>
@@ -111,27 +113,27 @@ export function PlatformEconomicsCard({ metrics }: Props) {
           {/* Average Rental Duration */}
           <div 
             className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
-            title="Средняя длительность аренды: Среднее количество дней, на которое клиенты (Riders) бронируют автомобили. Позволяет оптимизировать тарифные сетки."
+            title={t('tooltipRentDuration', 'economics')}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Avg Rent Duration</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">{t('avgRentDuration', 'economics')}</span>
                 <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-indigo-500 transition-colors" />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Средний срок аренды (в днях)</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t('avgRentDurationSub', 'economics')}</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-3xl font-mono font-bold text-foreground">{avgDurationDays}</span>
-                <span className="text-xs text-muted-foreground">days</span>
+                <span className="text-xs text-muted-foreground">{t('days', 'economics')}</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
               <div className="flex justify-between">
-                <span>Total Bookings:</span>
+                <span>{t('totalBookings', 'economics')}:</span>
                 <span className="font-semibold text-foreground">{metrics.reservations.total || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span>Active Rentals:</span>
-                <span className="font-semibold text-emerald-600">{metrics.vehicles.collected || 0} ongoing</span>
+                <span>{t('activeRentals', 'economics')}:</span>
+                <span className="font-semibold text-emerald-600">{metrics.vehicles.collected || 0} {t('ongoing', 'economics')}</span>
               </div>
             </div>
           </div>
@@ -139,21 +141,21 @@ export function PlatformEconomicsCard({ metrics }: Props) {
           {/* Average Order Value (AOV) */}
           <div 
             className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
-            title="AOV (Average Order Value): Средний чек одной совершенной поездки. Коррелирует с тарифом и загрузкой автопарка."
+            title={t('tooltipAOV', 'economics')}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Average Ticket (AOV)</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">{t('avgTicket', 'economics')}</span>
                 <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-emerald-500 transition-colors" />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Средний чек успешной сделки</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t('avgTicketSub', 'economics')}</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-2xl font-mono font-bold text-emerald-600 dark:text-emerald-400">{formattedAOV}</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
               <div className="flex justify-between">
-                <span>AOV trend:</span>
+                <span>{t('aovTrend', 'economics')}:</span>
                 <span className="font-semibold text-emerald-600 flex items-center gap-0.5">
                   <TrendingUp className="w-3 h-3" /> +4.2% MoM
                 </span>
@@ -164,22 +166,22 @@ export function PlatformEconomicsCard({ metrics }: Props) {
           {/* Monthly Gross Run-Rate */}
           <div 
             className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
-            title="Active Fleet Run-rate: Месячная экстраполяция выручки на основе текущих активных контрактов аренды. Рассчитывается как: 'Кол-во арендованных машин' × 'Среднесуточный тариф ' × 30 дней."
+            title={t('tooltipRunRate', 'economics')}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Active Fleet Run-rate</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">{t('fleetRunRate', 'economics')}</span>
                 <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-indigo-500 transition-colors" />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Линейный прогноз выручки флота за 30 дней</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t('fleetRunRateSub', 'economics')}</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-2xl font-mono font-bold text-indigo-600 dark:text-indigo-400">{formattedRunRate}</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
               <div className="flex justify-between text-muted-foreground">
-                <span>Projected Monthly Gross:</span>
-                <span className="font-semibold text-foreground">30-day run</span>
+                <span>{t('projectedGross', 'economics')}:</span>
+                <span className="font-semibold text-foreground">{t('run30days', 'economics')}</span>
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
+import { LanguageProvider } from "./contexts/LanguageContext"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Layout } from "./components/layout/Layout"
 import { LoginPage } from "./pages/LoginPage"
@@ -26,33 +27,35 @@ import { ActivityFeedPage } from "./pages/ActivityFeedPage"
 export default function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="ownima-admin-theme">
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-          {/* Публичный маршрут для входа */}
-          <Route path="/login" element={<LoginPage />} />
+      <LanguageProvider defaultLanguage="ru" storageKey="ownima-admin-lang">
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+            {/* Публичный маршрут для входа */}
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Защищенные маршруты админки */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="verifications" element={<VerificationsPage />} />
-              <Route path="users" element={<UsersPage />} />
-              <Route path="vehicles" element={<VehiclesPage />} />
-              <Route path="vehicles/:id" element={<VehicleDetailPage />} />
-              <Route path="reservations" element={<ReservationsPage />} />
-              <Route path="reservations/:id" element={<ReservationDetailPage />} />
-              <Route path="billing" element={<BillingPage />} />
-              <Route path="transactions/:id" element={<TransactionDetailPage />} />
-              <Route path="owners/:id" element={<UserDetailPage />} />
-              <Route path="riders/:id" element={<RiderDetailPage />} />
-              <Route path="activity" element={<ActivityFeedPage />} />
-              <Route path="*" element={<NotFoundPage />} />
+            {/* Защищенные маршруты админки */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="verifications" element={<VerificationsPage />} />
+                <Route path="users" element={<UsersPage />} />
+                <Route path="vehicles" element={<VehiclesPage />} />
+                <Route path="vehicles/:id" element={<VehicleDetailPage />} />
+                <Route path="reservations" element={<ReservationsPage />} />
+                <Route path="reservations/:id" element={<ReservationDetailPage />} />
+                <Route path="billing" element={<BillingPage />} />
+                <Route path="transactions/:id" element={<TransactionDetailPage />} />
+                <Route path="owners/:id" element={<UserDetailPage />} />
+                <Route path="riders/:id" element={<RiderDetailPage />} />
+                <Route path="activity" element={<ActivityFeedPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
     </ThemeProvider>
   )
 }

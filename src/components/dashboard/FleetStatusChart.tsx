@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts"
 import { MetricsData } from "@/types/dashboard"
 import { Badge } from "@/components/ui/badge"
+import { useTranslation } from "@/contexts/LanguageContext"
 
 interface Props {
   metrics: MetricsData;
@@ -11,14 +12,15 @@ interface Props {
 const COLORS = ['#10b981', '#3b82f6', '#94a3b8', '#f59e0b', '#ef4444'];
 
 export function FleetStatusChart({ metrics }: Props) {
+  const { t, language } = useTranslation()
   const totalVehicles = metrics.vehicles.total || 1
 
   const vehicleChartData = [
-    { name: 'Free', russian: 'Свободно', value: metrics.vehicles.free, color: '#10b981', desc: 'Машины готовы к аренде и видны клиентам в приложении' },
-    { name: 'Rented', russian: 'В аренде', value: metrics.vehicles.collected, color: '#3b82f6', desc: 'Автомобили находятся у арендаторов на руках' },
-    { name: 'Draft', russian: 'Черновик', value: metrics.vehicles.draft, color: '#94a3b8', desc: 'Новые машины в процессе модерации/добавления' },
-    { name: 'Maintenance', russian: 'В ремонте', value: metrics.vehicles.maintenance, color: '#f59e0b', desc: 'На сервисе, недоступны для бронирования' },
-    { name: 'Archived', russian: 'В архиве', value: metrics.vehicles.archived, color: '#ef4444', desc: 'Списанные или временно удаленные автомобили' }
+    { name: 'Free', localName: t('freeName', 'fleet'), value: metrics.vehicles.free, color: '#10b981', desc: t('freeDesc', 'fleet') },
+    { name: 'Rented', localName: t('rentedName', 'fleet'), value: metrics.vehicles.collected, color: '#3b82f6', desc: t('rentedDesc', 'fleet') },
+    { name: 'Draft', localName: t('draftName', 'fleet'), value: metrics.vehicles.draft, color: '#94a3b8', desc: t('draftDesc', 'fleet') },
+    { name: 'Maintenance', localName: t('maintenanceName', 'fleet'), value: metrics.vehicles.maintenance, color: '#f59e0b', desc: t('maintenanceDesc', 'fleet') },
+    { name: 'Archived', localName: t('archivedName', 'fleet'), value: metrics.vehicles.archived, color: '#ef4444', desc: t('archivedDesc', 'fleet') }
   ]
 
   const activeChartData = vehicleChartData.filter(d => d.value > 0)
@@ -28,17 +30,17 @@ export function FleetStatusChart({ metrics }: Props) {
       <CardHeader className="pb-1">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-foreground group cursor-help"
-                     title="Общее состояние и распределение автомобилей нашего парка по эксплуатационным статусам.">
+                     title={t('desc', 'fleet')}>
             <Car className="h-4 w-4 text-blue-500" />
-            Fleet Status
+            {t('title', 'fleet')}
             <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
           </CardTitle>
           <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">
-            {metrics.vehicles.total} cars total
+            {metrics.vehicles.total} {language === 'ru' ? 'машин всего' : 'cars total'}
           </Badge>
         </div>
         <CardDescription className="text-xs">
-          Текущая утилизация и техническое состояние автопарка машинного пула
+          {t('desc', 'fleet')}
         </CardDescription>
       </CardHeader>
       
@@ -63,14 +65,14 @@ export function FleetStatusChart({ metrics }: Props) {
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  formatter={(value: number) => [`${value} шт`, 'Количество']}
+                  formatter={(value: number) => [`${value} ${language === 'ru' ? 'шт' : 'units'}`, language === 'ru' ? 'Количество' : 'Count']}
                   contentStyle={{ borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '11px', padding: '6px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground text-xs">
-              Нет доступных автомобилей
+              {language === 'ru' ? 'Нет доступных автомобилей' : 'No vehicles available'}
             </div>
           )}
         </div>
@@ -78,8 +80,8 @@ export function FleetStatusChart({ metrics }: Props) {
         {/* Customized high-fidelity list legend making use of vertical space */}
         <div className="space-y-1.5 pt-3 border-t">
           <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-            <span>Статус авто</span>
-            <span>Доля / Кол-во</span>
+            <span>{t('statusHeader', 'fleet')}</span>
+            <span>{t('shareHeader', 'fleet')}</span>
           </div>
           
           <div className="space-y-1.5">
@@ -94,11 +96,11 @@ export function FleetStatusChart({ metrics }: Props) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium text-foreground">{item.russian}</span>
+                    <span className="font-medium text-foreground">{item.localName}</span>
                     <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">({item.name})</span>
                   </div>
                   <div className="flex items-center gap-2 font-mono text-[11px]">
-                    <span className="font-bold text-foreground">{item.value} шт.</span>
+                    <span className="font-bold text-foreground">{item.value} {language === 'ru' ? 'шт.' : 'un.'}</span>
                     <span className="text-muted-foreground font-semibold text-[10px] min-w-[38px] text-right">{sharePercent}%</span>
                   </div>
                 </div>

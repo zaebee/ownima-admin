@@ -4,7 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
 import { getMediaUrl } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { LanguageToggle } from "@/components/LanguageToggle"
 import { GlobalSearch } from "@/components/GlobalSearch"
+import { useTranslation } from "@/contexts/LanguageContext"
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -12,6 +14,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { logout, user } = useAuth()
+  const { t } = useTranslation()
 
   // Генерируем fallback по имени или email'у
   const initial = user?.full_name 
@@ -35,7 +38,8 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="relative flex flex-1 items-center max-w-md">
           <GlobalSearch />
         </div>
-        <div className="flex items-center gap-x-2 lg:gap-x-4 shrink-0">
+        <div className="flex items-center gap-x-1 lg:gap-x-3 shrink-0">
+          <LanguageToggle />
           <ThemeToggle />
           <button type="button" className="-m-2.5 p-2.5 text-muted-foreground hover:text-foreground">
             <span className="sr-only">View notifications</span>
@@ -67,7 +71,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               className="flex items-center gap-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden lg:block">Sign out</span>
+              <span className="hidden lg:block">{t("signOut")}</span>
             </button>
           </div>
         </div>

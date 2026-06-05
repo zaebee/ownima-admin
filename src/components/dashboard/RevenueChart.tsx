@@ -5,8 +5,10 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { api } from "@/lib/api"
 import { REVENUE_DATA } from "@/lib/mockData"
 import { Badge } from "@/components/ui/badge"
+import { useTranslation } from "@/contexts/LanguageContext"
 
 export function RevenueChart() {
+  const { t, language } = useTranslation()
   const [data, setData] = useState<any[]>(REVENUE_DATA)
   const [loading, setLoading] = useState(false)
   const [isMock, setIsMock] = useState(true)
@@ -37,20 +39,20 @@ export function RevenueChart() {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2 group cursor-help"
-                     title="Общий оборот платежей за последние 7 дней. Включает в себя общую стоимость оплаченной аренды и сервисный сбор платформы.">
+                     title={t('desc', 'revenue')}>
             <DollarSign className="h-5 w-5 text-emerald-500" />
-            Revenue Flow (Last 7 Days)
+            {t('title', 'revenue')}
             <HelpCircle className="h-4 w-4 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
           </CardTitle>
           <div className="flex items-center gap-2">
             {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
             <Badge variant="outline" className={`text-[9px] font-semibold tracking-wide px-1.5 py-0 ${isMock ? "text-amber-600 dark:text-amber-400 border-amber-500/20" : "text-emerald-600 dark:text-emerald-400 border-emerald-500/20"}`}>
-              {isMock ? "API Sandbox Derived" : "Live Real-Time Data"}
+              {isMock ? t('sandboxBadge') : "Live Real-Time Data"}
             </Badge>
           </div>
         </div>
         <CardDescription className="text-xs">
-          Дневной оборот арендной платы и сервисных комиссий платформы (Gross Volume & Platform Fees)
+          {t('desc', 'revenue')}
         </CardDescription>
       </CardHeader>
       <CardContent className="h-[300px] flex-1 mt-4">
@@ -78,7 +80,7 @@ export function RevenueChart() {
                 if (typeof val === 'string' && val.includes('-')) {
                   try {
                     const d = new Date(val);
-                    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                    return d.toLocaleDateString(language === 'ru' ? "ru-RU" : "en-US", { month: "short", day: "numeric" });
                   } catch {
                     return val;
                   }
@@ -90,10 +92,10 @@ export function RevenueChart() {
             <RechartsTooltip 
               contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               formatter={(value: number, name: string) => {
-                const formattedName = name === 'platform_fee' ? 'Platform Fee' : 'Revenue';
+                const formattedName = name === 'platform_fee' ? t('platformFees', 'revenue') : t('tooltipName', 'revenue');
                 return [`$${value.toLocaleString()}`, formattedName];
               }}
-              labelFormatter={(label) => `Date: ${label}`}
+              labelFormatter={(label) => `${language === 'ru' ? 'Дата' : 'Date'}: ${label}`}
             />
             <Area type="monotone" dataKey="revenue" name="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
             <Area type="monotone" dataKey="platform_fee" name="platform_fee" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorFee)" />
