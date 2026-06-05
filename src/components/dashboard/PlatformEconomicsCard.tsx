@@ -1,4 +1,4 @@
-import { Scale, Clock, TrendingUp, CircleDollarSign, HelpCircle } from "lucide-react"
+import { Clock, TrendingUp, CircleDollarSign, HelpCircle, Users, Car, Calendar, Milestone } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MetricsData } from "@/types/dashboard"
 import { Badge } from "@/components/ui/badge"
@@ -66,15 +66,24 @@ export function PlatformEconomicsCard({ metrics }: Props) {
             </Badge>
           )}
         </CardTitle>
-        <CardDescription>Key platform efficiency ratios and business performance metrics</CardDescription>
+        <CardDescription>
+          Эффективность партнеров-операторов, востребованность машин и финансовые проекции
+        </CardDescription>
       </CardHeader>
       <CardContent className="mt-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           
           {/* Vehicles per Operator */}
-          <div className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group">
+          <div 
+            className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
+            title="Машин на оператора: Показывает средний размер автопарка у партнеров-владельцев. Помогает оценивать концентрацию активов у крупных субарендаторов."
+          >
             <div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Vehicles / Operator</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Vehicles / Operator</span>
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-amber-500 transition-colors" />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Машин на одного оператора</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-3xl font-mono font-bold text-foreground">{avgVehiclesPerOwner}</span>
                 <span className="text-xs text-muted-foreground">avg</span>
@@ -86,7 +95,7 @@ export function PlatformEconomicsCard({ metrics }: Props) {
                 <span className="font-semibold text-foreground flex items-center gap-1">
                   {isApiActiveOwnersValid ? activeOwners : `~${activeOwners}`} active
                   {!isApiActiveOwnersValid && (
-                    <span className="cursor-help text-amber-500" title="Interpolated based on active vehicles database table. Real-time API query is pending backend implementation.">
+                    <span className="text-amber-500" title="Interpolated based on active vehicles database table. Real-time API query is pending backend implementation.">
                       <HelpCircle className="h-3 w-3 inline" />
                     </span>
                   )}
@@ -100,9 +109,16 @@ export function PlatformEconomicsCard({ metrics }: Props) {
           </div>
 
           {/* Average Rental Duration */}
-          <div className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80">
+          <div 
+            className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
+            title="Средняя длительность аренды: Среднее количество дней, на которое клиенты (Riders) бронируют автомобили. Позволяет оптимизировать тарифные сетки."
+          >
             <div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Avg Rent Duration</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Avg Rent Duration</span>
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-indigo-500 transition-colors" />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Средний срок аренды (в днях)</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-3xl font-mono font-bold text-foreground">{avgDurationDays}</span>
                 <span className="text-xs text-muted-foreground">days</span>
@@ -121,9 +137,16 @@ export function PlatformEconomicsCard({ metrics }: Props) {
           </div>
 
           {/* Average Order Value (AOV) */}
-          <div className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80">
+          <div 
+            className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
+            title="AOV (Average Order Value): Средний чек одной совершенной поездки. Коррелирует с тарифом и загрузкой автопарка."
+          >
             <div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Average Ticket (AOV)</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Average Ticket (AOV)</span>
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-emerald-500 transition-colors" />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Средний чек успешной сделки</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-2xl font-mono font-bold text-emerald-600 dark:text-emerald-400">{formattedAOV}</span>
               </div>
@@ -139,9 +162,16 @@ export function PlatformEconomicsCard({ metrics }: Props) {
           </div>
 
           {/* Monthly Gross Run-Rate */}
-          <div className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80">
+          <div 
+            className="flex flex-col justify-between p-4 rounded-xl bg-muted/30 border border-border/80 relative overflow-hidden group cursor-help transition-colors hover:bg-muted/50"
+            title="Active Fleet Run-rate: Месячная экстраполяция выручки на основе текущих активных контрактов аренды. Рассчитывается как: 'Кол-во арендованных машин' × 'Среднесуточный тариф ' × 30 дней."
+          >
             <div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Active Fleet Run-rate</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Active Fleet Run-rate</span>
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-indigo-500 transition-colors" />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Линейный прогноз выручки флота за 30 дней</p>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-2xl font-mono font-bold text-indigo-600 dark:text-indigo-400">{formattedRunRate}</span>
               </div>
