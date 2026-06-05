@@ -41,6 +41,7 @@ export function LoginPage() {
       })
 
       const token = response.data.access_token;
+      const refreshToken = response.data.refresh_token;
 
       // Получаем профиль пользователя для проверки роли
       const userResponse = await api.get('/users/me', {
@@ -58,7 +59,7 @@ export function LoginPage() {
       }
 
       // Сохраняем токен и перенаправляем
-      login(token)
+      login(token, refreshToken)
       navigate("/")
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {

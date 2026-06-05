@@ -18,7 +18,7 @@ interface ImpersonatedUser {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
-  login: (token: string) => void;
+  login: (token: string, refreshToken?: string) => void;
   logout: () => void;
   impersonatedUser: ImpersonatedUser | null;
   impersonateUser: (userId: string, email: string, name: string) => Promise<void>;
@@ -79,13 +79,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = (token: string) => {
+  const login = (token: string, refreshToken?: string) => {
     localStorage.setItem('admin_token', token);
+    if (refreshToken) {
+      localStorage.setItem('admin_refresh_token', refreshToken);
+    }
     setIsAuthenticated(true);
   };
 
   const logout = () => {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_refresh_token');
     localStorage.removeItem('impersonate_token');
     localStorage.removeItem('impersonated_user_info');
     setIsAuthenticated(false);
