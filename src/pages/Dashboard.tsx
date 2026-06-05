@@ -10,6 +10,7 @@ import { StatCards } from "@/components/dashboard/StatCards"
 import { RevenueChart } from "@/components/dashboard/RevenueChart"
 import { ActionRequiredAlerts } from "@/components/dashboard/ActionRequiredAlerts"
 import { UserEngagementCard } from "@/components/dashboard/UserEngagementCard"
+import { PlatformEconomicsCard } from "@/components/dashboard/PlatformEconomicsCard"
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart"
 import { BookingStatusChart } from "@/components/dashboard/BookingStatusChart"
 import { OpenSearchAnalytics } from "@/components/dashboard/OpenSearchAnalytics"
@@ -140,7 +141,10 @@ export function Dashboard() {
         <ActionRequiredAlerts metrics={metrics} />
       </div>
 
-      <UserEngagementCard metrics={metrics} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <UserEngagementCard metrics={metrics} />
+        <PlatformEconomicsCard metrics={metrics} />
+      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <FleetStatusChart metrics={metrics} />
