@@ -29,10 +29,23 @@ export function ActivityFeedPage() {
         let totalCount = 0
         
         if (activeTab === "all") {
-          // Unified Activity Feed!
-          const response = await api.get('/admin/activity/all', { params: { skip, limit } })
-          rawItems = response.data.data || response.data || []
-          totalCount = response.data.count || response.data.total || rawItems.length
+          // Fallback to separate endpoints as api/v1/admin/activity/all is not deployed yet
+          const [usersRes, vehiclesRes, resRes] = await Promise.all([
+             api.get('/admin/activity/users', { params: { skip, limit } }).catch(() => ({ data: { data: [], count: 0 } })),
+             api.get('/admin/activity/vehicles', { params: { skip, limit } }).catch(() => ({ data: { data: [], count: 0 } })),
+             api.get('/admin/activity/reservations', { params: { skip, limit } }).catch(() => ({ data: { data: [], count: 0 } }))
+          ])
+          
+          rawItems = [...(usersRes.data.data || []), ...(vehiclesRes.data.data || []), ...(resRes.data.data || [])]
+          rawItems.sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.latest_timestamp || 0).getTime()
+            const timeB = new Date(b.timestamp || b.latest_timestamp || 0).getTime()
+            return timeB - timeA
+          })
+          
+          // Slice down to limit since we merged three limit-sized arrays
+          rawItems = rawItems.slice(0, limit)
+          totalCount = (usersRes.data.count || 0) + (vehiclesRes.data.count || 0) + (resRes.data.count || 0)
         } else if (activeTab === "audit") {
           // Admin Audit Trail!
           const response = await api.get('/admin/audit-logs', { params: { skip, limit } })
